@@ -18,16 +18,19 @@ export function SiteFooter() {
 
         <address className="mt-[14px] not-italic">
           <p className="font-ui text-[14px] font-semibold">{site.addressLine}</p>
-          <p className="font-ui text-[14px]">
+          <p className="font-ui text-[14px] text-balance">
             EMAIL{" "}
-            <a href={`mailto:${site.email}`} className="underline underline-offset-2 hover:no-underline">
+            <a
+              href={`mailto:${site.email}`}
+              className="whitespace-nowrap underline underline-offset-2 hover:no-underline"
+            >
               {site.email}
             </a>
             <span className="mx-2" />
             <span className="text-[16px] font-semibold">PHONE</span>{" "}
             <a
               href={site.phoneHref}
-              className="text-[16px] font-semibold underline underline-offset-2 hover:no-underline"
+              className="text-[16px] font-semibold whitespace-nowrap underline underline-offset-2 hover:no-underline"
             >
               {site.phone}
             </a>

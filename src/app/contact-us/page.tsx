@@ -26,14 +26,14 @@ export default function ContactPage() {
         ]}
       />
 
-      <div className="relative aspect-[1440/500] w-full lg:aspect-[1440/340]">
+      <div className="relative aspect-[4/3] w-full sm:aspect-[16/7] lg:aspect-[1440/340]">
         <Image
           src="/images/shopfront.jpg"
           alt="The Peacock shopfront on River Street, South Yarra"
           fill
           sizes="100vw"
           priority
-          className="object-cover"
+          className="object-cover object-[50%_30%]"
         />
       </div>
 
