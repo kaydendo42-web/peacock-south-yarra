@@ -1,0 +1,145 @@
+{
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "colors": [
+    [
+      "rgb(0, 0, 0)",
+      97
+    ],
+    [
+      "rgb(0, 0, 238)",
+      23
+    ],
+    [
+      "rgb(255, 255, 255)",
+      19
+    ],
+    [
+      "rgb(255, 102, 20)",
+      17
+    ],
+    [
+      "rgb(24, 193, 192)",
+      1
+    ]
+  ],
+  "backgrounds": [
+    [
+      "rgb(24, 193, 192)",
+      4
+    ],
+    [
+      "rgb(255, 255, 255)",
+      3
+    ],
+    [
+      "rgba(255, 255, 255, 0)",
+      1
+    ],
+    [
+      "rgb(250, 250, 250)",
+      1
+    ]
+  ],
+  "fontFamilies": [
+    [
+      "Arial, Helvetica, sans-serif",
+      93
+    ],
+    [
+      "avenir-lt-w01_85-heavy1475544, sans-serif",
+      28
+    ],
+    [
+      "avenir-lt-w01_35-light1475496, sans-serif",
+      27
+    ],
+    [
+      "\"arial black\", arial-w01-black, arial-w02-black, \"arial-w10 black\", sans-serif",
+      5
+    ],
+    [
+      "raleway, sans-serif",
+      2
+    ],
+    [
+      "dancingscript-regular, \"dancing script\", cursive",
+      2
+    ]
+  ],
+  "fontSizes": [
+    [
+      "14px",
+      11
+    ],
+    [
+      "15px",
+      2
+    ],
+    [
+      "16px",
+      2
+    ],
+    [
+      "20px",
+      1
+    ]
+  ],
+  "fontWeights": [
+    [
+      "400",
+      10
+    ],
+    [
+      "700",
+      6
+    ]
+  ],
+  "lineHeights": [
+    [
+      "41px",
+      5
+    ],
+    [
+      "normal",
+      5
+    ],
+    [
+      "19.6px",
+      4
+    ],
+    [
+      "21px",
+      2
+    ]
+  ],
+  "letterSpacing": [
+    [
+      "normal",
+      15
+    ],
+    [
+      "1px",
+      1
+    ]
+  ],
+  "radii": [],
+  "shadows": [],
+  "sections": [
+    {
+      "i": 0,
+      "tag": "div",
+      "cls": "Y3K28_ SITE_PAGES",
+      "height": 608,
+      "padTop": "0px",
+      "padBottom": "0px",
+      "display": "block",
+      "gridCols": "none",
+      "gap": "normal",
+      "maxWidth": "none",
+      "bg": "rgba(0, 0, 0, 0)"
+    }
+  ]
+}

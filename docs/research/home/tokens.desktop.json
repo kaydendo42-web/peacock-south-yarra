@@ -1,0 +1,186 @@
+{
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "colors": [
+    [
+      "rgb(0, 0, 0)",
+      159
+    ],
+    [
+      "rgb(255, 102, 20)",
+      67
+    ],
+    [
+      "rgb(0, 0, 238)",
+      28
+    ],
+    [
+      "rgb(255, 255, 255)",
+      18
+    ],
+    [
+      "rgb(24, 193, 192)",
+      5
+    ],
+    [
+      "rgb(54, 217, 216)",
+      1
+    ]
+  ],
+  "backgrounds": [
+    [
+      "rgb(255, 255, 255)",
+      10
+    ],
+    [
+      "rgb(24, 193, 192)",
+      3
+    ],
+    [
+      "rgba(255, 255, 255, 0)",
+      1
+    ],
+    [
+      "rgb(255, 204, 177)",
+      1
+    ]
+  ],
+  "fontFamilies": [
+    [
+      "Arial, Helvetica, sans-serif",
+      148
+    ],
+    [
+      "avenir-lt-w01_35-light1475496, sans-serif",
+      51
+    ],
+    [
+      "avenir-lt-w01_85-heavy1475544, sans-serif",
+      28
+    ],
+    [
+      "brandon-grot-w01-light, brandon-grot-w05-light, sans-serif",
+      24
+    ],
+    [
+      "Arial",
+      6
+    ],
+    [
+      "dinneuzeitgroteskltw01-_812426, sans-serif",
+      5
+    ],
+    [
+      "\"arial black\", arial-w01-black, arial-w02-black, \"arial-w10 black\", sans-serif",
+      5
+    ],
+    [
+      "arial, \"ｍｓ ｐゴシック\", \"ms pgothic\", 돋움, dotum, helvetica, sans-serif",
+      4
+    ],
+    [
+      "oswald-medium, oswald, sans-serif",
+      3
+    ],
+    [
+      "dancingscript-regular, \"dancing script\", cursive",
+      2
+    ]
+  ],
+  "fontSizes": [
+    [
+      "14px",
+      11
+    ],
+    [
+      "17px",
+      6
+    ],
+    [
+      "16px",
+      2
+    ],
+    [
+      "44px",
+      1
+    ],
+    [
+      "15px",
+      1
+    ],
+    [
+      "30px",
+      1
+    ],
+    [
+      "26px",
+      1
+    ],
+    [
+      "20px",
+      1
+    ]
+  ],
+  "fontWeights": [
+    [
+      "700",
+      13
+    ],
+    [
+      "400",
+      11
+    ]
+  ],
+  "lineHeights": [
+    [
+      "normal",
+      14
+    ],
+    [
+      "41px",
+      5
+    ],
+    [
+      "19.6px",
+      4
+    ],
+    [
+      "21px",
+      1
+    ]
+  ],
+  "letterSpacing": [
+    [
+      "normal",
+      23
+    ],
+    [
+      "1px",
+      1
+    ]
+  ],
+  "radii": [
+    [
+      "50%",
+      6
+    ]
+  ],
+  "shadows": [],
+  "sections": [
+    {
+      "i": 0,
+      "tag": "div",
+      "cls": "Y3K28_ SITE_PAGES",
+      "height": 1378,
+      "padTop": "0px",
+      "padBottom": "0px",
+      "display": "block",
+      "gridCols": "none",
+      "gap": "normal",
+      "maxWidth": "none",
+      "bg": "rgba(0, 0, 0, 0)"
+    }
+  ]
+}

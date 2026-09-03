@@ -1,0 +1,186 @@
+{
+  "viewport": {
+    "w": 834,
+    "h": 1112
+  },
+  "colors": [
+    [
+      "rgb(0, 0, 0)",
+      135
+    ],
+    [
+      "rgb(0, 0, 238)",
+      23
+    ],
+    [
+      "rgb(255, 102, 20)",
+      23
+    ],
+    [
+      "rgb(255, 255, 255)",
+      18
+    ],
+    [
+      "rgb(24, 193, 192)",
+      3
+    ],
+    [
+      "rgb(46, 37, 37)",
+      3
+    ],
+    [
+      "rgb(0, 98, 179)",
+      3
+    ],
+    [
+      "rgb(36, 166, 142)",
+      1
+    ]
+  ],
+  "backgrounds": [
+    [
+      "rgb(255, 255, 255)",
+      8
+    ],
+    [
+      "rgb(24, 193, 192)",
+      3
+    ],
+    [
+      "rgba(255, 255, 255, 0)",
+      1
+    ],
+    [
+      "rgb(250, 250, 250)",
+      1
+    ]
+  ],
+  "fontFamilies": [
+    [
+      "Arial, Helvetica, sans-serif",
+      130
+    ],
+    [
+      "avenir-lt-w01_35-light1475496, sans-serif",
+      37
+    ],
+    [
+      "avenir-lt-w01_85-heavy1475544, sans-serif",
+      28
+    ],
+    [
+      "\"arial black\", arial-w01-black, arial-w02-black, \"arial-w10 black\", sans-serif",
+      5
+    ],
+    [
+      "arial, \"ｍｓ ｐゴシック\", \"ms pgothic\", 돋움, dotum, helvetica, sans-serif",
+      4
+    ],
+    [
+      "dancingscript-regular, \"dancing script\", cursive",
+      2
+    ],
+    [
+      "oswald-medium, oswald, sans-serif",
+      1
+    ],
+    [
+      "Arial",
+      1
+    ],
+    [
+      "raleway, sans-serif",
+      1
+    ]
+  ],
+  "fontSizes": [
+    [
+      "14px",
+      11
+    ],
+    [
+      "15px",
+      4
+    ],
+    [
+      "16px",
+      2
+    ],
+    [
+      "57px",
+      1
+    ],
+    [
+      "20px",
+      1
+    ]
+  ],
+  "fontWeights": [
+    [
+      "400",
+      13
+    ],
+    [
+      "700",
+      6
+    ]
+  ],
+  "lineHeights": [
+    [
+      "normal",
+      7
+    ],
+    [
+      "41px",
+      5
+    ],
+    [
+      "19.6px",
+      4
+    ],
+    [
+      "28.5px",
+      2
+    ],
+    [
+      "21px",
+      1
+    ]
+  ],
+  "letterSpacing": [
+    [
+      "normal",
+      17
+    ],
+    [
+      "-2.85px",
+      1
+    ],
+    [
+      "1px",
+      1
+    ]
+  ],
+  "radii": [],
+  "shadows": [
+    [
+      "rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      1
+    ]
+  ],
+  "sections": [
+    {
+      "i": 0,
+      "tag": "div",
+      "cls": "Y3K28_ SITE_PAGES",
+      "height": 1483,
+      "padTop": "0px",
+      "padBottom": "0px",
+      "display": "block",
+      "gridCols": "none",
+      "gap": "normal",
+      "maxWidth": "none",
+      "bg": "rgba(0, 0, 0, 0)"
+    }
+  ]
+}

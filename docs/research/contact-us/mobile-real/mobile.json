@@ -1,0 +1,152 @@
+{
+ "texts": [
+  {
+   "y": 412,
+   "x": 77,
+   "w": 165,
+   "fs": "28px",
+   "fw": "400",
+   "color": "rgb(24, 193, 192)",
+   "ff": "arial",
+   "text": "CONTACT US"
+  },
+  {
+   "y": 459,
+   "x": 24,
+   "w": 271,
+   "fs": "13px",
+   "fw": "400",
+   "color": "rgb(0, 0, 0)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "At The Peacock South Yarra, we love feedback! We're always looking for ways to improve our customer's experience and would love for you to get in touch. Use the"
+  },
+  {
+   "y": 558,
+   "x": 238,
+   "w": 44,
+   "fs": "13px",
+   "fw": "400",
+   "color": "rgb(0, 0, 0)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "Google"
+  },
+  {
+   "y": 831,
+   "x": 135,
+   "w": 49,
+   "fs": "15px",
+   "fw": "400",
+   "color": "rgb(255, 255, 255)",
+   "ff": "raleway",
+   "text": "Submit"
+  },
+  {
+   "y": 1281,
+   "x": 13,
+   "w": 294,
+   "fs": "12px",
+   "fw": "700",
+   "color": "rgb(255, 255, 255)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "CAFE:  MONDAY - FRIDAY  7am - 3pm   |   SATURDAY -"
+  },
+  {
+   "y": 1297,
+   "x": 106,
+   "w": 110,
+   "fs": "12px",
+   "fw": "700",
+   "color": "rgb(255, 255, 255)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "SUNDAY  8am - 3pm"
+  },
+  {
+   "y": 1314,
+   "x": 78,
+   "w": 164,
+   "fs": "12px",
+   "fw": "700",
+   "color": "rgb(255, 255, 255)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "PUBLIC HOLIDAYS  8am - 3pm"
+  },
+  {
+   "y": 1362,
+   "x": 63,
+   "w": 194,
+   "fs": "10px",
+   "fw": "700",
+   "color": "rgb(255, 255, 255)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "68 RIVER STREET, SOUTH YARRA, VIC, 3141"
+  },
+  {
+   "y": 1375,
+   "x": 32,
+   "w": 154,
+   "fs": "10px",
+   "fw": "400",
+   "color": "rgb(255, 255, 255)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "EMAIL hello@thepeacock.com.au"
+  },
+  {
+   "y": 1374,
+   "x": 186,
+   "w": 41,
+   "fs": "11px",
+   "fw": "700",
+   "color": "rgb(255, 255, 255)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "PHONE"
+  },
+  {
+   "y": 1374,
+   "x": 228,
+   "w": 60,
+   "fs": "11px",
+   "fw": "700",
+   "color": "rgb(255, 255, 255)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "03 85962342"
+  }
+ ],
+ "imgs": [
+  {
+   "src": "https://static.wixstatic.com/media/3b2128_1f55e6ceaf874ad8b2e0b6e86e96adcd~mv2.png/v1/fill/w_334,h_40,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/THE%20PEACOCK_edited.png",
+   "alt": "THE PEACOCK_edited.png",
+   "w": 167,
+   "h": 20,
+   "y": 17
+  },
+  {
+   "src": "https://static.wixstatic.com/media/e1aa082f7c0747168d9cf43e77046142.png/v1/fill/w_48,h_48,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/e1aa082f7c0747168d9cf43e77046142.png",
+   "alt": "Instagram",
+   "w": 24,
+   "h": 24,
+   "y": 16
+  },
+  {
+   "src": "https://static.wixstatic.com/media/4057345bcf57474b96976284050c00df.png/v1/fill/w_48,h_48,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/4057345bcf57474b96976284050c00df.png",
+   "alt": "Facebook",
+   "w": 24,
+   "h": 24,
+   "y": 16
+  },
+  {
+   "src": "https://static.wixstatic.com/media/7dd077_442c7f42554e4a529630e3fb0cb0cfb1~mv2.jpg/v1/fill/w_640,h_582,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/7dd077_442c7f42554e4a529630e3fb0cb0cfb1~mv2.jpg",
+   "alt": "the peacock front deck",
+   "w": 320,
+   "h": 291,
+   "y": 83
+  },
+  {
+   "src": "https://static.wixstatic.com/media/3b2128_1f096804ac3a494e87add112e12f503e~mv2.png/v1/crop/x_0,y_368,w_1080,h_312/fill/w_240,h_72,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Untitled%20design%20-%202021-09-27T161157_492.png",
+   "alt": "Untitled design - 2021-09-27T161157.492.png",
+   "w": 120,
+   "h": 36,
+   "y": 953
+  }
+ ],
+ "h": 1410
+}

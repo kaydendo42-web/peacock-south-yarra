@@ -1,0 +1,112 @@
+{
+ "texts": [
+  {
+   "y": 552,
+   "x": 13,
+   "w": 294,
+   "fs": "12px",
+   "fw": "700",
+   "color": "rgb(255, 255, 255)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "CAFE:  MONDAY - FRIDAY  7am - 3pm   |   SATURDAY -"
+  },
+  {
+   "y": 569,
+   "x": 106,
+   "w": 110,
+   "fs": "12px",
+   "fw": "700",
+   "color": "rgb(255, 255, 255)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "SUNDAY  8am - 3pm"
+  },
+  {
+   "y": 586,
+   "x": 78,
+   "w": 164,
+   "fs": "12px",
+   "fw": "700",
+   "color": "rgb(255, 255, 255)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "PUBLIC HOLIDAYS  8am - 3pm"
+  },
+  {
+   "y": 633,
+   "x": 63,
+   "w": 194,
+   "fs": "10px",
+   "fw": "700",
+   "color": "rgb(255, 255, 255)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "68 RIVER STREET, SOUTH YARRA, VIC, 3141"
+  },
+  {
+   "y": 646,
+   "x": 32,
+   "w": 154,
+   "fs": "10px",
+   "fw": "400",
+   "color": "rgb(255, 255, 255)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "EMAIL hello@thepeacock.com.au"
+  },
+  {
+   "y": 645,
+   "x": 186,
+   "w": 41,
+   "fs": "11px",
+   "fw": "700",
+   "color": "rgb(255, 255, 255)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "PHONE"
+  },
+  {
+   "y": 645,
+   "x": 228,
+   "w": 60,
+   "fs": "11px",
+   "fw": "700",
+   "color": "rgb(255, 255, 255)",
+   "ff": "avenir-lt-w01_35-light1475496",
+   "text": "03 85962342"
+  }
+ ],
+ "imgs": [
+  {
+   "src": "https://static.wixstatic.com/media/3b2128_1f55e6ceaf874ad8b2e0b6e86e96adcd~mv2.png/v1/fill/w_334,h_40,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/THE%20PEACOCK_edited.png",
+   "alt": "THE PEACOCK_edited.png",
+   "w": 167,
+   "h": 20,
+   "y": 17
+  },
+  {
+   "src": "https://static.wixstatic.com/media/e1aa082f7c0747168d9cf43e77046142.png/v1/fill/w_48,h_48,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/e1aa082f7c0747168d9cf43e77046142.png",
+   "alt": "Instagram",
+   "w": 24,
+   "h": 24,
+   "y": 16
+  },
+  {
+   "src": "https://static.wixstatic.com/media/4057345bcf57474b96976284050c00df.png/v1/fill/w_48,h_48,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/4057345bcf57474b96976284050c00df.png",
+   "alt": "Facebook",
+   "w": 24,
+   "h": 24,
+   "y": 16
+  },
+  {
+   "src": "https://static.wixstatic.com/media/7dd077_fdc343a0514e4eaaa36d17db6f777aec~mv2.jpg/v1/fill/w_560,h_396,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/7dd077_fdc343a0514e4eaaa36d17db6f777aec~mv2.jpg",
+   "alt": "",
+   "w": 280,
+   "h": 198,
+   "y": 103
+  },
+  {
+   "src": "https://static.wixstatic.com/media/7dd077_89737f8bc614433a8005b0a627444701~mv2.jpg/v1/fill/w_560,h_396,al_c,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/7dd077_89737f8bc614433a8005b0a627444701~mv2.jpg",
+   "alt": "",
+   "w": 280,
+   "h": 198,
+   "y": 311
+  }
+ ],
+ "h": 693
+}
