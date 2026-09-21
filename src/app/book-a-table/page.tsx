@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
+import BookingExperience from "@/booking/BookingExperience";
 import { BreadcrumbSchema } from "@/components/structured-data";
-import { site } from "@/lib/site";
+import { hours, site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Book a table",
-  description:
-    "Get in touch with The Peacock South Yarra to plan your next visit.",
+  description: `Pick your table on the floor plan and choose a time. All-day brunch at ${site.shortName}, ${site.suburb}.`,
   alternates: { canonical: "/book-a-table" },
 };
 
@@ -18,24 +18,28 @@ export default function BookingPage() {
           { name: "Book a table", path: "/book-a-table" },
         ]}
       />
-      <header className="page-masthead container booking-handoff">
+      <header className="page-masthead container booking-masthead">
         <p className="eyebrow">There’s a place for you here</p>
         <h1>
           LET’S MAKE
           <br />
           <span className="angled-title">BRUNCH PLANS.</span>
         </h1>
-        {/* Booking-system integration is intentionally reserved for Jason. */}
-        <p>
-          Online bookings are on their way.
-          <br />
-          For now, give the team a call to arrange your visit.
+        <p className="booking-masthead__lede">
+          Choose where you’d like to sit, not just when. Weekdays{" "}
+          {hours.weekdays.display}, weekends {hours.weekend.display} — or call{" "}
+          <a className="text-link" href={site.phoneHref}>
+            {site.phone}
+          </a>{" "}
+          for a party of more than eight.
         </p>
-        <a className="button" href={site.phoneHref}>
-          Call {site.phone}
-          <span aria-hidden="true">↗</span>
-        </a>
       </header>
+
+      <section className="section booking-section">
+        <div className="container">
+          <BookingExperience />
+        </div>
+      </section>
     </>
   );
 }

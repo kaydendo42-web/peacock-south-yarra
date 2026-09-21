@@ -1,0 +1,1280 @@
+/* ------------------------------------------------------------------
+   The booking system.
+
+   Ported from the standalone build in `peregrinetable/`, whose stylesheet
+   owned the whole document: `html, body, #root { height: 100% }`, its own
+   @font-face rules, and generic class names — `.panel`, `.btn`, `.field`,
+   `.label` — that would have become the site's names too.
+
+   Here every selector below is scoped under `.pt-root`, the fonts come from
+   next/font in `layout.tsx`, and the app is sized by a frame on a page that
+   has a header above it and a footer below. Nothing else about the layout
+   changed: the values are the ones in `peregrinetable/.claude/rules/
+   art-direction.md`, which are as deliberate as the ones in DESIGN_TOKENS.md.
+
+   The palette is the one exception, and it is the point of the port: the
+   standalone build's teal sky, coral tables and yellow accent are gone, and
+   the tokens below carry the website's own colours instead. The *structure* is
+   untouched — three lightnesses per solid, one accent, one hairline — so every
+   rule further down still means what it meant. `src/booking/scene/palette.ts`
+   holds the same values for the 3D room and has to be edited with this block.
+   ------------------------------------------------------------------ */
+
+.pt-root {
+  /* Background — never appears on geometry. The site's mint. */
+  --mv-sky-top: #a6dccf;
+  --mv-sky-bottom: #8bd3c4;
+
+  /* Available table / active architecture. The site's pink. */
+  --mv-coral-top: #f7d3dc;
+  --mv-coral-light: #efb8c4;
+  --mv-coral-dark: #d2909f;
+
+  /* Booked table / background architecture — the site's pale sage, drained. */
+  --mv-drained-top: #dfe3d4;
+  --mv-drained-light: #d2d7c5;
+  --mv-drained-dark: #c2c8b4;
+
+  /* Stone — floors, platforms, stairs, panels. The site's paper. */
+  --mv-stone-top: #fff9ed;
+  --mv-stone-light: #f2ead6;
+  --mv-stone-dark: #e0d7bf;
+
+  /* Accent — a chosen table, a chosen time, nothing else. Ceiling: 3% of
+     screen pixels. Forest is the darkest value in the palette rather than the
+     brightest, which is the swap that keeps the accent scarce without a
+     yellow the website has never used. */
+  --mv-accent: #244d3d;
+  --mv-accent-dark: #17382c;
+  --mv-accent-ink: #fff9ed;
+
+  /* Primary action. Pink, so the button you are meant to press is the colour
+     of the tables you are allowed to have. */
+  --mv-primary: #efb8c4;
+  --mv-primary-dark: #e2a3b2;
+  --mv-primary-ink: #244d3d;
+
+  /* A refusal — a table taken while someone was typing, a change that would
+     not save. Pink is too soft to carry it, so this is the one value with no
+     job in the room. */
+  --mv-alert: #9c3f52;
+
+  /* Interactive markers, small inlays: zone thresholds, the bar rail. */
+  --mv-marker: #3d7d65;
+
+  /* Type and hairlines. The site's forest. */
+  --mv-ink: #244d3d;
+
+  --mv-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --mv-radius: 2px;
+  --mv-hairline: color-mix(in srgb, var(--mv-ink) 12%, transparent);
+
+  background: var(--mv-sky-bottom);
+  color: var(--mv-ink);
+  font-family: var(--font-jost), 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1.5;
+  border: 1px solid var(--mv-hairline);
+  border-radius: var(--mv-radius);
+  overflow: hidden;
+}
+
+/* The site sets a display face, a 0.95 line-height and a clamped size on every
+   heading, and 18px Jost on the body. Inside the booking system a heading is
+   `.display .t-22` and nothing more, so the inherited rules are handed back
+   before the type scale below gets its turn. `:where()` keeps this at the
+   specificity of a single class, so `.display` and `.t-*` still win on order. */
+.pt-root :where(h1, h2, h3, h4, p, address, dl, dd, figure) {
+  font: inherit;
+  letter-spacing: inherit;
+  margin: 0;
+}
+
+/* A 5px offset is right on a 52px pill and wrong on a 40px chip in a grid of
+   eight — at this density it lands on the neighbours. */
+.pt-root :focus-visible {
+  outline: 2px solid var(--mv-ink);
+  outline-offset: 2px;
+}
+
+.pt-root *,
+.pt-root *::before,
+.pt-root *::after {
+  box-sizing: border-box;
+}
+
+/* --- Type scale: 11 / 13 / 16 / 22 / 40. Nothing between. --------- */
+
+.pt-root .t-11 {
+  font-size: 11px;
+}
+
+.pt-root .t-13 {
+  font-size: 13px;
+}
+
+.pt-root .t-16 {
+  font-size: 16px;
+}
+
+.pt-root .t-22 {
+  font-size: 22px;
+}
+
+.pt-root .t-40 {
+  font-size: 40px;
+  line-height: 1.1;
+}
+
+/* The display treatment, in the website's two faces rather than the standalone
+   build's one.
+
+   It splits by size, the way the site itself splits. At 11 and 13 px `.display`
+   is a caption — a date, a service heading, a field name — and takes the site's
+   `.eyebrow`: Jost 600, uppercase, 0.13em. At 16 px and up it is a heading, and
+   takes the site's heading face: Fira Sans Extra Condensed 900, which is what
+   every `<h1>`/`<h2>` on the marketing pages is set in.
+
+   A condensed face needs more millimetres than a normal-width one to carry the
+   same weight on a page, so the two heading steps are set here rather than
+   taken from the 11/13/16/22/40 text scale. They are still only two values, and
+   they are the scale's own numbers one step up. */
+
+.pt-root .display {
+  font-family: var(--font-jost), 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+}
+
+.pt-root .display.t-16,
+.pt-root .display.t-22,
+.pt-root .display.t-40 {
+  font-family: var(--font-fira), 'Helvetica Neue', Impact, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.015em;
+}
+
+.pt-root .display.t-16 {
+  font-size: 22px;
+}
+
+.pt-root .display.t-22 {
+  font-size: 32px;
+  line-height: 1;
+}
+
+.pt-root .display.t-40 {
+  font-size: 56px;
+  line-height: 0.95;
+}
+
+.pt-root .ink-60 {
+  color: color-mix(in srgb, var(--mv-ink) 60%, transparent);
+}
+
+.pt-root .ink-45 {
+  color: color-mix(in srgb, var(--mv-ink) 45%, transparent);
+}
+
+.pt-root .ink-35 {
+  color: color-mix(in srgb, var(--mv-ink) 35%, transparent);
+}
+
+/* --- Panels ------------------------------------------------------- */
+
+.pt-root .panel {
+  background: var(--mv-stone-top);
+  border: 1px solid var(--mv-hairline);
+  border-radius: var(--mv-radius);
+  padding: 16px;
+}
+
+.pt-root .rule {
+  height: 1px;
+  background: var(--mv-hairline);
+  border: 0;
+  margin: 0;
+}
+
+/* --- Buttons ------------------------------------------------------ */
+
+.pt-root .btn {
+  font-family: var(--font-jost), sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--mv-radius);
+  background: color-mix(in srgb, var(--mv-ink) 8%, transparent);
+  color: var(--mv-ink);
+  cursor: pointer;
+  transition: background 160ms var(--mv-ease), color 160ms var(--mv-ease);
+  text-align: center;
+}
+
+.pt-root .btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--mv-ink) 14%, transparent);
+}
+
+.pt-root .btn--primary {
+  background: var(--mv-primary);
+  color: var(--mv-primary-ink);
+}
+
+.pt-root .btn--primary:hover:not(:disabled) {
+  background: var(--mv-primary-dark);
+}
+
+.pt-root .btn--selected {
+  background: var(--mv-accent);
+  color: var(--mv-accent-ink);
+}
+
+.pt-root .btn--selected:hover:not(:disabled) {
+  background: var(--mv-accent-dark);
+}
+
+.pt-root .btn:disabled {
+  background: var(--mv-drained-light);
+  color: color-mix(in srgb, var(--mv-ink) 35%, transparent);
+  cursor: not-allowed;
+}
+
+.pt-root .btn--quiet {
+  background: transparent;
+  border-color: var(--mv-hairline);
+}
+
+/* --- Fields ------------------------------------------------------- */
+
+.pt-root .field {
+  width: 100%;
+  font-family: var(--font-jost), sans-serif;
+  font-size: 13px;
+  padding: 10px 12px;
+  color: var(--mv-ink);
+  background: var(--mv-stone-light);
+  border: 1px solid var(--mv-hairline);
+  border-radius: var(--mv-radius);
+  transition: border-color 160ms var(--mv-ease);
+}
+
+.pt-root .field:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--mv-ink) 40%, transparent);
+}
+
+.pt-root .field::placeholder {
+  color: color-mix(in srgb, var(--mv-ink) 35%, transparent);
+}
+
+.pt-root .label {
+  display: block;
+  font-family: var(--font-jost), sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  font-size: 11px;
+  color: color-mix(in srgb, var(--mv-ink) 60%, transparent);
+  margin-bottom: 8px;
+}
+
+/* --- Motion (§9): one curve, slide-and-fade, never scale ---------- */
+
+@keyframes mv-enter {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.pt-root .enter {
+  animation: mv-enter 320ms var(--mv-ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-root *,
+.pt-root *::before,
+.pt-root *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* Scrollbars stay out of the way — the frame is the composition */
+
+.pt-root .scroll-y {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--mv-stone-dark) transparent;
+}
+
+/* --- Scene ---------------------------------------------------------- */
+
+.pt-root .scene {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* The sky gradient of Reference 5. Lives behind the canvas, never on geometry. */
+  background: linear-gradient(180deg, var(--mv-sky-top) 0%, var(--mv-sky-bottom) 100%);
+  overflow: hidden;
+}
+
+.pt-root .scene canvas {
+  display: block;
+  /* pan-y, not none: on a phone the page scrolls past the map, and a finger
+     that lands on the room must still be able to scroll it. */
+  touch-action: pan-y;
+}
+
+.pt-root .scene__controls {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+.pt-root .scene__turn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mv-stone-top);
+  border-color: var(--mv-hairline);
+  color: var(--mv-ink);
+}
+
+/* --- App shell ------------------------------------------------------- */
+
+.pt-root .app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--mv-sky-bottom);
+}
+
+.pt-root .app__bar {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 16px 24px;
+  background: var(--mv-stone-top);
+  border-bottom: 1px solid var(--mv-hairline);
+  flex: 0 0 auto;
+}
+
+.pt-root .app__body {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+}
+
+.pt-root .app__body > .scene {
+  flex: 1 1 auto;
+}
+
+/* --- Guest flow ------------------------------------------------------ */
+
+.pt-root .guest__scene {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+}
+
+/* The gate sits on the sky, before there is any scene to sit beside. */
+
+.pt-root .gate-wrap {
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: linear-gradient(180deg, var(--mv-sky-top) 0%, var(--mv-sky-bottom) 100%);
+}
+
+.pt-root .gate {
+  width: 100%;
+  max-width: 440px;
+  padding: 24px;
+}
+
+.pt-root .gate__title {
+  margin: 0;
+}
+
+.pt-root .gate__lede {
+  margin: 8px 0 16px;
+}
+
+.pt-root .gate__field {
+  margin: 16px 0;
+}
+
+.pt-root .gate__date {
+  margin-top: 8px;
+}
+
+.pt-root .gate__service {
+  margin-bottom: 16px;
+}
+
+.pt-root .gate__service > .label,
+.pt-root .gate__service > .display {
+  display: block;
+  margin: 8px 0;
+}
+
+.pt-root .gate__actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* Summary bar — the gate, collapsed. Click to reopen. */
+
+.pt-root .summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 24px;
+  background: var(--mv-stone-top);
+  border: 0;
+  border-bottom: 1px solid var(--mv-hairline);
+  color: var(--mv-ink);
+  font-family: var(--font-jost), sans-serif;
+  text-align: left;
+  cursor: pointer;
+  flex: 0 0 auto;
+  transition: background 160ms var(--mv-ease);
+}
+
+.pt-root .summary:hover {
+  background: var(--mv-stone-light);
+}
+
+.pt-root .summary__dot {
+  width: 3px;
+  height: 3px;
+  background: color-mix(in srgb, var(--mv-ink) 30%, transparent);
+}
+
+.pt-root .summary__change {
+  margin-left: auto;
+}
+
+/* The disclosure header and the back link exist only under the phone
+   breakpoint, where the dock sits above the map. */
+
+.pt-root .dock__toggle,
+.pt-root .dock__back {
+  display: none;
+}
+
+/* Docked column. Always present, so the scene never resizes. */
+
+.pt-root .dock {
+  flex: 0 0 328px;
+  min-height: 0;
+  background: var(--mv-stone-top);
+  border-left: 1px solid var(--mv-hairline);
+  overflow-y: auto;
+}
+
+.pt-root .dock__body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pt-root .dock__head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pt-root .dock__cta {
+  margin-top: 8px;
+}
+
+.pt-root .dock__actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pt-root .dock__error {
+  color: var(--mv-alert);
+}
+
+.pt-root .dock label.stack-8 {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pt-root .stack-8 {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pt-root .grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); gap: 8px;
+}
+
+.pt-root .grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); gap: 8px;
+}
+
+.pt-root .grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+
+.pt-root .grid-8 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+
+.pt-root .row-btn {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+}
+
+.pt-root .summary-list {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.pt-root .summary-list dd {
+  margin: 0;
+}
+
+.pt-root textarea.field {
+  resize: vertical;
+  font-family: var(--font-jost), sans-serif;
+}
+
+/* --- Owner console --------------------------------------------------- */
+
+.pt-root .btn--sm {
+  padding: 6px 10px;
+  font-size: 11px;
+}
+
+.pt-root .app__bar--owner {
+  gap: 24px;
+}
+
+.pt-root .owner-nav {
+  display: flex;
+  gap: 16px;
+}
+
+.pt-root .owner-nav__link {
+  font-family: var(--font-jost), sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  font-size: 11px;
+  color: color-mix(in srgb, var(--mv-ink) 45%, transparent);
+  text-decoration: none;
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+  transition: color 160ms var(--mv-ease);
+}
+
+.pt-root .owner-nav__link:hover {
+  color: var(--mv-ink);
+}
+
+.pt-root .owner-nav__link.is-current {
+  color: var(--mv-ink);
+  border-bottom-color: var(--mv-ink);
+}
+
+.pt-root .owner-bar__out {
+  margin-left: auto;
+}
+
+.pt-root .login {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 360px;
+}
+
+.pt-root .datebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--mv-stone-top);
+  border-bottom: 1px solid var(--mv-hairline);
+  flex: 0 0 auto;
+}
+
+.pt-root .datebar__label {
+  min-width: 200px;
+}
+
+.pt-root .datebar__date {
+  width: 168px;
+}
+
+.pt-root .datebar__spacer {
+  flex: 1 1 auto;
+}
+
+.pt-root .summary-row {
+  display: flex;
+  align-items: stretch;
+  background: var(--mv-stone-top);
+  border-bottom: 1px solid var(--mv-hairline);
+  flex: 0 0 auto;
+}
+
+/* Inside the owner's row the summary shares space with the exit button, so it
+   must flex rather than claim the full width. */
+
+.pt-root .summary-row .summary {
+  border-bottom: 0;
+  width: auto;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.pt-root .summary-row__exit {
+  margin: 8px 24px 8px 0;
+  align-self: center;
+}
+
+/* Run sheet */
+
+.pt-root .app__body--sheet {
+  display: block;
+  padding: 24px;
+  background: var(--mv-stone-light);
+}
+
+.pt-root .sheet__empty {
+  margin: 0;
+}
+
+.pt-root .sheet__service {
+  margin-bottom: 32px;
+}
+
+.pt-root .sheet__heading {
+  margin: 0 0 8px;
+}
+
+.pt-root .sheet {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--mv-stone-top);
+  border: 1px solid var(--mv-hairline);
+  border-radius: var(--mv-radius);
+}
+
+.pt-root .sheet th,
+.pt-root .sheet td {
+  text-align: left;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--mv-hairline);
+  vertical-align: middle;
+}
+
+/* .label is a block-level field caption; inside a table it has to stay a cell. */
+
+.pt-root .sheet th.label {
+  display: table-cell;
+  margin: 0;
+}
+
+.pt-root .sheet tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.pt-root .sheet__row.is-released td {
+  color: color-mix(in srgb, var(--mv-ink) 45%, transparent);
+}
+
+.pt-root .sheet__notes {
+  max-width: 220px;
+  color: color-mix(in srgb, var(--mv-ink) 60%, transparent);
+}
+
+.pt-root .sheet__actions-head {
+  text-align: right;
+}
+
+.pt-root .sheet__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.pt-root .sheet__edit-row td {
+  background: var(--mv-stone-light);
+  padding: 16px;
+}
+
+.pt-root .edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.pt-root .edit__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 160px;
+}
+
+.pt-root .edit__field--narrow {
+  flex: 0 0 104px;
+}
+
+.pt-root .edit__field--wide {
+  flex: 2 1 280px;
+}
+
+.pt-root .edit__actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Owner floor: table pins and the per-table day list */
+
+.pt-root .pin {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: var(--mv-stone-top);
+  border: 1px solid var(--mv-hairline);
+  border-radius: var(--mv-radius);
+  font-family: var(--font-jost), sans-serif;
+  font-size: 11px;
+  color: var(--mv-ink);
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+}
+
+.pt-root .pin__party {
+  color: color-mix(in srgb, var(--mv-ink) 45%, transparent);
+}
+
+.pt-root .day-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--mv-hairline);
+}
+
+.pt-root .day-row:last-child {
+  border-bottom: 0;
+}
+
+.pt-root .day-row.is-released {
+  color: color-mix(in srgb, var(--mv-ink) 45%, transparent);
+}
+
+.pt-root .day-row__time {
+  font-family: var(--font-jost), sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+/* ====================================================================== */
+/*  Phone                                                                  */
+/*                                                                         */
+/*  Everything below this line is scoped to one breakpoint. Nothing above  */
+/*  it changes, which is what keeps the computer build exactly as it was.  */
+/*  The layout inverts: details on top, map underneath at a fixed height,  */
+/*  and the selection menu drops down and pushes the map further down the  */
+/*  page rather than covering it — so §8's "panels never overlay the       */
+/*  scene" and "the scene never resizes" both still hold.                  */
+/* ====================================================================== */
+
+@media (max-width: 767px) {
+  /* The page scrolls now, so the shell stops being a fixed-height frame. The
+     heights themselves are handed back at the bottom of this file, after the
+     frames that set them. */
+
+  .pt-root .app__bar {
+    padding: 12px 16px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .pt-root .app__body {
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  /* Details above, map below. */
+
+  .pt-root .dock {
+    order: 0;
+    flex: 0 0 auto;
+    border-left: 0;
+    border-bottom: 1px solid var(--mv-hairline);
+    overflow: visible;
+  }
+
+  /* The room is framed by whichever axis is tighter, so the box it sits in has
+     to be the shape of the room or the surplus is spent on empty sky. A flat
+     52dvh here left the width binding and about a third of the box empty above
+     and below the case. --mv-scene-aspect is the projected footprint's own
+     ratio, published by FloorPlan (SCENE_ASPECT). Still fixed at a given
+     width, so dropping the menu down never resizes the room. */
+
+  .pt-root .guest__scene {
+    order: 1;
+    flex: 0 0 auto;
+  }
+
+  .pt-root .guest__scene .scene {
+    height: auto;
+    aspect-ratio: var(--mv-scene-aspect);
+    min-height: 260px;
+    /* A floor for very narrow screens, a ceiling so the room never takes the
+       whole page. Between them the aspect governs. */
+    max-height: 62dvh;
+  }
+
+  /* --- the disclosure ------------------------------------------------ */
+
+  .pt-root .dock__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 16px;
+    background: var(--mv-stone-top);
+    border: 0;
+    color: var(--mv-ink);
+    font-family: var(--font-jost), sans-serif;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .pt-root .dock__toggle-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pt-root .dock__caret {
+    flex: 0 0 auto;
+    transition: transform 320ms var(--mv-ease);
+  }
+
+  .pt-root .dock.is-open .dock__caret {
+    transform: rotate(180deg);
+  }
+
+  .pt-root .dock:not(.is-open) .dock__body {
+    display: none;
+  }
+
+  .pt-root .dock:not(.is-open) .dock__back {
+    display: none;
+  }
+
+  .pt-root .dock__body {
+    padding: 16px;
+    border-top: 1px solid var(--mv-hairline);
+  }
+
+  /* Panels slide down rather than in from the side. */
+
+  @keyframes mv-enter-down {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .pt-root .dock .enter {
+    animation: mv-enter-down 320ms var(--mv-ease) both;
+  }
+
+  .pt-root .dock__back {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 12px 16px;
+    background: none;
+    border: 0;
+    border-top: 1px solid var(--mv-hairline);
+    color: color-mix(in srgb, var(--mv-ink) 60%, transparent);
+    font-family: var(--font-jost), sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    font-size: 11px;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  /* --- tap targets ---------------------------------------------------- */
+
+  .pt-root .btn {
+    min-height: 44px;
+  }
+
+  .pt-root .btn--sm {
+    min-height: 40px;
+    padding: 8px 12px;
+  }
+
+  .pt-root .scene__turn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .pt-root .scene__controls {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  /* --- gate ------------------------------------------------------------ */
+
+  .pt-root .gate-wrap {
+    padding: 16px;
+    align-items: flex-start;
+  }
+
+  .pt-root .gate {
+    padding: 16px;
+  }
+
+  .pt-root .gate .grid-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* --- summary bars ---------------------------------------------------- */
+
+  .pt-root .summary {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+
+  .pt-root .summary__change {
+    margin-left: 0;
+  }
+
+  .pt-root .summary-row {
+    flex-wrap: wrap;
+  }
+
+  .pt-root .summary-row__exit {
+    margin: 0 16px 12px;
+  }
+
+  /* --- owner chrome ---------------------------------------------------- */
+
+  .pt-root .app__bar--owner {
+    gap: 12px;
+  }
+
+  .pt-root .owner-bar__out {
+    margin-left: auto;
+  }
+
+  .pt-root .datebar {
+    flex-wrap: wrap;
+    padding: 12px 16px;
+  }
+
+  .pt-root .datebar__label {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .pt-root .datebar__date {
+    width: 100%;
+  }
+
+  .pt-root .datebar__spacer {
+    display: none;
+  }
+
+  /* --- run sheet becomes cards ----------------------------------------- */
+
+  .pt-root .app__body--sheet {
+    padding: 16px;
+  }
+
+  .pt-root .sheet,
+.pt-root .sheet tbody,
+.pt-root .sheet tr,
+.pt-root .sheet td {
+    display: block;
+    width: 100%;
+  }
+
+  .pt-root .sheet thead {
+    display: none;
+  }
+
+  .pt-root .sheet {
+    border: 0;
+    background: none;
+  }
+
+  .pt-root .sheet__row {
+    background: var(--mv-stone-top);
+    border: 1px solid var(--mv-hairline);
+    border-radius: var(--mv-radius);
+    margin-bottom: 8px;
+    padding: 4px 0;
+  }
+
+  .pt-root .sheet td {
+    border-bottom: 0;
+    padding: 6px 16px;
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+  }
+
+  /* The column heading travels with the cell instead of sitting in a row. */
+
+  .pt-root .sheet td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 72px;
+    font-family: var(--font-jost), sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    font-size: 11px;
+    color: color-mix(in srgb, var(--mv-ink) 45%, transparent);
+  }
+
+  /* An empty notes cell would otherwise leave a stray label behind. */
+
+  .pt-root .sheet td.sheet__notes:empty {
+    display: none;
+  }
+
+  .pt-root .sheet__notes {
+    max-width: none;
+  }
+
+  .pt-root .sheet__actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 12px 16px 8px;
+    border-top: 1px solid var(--mv-hairline);
+    margin-top: 4px;
+  }
+
+  .pt-root .sheet__edit-row {
+    display: block;
+  }
+
+  .pt-root .sheet__edit-row td {
+    display: block;
+    padding: 12px;
+  }
+
+  .pt-root .edit {
+    gap: 12px;
+  }
+
+  .pt-root .edit__field,
+.pt-root .edit__field--narrow,
+.pt-root .edit__field--wide {
+    flex: 1 1 100%;
+  }
+
+  .pt-root .edit__actions {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .pt-root .edit__actions .btn {
+    flex: 1 1 auto;
+  }
+
+  /* --- gestures -------------------------------------------------------- */
+  /* pan-y leaves one-finger page scrolling to the browser. During a pinch the
+     canvas takes the whole gesture, or the page scrolls as the room zooms. */
+
+  .pt-root .scene.is-pinching canvas {
+    touch-action: none;
+  }
+
+  /* --- table pins ------------------------------------------------------ */
+  /* Party counts crowd at this width; the time is the part that matters. */
+
+  .pt-root .pin__party {
+    display: none;
+  }
+}
+
+.pt-root .sheet__problem {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  background: var(--mv-stone-top);
+  border: 1px solid var(--mv-hairline);
+  border-left: 3px solid var(--mv-alert);
+  border-radius: var(--mv-radius);
+  color: var(--mv-alert);
+}
+
+/* --- Frames -------------------------------------------------------
+   The standalone build was the whole viewport and could take its height from
+   the document. Here the height has to be granted, and these are the three
+   sizes anything gets: a guest frame that leaves the masthead and a little of
+   the footer showing, a taller one for the owner's floor view, and no frame at
+   all for the run sheet, which is a table and wants the page's own scroll.
+   ------------------------------------------------------------------ */
+
+.pt-frame {
+  /* Tall enough that the gate — the tallest thing the frame ever holds, at a
+     party size, two date rows and up to sixteen time chips — fits without an
+     inner scrollbar on a laptop. */
+  height: clamp(620px, calc(100dvh - 230px), 820px);
+}
+
+.pt-frame--tall {
+  height: clamp(620px, calc(100dvh - 190px), 900px);
+}
+
+.pt-console {
+  height: auto;
+}
+
+.pt-console .app {
+  height: auto;
+}
+
+/* Bounded scrolling is the frame's job; with no frame the page does it. */
+.pt-console .app__body--sheet {
+  overflow: visible;
+}
+
+/* Except when the console is running the guest flow to take a booking over the
+   phone. The room is framed by whichever axis is tighter, so without a height
+   here it collapses to whatever the panel beside it happens to be. */
+.pt-console .app--flow {
+  height: clamp(620px, calc(100dvh - 190px), 900px);
+}
+
+/* The room arrives with its own JavaScript, so the placeholder holds the sky
+   gradient at the frame's full height and the layout never jumps. */
+.pt-root .scene__loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+}
+
+/* Sign-in is a panel on the sky with nothing else on the page, so it sizes
+   itself rather than filling a frame it does not need. */
+.pt-frame--login {
+  height: auto;
+}
+
+.pt-root .gate-wrap--standalone {
+  display: flex;
+  min-height: min(480px, calc(100dvh - 260px));
+}
+
+/* The console and the sign-in are pages in their own right rather than a
+   section of one, so they take the site's gutter and its vertical rhythm. */
+.pt-page {
+  padding-block: 32px 72px;
+}
+
+/* On a phone every frame gives its height back: details, then the room, then
+   the rest of the page, in one scroll. This has to come after the frames it
+   undoes — a media query adds no specificity, only order. */
+@media (max-width: 767px) {
+  .pt-root,
+  .pt-frame,
+  .pt-frame--tall,
+  .pt-root .app,
+  .pt-console .app--flow {
+    height: auto;
+  }
+
+  .pt-page {
+    padding-block: 20px 48px;
+  }
+}
+
+/* ==================================================================
+   Where the booking system meets the page.
+
+   Everything above is scoped under `.pt-root` and belongs to the booking
+   system. These few rules belong to the site: they are the page furniture
+   around the frame, written in the site's tokens, not the room's.
+   ================================================================== */
+
+/* The old page was a phone number and a promise, and carried a min-height to
+   stop it collapsing. The masthead now sits above a working booking system,
+   so it gives the room the room. */
+.booking-masthead {
+  padding-block: 48px 0;
+}
+
+.booking-masthead__lede {
+  color: var(--body);
+}
+
+.booking-section {
+  padding-block: 40px var(--section-space);
+}
+
+/* The discreet way in, at the very bottom of every page. Sized and coloured to
+   sit below the notice line rather than beside it: the venue knows it is there
+   and nobody else has any reason to look for it. */
+.footer-owners {
+  margin-top: 14px;
+  font-size: 11px;
+  color: var(--muted);
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+
+.footer-owners:hover,
+.footer-owners:focus-visible {
+  opacity: 1;
+}
+
+@media (max-width: 860px) {
+  .booking-masthead {
+    padding-block: 40px 0;
+  }
+
+  .booking-section {
+    padding-block: 28px 64px;
+  }
+}

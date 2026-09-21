@@ -7,18 +7,23 @@
     "build": "next build",
     "start": "next start",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
-    "square:check": "node --experimental-strip-types scripts/check-square.mjs"
+    "square:check": "node --experimental-strip-types scripts/check-square.mjs",
+    "hash-password": "node scripts/hash-password.mjs"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.7.0",
     "next": "16.3.4",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.185.4",
     "sharp": "^0.35.4",
     "tailwindcss": "^4",
     "typescript": "^5"

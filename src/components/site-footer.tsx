@@ -81,6 +81,13 @@ export function SiteFooter() {
           </span>
           <a href="#top">Back to top ↑</a>
         </div>
+        {/* The venue's way in to the run sheet. Deliberately the quietest thing
+            on the page: the owner knows where it is, and a guest has no reason
+            to. What is behind it is gated on the server, not by being hard to
+            find — see src/app/owners/. */}
+        <p className="footer-owners">
+          <Link href="/owners">Owners</Link>
+        </p>
       </div>
     </footer>
   );

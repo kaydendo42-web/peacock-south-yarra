@@ -338,16 +338,6 @@
   font-size: 12px;
   color: var(--muted);
 }
-.booking-handoff {
-  min-height: 570px;
-}
-.booking-handoff > p:not(.eyebrow) {
-  margin: 40px auto 0;
-  max-width: 620px;
-}
-.booking-handoff > .button {
-  margin-top: 28px;
-}
 .menu-featured {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

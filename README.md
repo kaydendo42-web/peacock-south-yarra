@@ -20,7 +20,8 @@ The approved [third pass](docs/research/THIRD_PASS.md) adds Henry to the review
 board, replaces menu photo features with pausable café sketches, and gives Our
 Place a distinct editorial layout with the supplied hanging-plant interior photo.
 
-Pages: home, our place, searchable menu, bookings, and find us/contact.
+Pages: home, our place, searchable menu, bookings, and find us/contact, plus
+the owner console at /owners.
 The old /cafe-menu route permanently redirects to /menu.
 
 ## Run locally
@@ -44,7 +45,8 @@ npm test
 ```
 
 With the local server running, `TEST_BASE_URL=http://127.0.0.1:3000 npm test`
-also runs the three page-level regressions (16 tests total).
+also runs the three page-level regressions (26 tests total, including the
+booking rules).
 
 [Square setup](docs/SQUARE_SETUP.md) explains location selection, category
 filtering, caching and permissions. Without a token the original transcribed
@@ -62,17 +64,36 @@ If the local sandbox blocks Turbopack's worker port, use
 and route generation with Next.js's alternate compiler.
 
 ## Content ownership
-- src/lib/site.ts: name, address, phone, hours and navigation.
+- src/lib/site.ts: name, address, phone, hours and navigation. The booking
+  system's service hours derive from this, via `openingOn` in
+  src/booking/data/venue.ts.
 - src/lib/menu.ts: menu entry point, legacy menu, dietary legend and surcharges.
 - src/lib/square-catalog.ts: read-only API and catalog transformation.
 - src/components/structured-data.tsx: schema from the same site/menu sources.
 - public/images: optimised client imagery.
+- src/booking: the booking system — data and rules, the isometric scene, the
+  guest flow and the owner console.
+- src/booking/data/venue.ts: the floor plan, in metres, and the sitting lengths.
+- src/app/booking.css: the booking system's stylesheet, scoped to `.pt-root`.
 - docs/research: old measurements, redesign direction and asset provenance.
 
 ## Bookings and contact
-The existing booking integration has been removed at the user's request.
-The booking route currently offers a phone contact. Jason owns the new system:
-see [booking handoff](docs/BOOKING_HANDOFF.md).
+`/book-a-table` runs PeregrineTable, the table-first booking system ported from
+the standalone build in `peregrinetable/` — a guest picks a table on an
+isometric floor plan, then a time. See
+[booking system](docs/BOOKING_SYSTEM.md) for the architecture, the owner
+console and what has to be configured before it holds real bookings.
+
+Service hours are derived from `hours` in `src/lib/site.ts`; the booking grid
+and the footer cannot disagree about when the doors are open.
+
+The owner console is at `/owners`, reached from a deliberately quiet link at the
+bottom of every page. It signs in against a scrypt hash in the environment and
+issues an HttpOnly session cookie; the run sheet and the floor view are gated in
+a server component, so an unsigned browser never receives them. **The handover
+credential is `owner` / `password12345` and must be replaced before launch** —
+see the booking system doc.
+
 With no email provider configured, the contact page offers a direct email link.
 Set the existing RESEND_API_KEY and CONTACT_FROM_EMAIL settings to enable
 the enquiry form; verify sender-domain delivery before launch.
