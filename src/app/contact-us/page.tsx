@@ -2,81 +2,106 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { BreadcrumbSchema } from "@/components/structured-data";
 import { ContactForm } from "@/components/contact-form";
-import { site } from "@/lib/site";
-
+import { hours, site } from "@/lib/site";
 export const metadata: Metadata = {
-  title: "Contact Us",
-  description: "Have some feedback or need to get in touch with us? Leave your comments here.",
+  title: "Find us & say hello",
+  description:
+    "Find The Peacock South Yarra, check opening hours, get directions or get in touch with our café team.",
   alternates: { canonical: "/contact-us" },
-  openGraph: {
-    title: "Contact Us | The Peacock South Yarra | Melbourne Brunch Cafe",
-    description: "Have some feedback or need to get in touch with us? Leave your comments here.",
-    url: "/contact-us",
-    images: [{ url: "/images/og-contact.jpg", width: 1470, height: 700 }],
-  },
 };
-
+export const dynamic = "force-dynamic";
 export default function ContactPage() {
+  const emailReady = Boolean(
+    process.env.RESEND_API_KEY && process.env.CONTACT_FROM_EMAIL,
+  );
   return (
     <>
       <BreadcrumbSchema
         items={[
           { name: "Home", path: "/" },
-          { name: "Contact", path: "/contact-us" },
+          { name: "Find us", path: "/contact-us" },
         ]}
       />
-
-      <div className="relative aspect-[4/3] w-full sm:aspect-[16/7] lg:aspect-[1440/340]">
-        <Image
-          src="/images/shopfront.jpg"
-          alt="The Peacock shopfront on River Street, South Yarra"
-          fill
-          sizes="100vw"
-          priority
-          className="object-cover object-[50%_30%]"
-        />
-      </div>
-
-      <div className="mx-auto max-w-[1440px] px-5 py-12 lg:py-16">
-        <h1 className="text-center font-sans text-[38px] leading-tight text-teal lg:text-[57px]">
-          CONTACT US
+      <header className="page-masthead container">
+        <p className="eyebrow">A little off the beaten track</p>
+        <h1>
+          FOLLOW THE
+          <br />
+          <span className="angled-title">SMELL OF COFFEE.</span>
         </h1>
-
-        <p className="mx-auto mt-6 max-w-[384px] text-center font-ui text-[15px] leading-[1.5] text-ink-soft">
-          At The Peacock South Yarra, we love feedback! We&apos;re always looking for ways to
-          improve our customer&apos;s experience and would love for you to get in touch. Use the
-          form below or alternatively, you can review us on{" "}
-          <a
-            href={site.googleReview}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline underline-offset-2 hover:no-underline"
-          >
-            Google
-          </a>
+        <p>
+          You’ll find us among the plants in our little weatherboard house.
+          <br />
+          We’d love to see you.
         </p>
-
-        <ContactForm />
-
-        <div className="mt-12 flex justify-center">
-          <a href={site.googleReview} target="_blank" rel="noopener noreferrer">
-            <Image
-              src="/images/google-review.png"
-              alt="Click here to leave us a review on Google"
-              width={173}
-              height={50}
-              className="h-[50px] w-auto"
-            />
-          </a>
+      </header>
+      <section className="container visit-layout">
+        <div className="visit-photo">
+          <Image
+            src="/images/shopfront.webp"
+            alt="The Peacock café shopfront and leafy deck"
+            fill
+            sizes="(max-width:700px) 100vw,50vw"
+            className="photo"
+            priority
+          />
         </div>
-      </div>
-
+        <div className="visit-details">
+          <h2>COME ON OVER.</h2>
+          <address>
+            {site.street}
+            <br />
+            {site.suburb}, {site.state} {site.postcode}
+          </address>
+          <a
+            className="button"
+            href={`https://www.google.com/maps/search/?api=1&query=${site.googleMapsQuery}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Get directions <span aria-hidden="true">↗</span>
+          </a>
+          <p className="eyebrow">Opening hours</p>
+          <dl className="hours-list">
+            <dt>Monday–Friday</dt>
+            <dd>{hours.weekdays.display}</dd>
+            <dt>Saturday–Sunday</dt>
+            <dd>{hours.weekend.display}</dd>
+            <dt>Public holidays</dt>
+            <dd>{hours.publicHolidays.display}</dd>
+          </dl>
+          <p className="eyebrow">Say hello</p>
+          <p>
+            <a href={site.phoneHref}>{site.phone}</a>
+            <br />
+            <a href={`mailto:${site.email}`}>{site.email}</a>
+          </p>
+          <p className="eyebrow">Bring your four-legged friend</p>
+          <p>Our front deck and rear courtyard are dog-friendly.</p>
+        </div>
+      </section>
+      <section className="contact-panel">
+        <div className="contact-inner">
+          <h2>DROP US A LINE.</h2>
+          <p>
+            A question, a bigger gathering, or a little feedback? We’d love to
+            hear from you.
+          </p>
+          {emailReady ? (
+            <ContactForm />
+          ) : (
+            <a className="button" href={`mailto:${site.email}`}>
+              Email the team <span aria-hidden="true">↗</span>
+            </a>
+          )}
+        </div>
+      </section>
       <iframe
         title={`Map showing ${site.name} at ${site.street}, ${site.suburb}`}
         src={`https://www.google.com/maps?q=${site.googleMapsQuery}&output=embed`}
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"
-        className="h-[350px] w-full border-0"
+        className="map-frame"
       />
     </>
   );

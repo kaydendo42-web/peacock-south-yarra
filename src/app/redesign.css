@@ -1,0 +1,659 @@
+/* Approved second pass: Ferea-like editorial hero, Peacock colours and real regulars.
+   Original measured tokens reviewed in docs/research/DESIGN_TOKENS.md. */
+.coffee-hero {
+  overflow: clip;
+}
+.rolling-link {
+  overflow: hidden;
+}
+.rolling-label {
+  display: grid;
+  height: 1.5em;
+  overflow: hidden;
+}
+.rolling-label > span {
+  display: block;
+  line-height: 1.5;
+  transition: transform 0.4s cubic-bezier(0.44, 0, 0.56, 1);
+}
+.rolling-link:hover .rolling-label > span,
+.rolling-link:focus-visible .rolling-label > span {
+  transform: translateY(-100%);
+}
+.coffee-hero-inner {
+  position: relative;
+  min-height: 755px;
+  padding-top: 65px;
+  padding-bottom: 80px;
+}
+.coffee-hero-copy {
+  position: relative;
+  z-index: 2;
+  width: 56%;
+}
+.coffee-headline {
+  position: relative;
+  margin-top: 69px;
+}
+.coffee-headline h1 {
+  font-size: clamp(78px, 10.1vw, 145px);
+  line-height: 0.88;
+  letter-spacing: -0.035em;
+}
+.coffee-headline .angled-title {
+  margin-top: 13px;
+  padding: 8px 14px 12px;
+  font-size: 0.8em;
+  white-space: nowrap;
+}
+.good-mood-sticker {
+  position: absolute;
+  left: 40px;
+  top: -48px;
+  padding: 9px 18px;
+  border: 2px solid var(--forest);
+  border-radius: 50%;
+  background: var(--paper);
+  font:
+    900 22px/0.85 var(--font-fira),
+    sans-serif;
+  text-align: center;
+  transform: rotate(-15deg);
+}
+.coffee-hero-intro {
+  margin-top: 48px;
+}
+.coffee-hero-intro p {
+  font-size: 19px;
+  line-height: 1.5;
+}
+.hero-menu-button {
+  margin-top: 26px;
+  background: var(--forest);
+  color: var(--paper);
+}
+.hero-menu-button > span {
+  background: var(--mint);
+  color: var(--forest);
+}
+.hero-menu-button:hover {
+  color: var(--forest);
+}
+.coffee-art {
+  position: absolute;
+  width: 62%;
+  aspect-ratio: 1;
+  right: -1%;
+  top: 20px;
+  z-index: 1;
+  transform: translateY(var(--coffee-shift, 0px))
+    rotate(var(--coffee-turn, 0deg));
+}
+.coffee-art-image {
+  object-fit: contain;
+  animation: coffee-arrive 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.coffee-art-note {
+  position: absolute;
+  top: 11%;
+  left: 5%;
+  transform: rotate(-11deg);
+  font-size: 16px;
+  font-style: italic;
+}
+.dog-invite {
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  margin-top: 40px;
+  font-size: 13px;
+}
+.dog-invite small {
+  display: block;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  margin-top: 3px;
+}
+.dog-invite-photo {
+  position: relative;
+  display: block;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--paper);
+  outline: 1px solid var(--rule);
+  transform: rotate(-10deg);
+  transition: transform 0.3s;
+}
+.dog-invite-photo img {
+  object-fit: cover;
+  object-position: center 40%;
+}
+.dog-invite:hover .dog-invite-photo {
+  transform: rotate(8deg);
+}
+.motion-toggle {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 20px;
+  z-index: 3;
+  background: var(--paper);
+  color: var(--forest);
+  border: 1px solid var(--rule);
+  border-radius: 30px;
+  padding: 9px 15px;
+  font-size: 12px;
+  min-height: 40px;
+}
+.coffee-ribbon {
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+  background: var(--mint);
+  border-block: 1px solid var(--forest);
+  padding: 21px 0;
+}
+.coffee-ribbon-track {
+  display: flex;
+  width: max-content;
+  animation: coffee-marquee 34s linear infinite;
+}
+.coffee-ribbon-copy {
+  display: flex;
+  align-items: center;
+  gap: 52px;
+  padding-right: 52px;
+  font:
+    900 29px/1 var(--font-fira),
+    sans-serif;
+  white-space: nowrap;
+}
+.coffee-ribbon-copy b {
+  font-size: 34px;
+  font-weight: 400;
+}
+.motion-paused .coffee-ribbon-track,
+.motion-paused .hero-enter,
+.motion-paused .coffee-art-image {
+  animation-play-state: paused;
+}
+.coffee-ribbon:hover .coffee-ribbon-track {
+  animation-play-state: paused;
+}
+.hero-enter {
+  animation: hero-arrive 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.coffee-headline {
+  animation-delay: 0.08s;
+}
+.coffee-hero-intro {
+  animation-delay: 0.17s;
+}
+.dog-invite {
+  animation-delay: 0.26s;
+}
+@keyframes coffee-arrive {
+  from {
+    opacity: 0;
+    transform: translate(65px, 35px) rotate(9deg) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes hero-arrive {
+  from {
+    opacity: 0;
+    translate: 0 28px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes coffee-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.reveal[data-reveal="waiting"] {
+  opacity: 0;
+  transform: translateY(35px);
+}
+.reveal[data-reveal="visible"] {
+  opacity: 1;
+  transform: translateY(0);
+  transition:
+    opacity 0.7s ease var(--reveal-delay),
+    transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) var(--reveal-delay);
+}
+.button > span {
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.button:hover > span {
+  transform: rotate(45deg);
+}
+.dog-section {
+  background: var(--pale);
+  overflow: clip;
+}
+.dog-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 40px;
+  margin-bottom: 60px;
+}
+.dog-section-heading h2 {
+  font-size: clamp(47px, 5.4vw, 76px);
+  margin-top: 20px;
+}
+.dog-section-heading > p {
+  max-width: 260px;
+  padding-bottom: 5px;
+  font-size: 17px;
+}
+.pink-highlight {
+  background: var(--pink);
+  box-shadow:
+    8px 0 var(--pink),
+    -3px 0 var(--pink);
+}
+.dog-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 23px;
+}
+.dog-card {
+  margin: 0;
+  padding: 10px 10px 22px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  height: 100%;
+  transition: transform 0.35s;
+}
+.dog-card-0 {
+  transform: rotate(-2deg);
+}
+.dog-card-1 {
+  transform: rotate(1.5deg);
+}
+.dog-card-2 {
+  transform: rotate(-1deg);
+}
+.dog-card-3 {
+  transform: rotate(2deg);
+}
+.dog-card:hover {
+  transform: translateY(-7px) rotate(0);
+}
+.dog-portrait {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--pale);
+}
+.dog-portrait img {
+  object-fit: cover;
+  object-position: left center;
+}
+/* A non-destructive crop of the user's screenshot; excludes comments/letterboxing. */
+.dog-group-photo img {
+  width: 151% !important;
+  max-width: none;
+  height: 116.5% !important;
+  top: -16.5% !important;
+  object-fit: fill;
+}
+.dog-card figcaption {
+  padding: 23px 11px 0;
+}
+.dog-role {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+.dog-card h3 {
+  font-size: clamp(27px, 2.4vw, 36px);
+  margin-top: 9px;
+  letter-spacing: -0.02em;
+}
+.dog-card blockquote {
+  margin: 18px 0;
+  font-size: 16px;
+  line-height: 1.55;
+  min-height: 75px;
+}
+.dog-signature {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--muted);
+}
+.dog-disclaimer {
+  text-align: center;
+  margin-top: 38px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.booking-handoff {
+  min-height: 570px;
+}
+.booking-handoff > p:not(.eyebrow) {
+  margin: 40px auto 0;
+  max-width: 620px;
+}
+.booking-handoff > .button {
+  margin-top: 28px;
+}
+.menu-featured {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin-bottom: 58px;
+}
+.menu-featured-card {
+  display: block;
+  border: 1px solid var(--rule);
+  background: var(--pale);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.menu-featured-photo {
+  aspect-ratio: 1.2;
+  position: relative;
+  overflow: hidden;
+}
+.menu-featured-photo img {
+  object-fit: cover;
+  transition: transform 0.6s;
+}
+.menu-featured-card:hover img {
+  transform: scale(1.04);
+}
+.menu-featured-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  gap: 16px;
+}
+.menu-featured-caption h2 {
+  font-size: 30px;
+}
+.menu-featured-caption p {
+  font-size: 15px;
+  white-space: nowrap;
+}
+.menu-photo-note {
+  margin: -38px 0 45px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.menu-item-variants {
+  margin: 15px 0 0;
+  display: grid;
+  gap: 7px;
+}
+.menu-item-variants > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 15px;
+  font-size: 13px;
+}
+.menu-item-variants dt {
+  overflow-wrap: anywhere;
+}
+.menu-item-variants dd {
+  margin: 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.menu-item-variants .ask-price {
+  white-space: normal;
+  text-align: right;
+  max-width: 150px;
+}
+.menu-catalog-photo {
+  position: relative;
+  aspect-ratio: 1.6;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+.menu-catalog-photo img {
+  object-fit: cover;
+}
+.menu-item {
+  min-width: 0;
+}
+.menu-item h3 {
+  font-family: var(--font-fira);
+  font-size: 28px;
+  text-transform: uppercase;
+  line-height: 1.05;
+}
+.menu-category h2 {
+  font-size: 48px;
+}
+.menu-category-nav a {
+  border-bottom: 1px solid var(--rule);
+  transition: padding 0.2s;
+}
+.menu-category-nav a:hover {
+  padding-left: 8px;
+}
+@media (min-width: 1600px) {
+  .coffee-art {
+    right: -4%;
+    width: 63%;
+  }
+}
+@media (max-width: 1000px) {
+  .coffee-hero-inner {
+    min-height: 710px;
+    padding-top: 48px;
+  }
+  .coffee-headline h1 {
+    font-size: clamp(76px, 10.7vw, 107px);
+  }
+  .coffee-art {
+    top: 95px;
+    right: -10%;
+    width: 68%;
+  }
+  .coffee-art-note {
+    top: 3%;
+    left: 20%;
+    font-size: 13px;
+  }
+  .coffee-hero-intro p {
+    font-size: 17px;
+  }
+  .dog-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 35px;
+  }
+  .dog-card h3 {
+    font-size: 35px;
+  }
+  .dog-section-heading {
+    display: block;
+  }
+  .dog-section-heading > p {
+    margin-top: 28px;
+    max-width: none;
+  }
+  .menu-featured-caption {
+    padding: 16px;
+    display: block;
+  }
+  .menu-featured-caption h2 {
+    font-size: 26px;
+  }
+  .menu-featured-caption p {
+    margin-top: 9px;
+  }
+}
+@media (max-width: 700px) {
+  .coffee-hero-inner {
+    min-height: 0;
+    padding-top: 30px;
+    padding-bottom: 65px;
+  }
+  .coffee-hero-copy {
+    width: 100%;
+  }
+  .coffee-hero-copy > .eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+  }
+  .coffee-headline {
+    margin-top: 65px;
+  }
+  .coffee-headline h1 {
+    font-size: clamp(68px, 16vw, 108px);
+  }
+  .coffee-headline .angled-title {
+    font-size: 0.82em;
+    padding: 6px 8px 10px;
+  }
+  .good-mood-sticker {
+    left: 18px;
+    top: -40px;
+    font-size: 19px;
+    padding: 7px 14px;
+  }
+  .coffee-hero-intro {
+    margin-top: 35px;
+  }
+  .coffee-hero-intro p {
+    font-size: 17px;
+  }
+  .hero-menu-button {
+    margin-top: 21px;
+  }
+  .coffee-art {
+    position: relative;
+    right: auto;
+    top: auto;
+    width: 115%;
+    margin: -5px -7.5% -5px;
+  }
+  .coffee-art-note {
+    top: 8%;
+    left: 10%;
+    font-size: 12px;
+  }
+  .dog-invite {
+    margin-top: 26px;
+  }
+  .dog-invite-photo {
+    width: 46px;
+    height: 46px;
+  }
+  .coffee-ribbon {
+    padding-block: 18px;
+  }
+  .coffee-ribbon-copy {
+    font-size: 24px;
+    gap: 28px;
+    padding-right: 28px;
+  }
+  .coffee-ribbon-copy b {
+    font-size: 26px;
+  }
+  .dog-section-heading {
+    margin-bottom: 40px;
+  }
+  .dog-section-heading h2 {
+    font-size: clamp(40px, 9.9vw, 66px);
+  }
+  .dog-card-grid {
+    gap: 25px;
+  }
+  .dog-card figcaption {
+    padding: 20px 7px 0;
+  }
+  .dog-card blockquote {
+    min-height: 0;
+  }
+  .dog-disclaimer {
+    font-size: 11px;
+  }
+  .menu-featured {
+    gap: 13px;
+    grid-template-columns: 1fr;
+  }
+  .menu-featured-card {
+    display: grid;
+    grid-template-columns: 42% 1fr;
+    align-items: center;
+  }
+  .menu-featured-photo {
+    aspect-ratio: 1;
+  }
+  .menu-featured-caption h2 {
+    font-size: 28px;
+  }
+  .menu-category h2 {
+    font-size: 40px;
+  }
+}
+@media (max-width: 500px) {
+  .dog-card-grid {
+    grid-template-columns: 1fr;
+    padding-inline: 7px;
+    gap: 32px;
+  }
+  .dog-card figcaption {
+    padding: 22px 16px 4px;
+  }
+  .dog-card h3 {
+    font-size: 34px;
+  }
+  .dog-role {
+    font-size: 10px;
+  }
+}
+@media (max-width: 360px) {
+  .coffee-headline h1 {
+    font-size: 60px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .coffee-hero *,
+  .reveal,
+  .dog-card,
+  .menu-featured-photo img,
+  .rolling-label > span {
+    animation: none !important;
+    transition: none !important;
+  }
+  .coffee-art {
+    transform: none;
+  }
+  .reveal[data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+  .motion-toggle {
+    display: none;
+  }
+  .coffee-ribbon-track {
+    width: auto;
+  }
+  .coffee-ribbon-copy {
+    white-space: normal;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-inline: 20px;
+    font-size: 20px;
+  }
+  .coffee-ribbon-copy:nth-child(2) {
+    display: none;
+  }
+}

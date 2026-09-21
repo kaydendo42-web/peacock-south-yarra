@@ -6,6 +6,10 @@
 
 export type MenuItem = {
   name: string;
+  catalogItemId?: string;
+  itemName?: string;
+  variationName?: string;
+  image?: string;
   /** Omitted for items priced inside `note`, e.g. "10gl / 39btl". */
   price?: string;
   /** Dietary codes as printed on the board: GF/o, V, VG/o, DF, N. */
@@ -13,6 +17,10 @@ export type MenuItem = {
   description?: string;
   note?: string;
 };
+
+/** This catalog photo is a person, not the toastie it is assigned to.
+ * Keep it off the website until Jenny replaces/reassigns it in Square. */
+export const excludedMenuImageIds = ["3VYN4XC5AC7SVHFSUPL2HC76"];
 
 export type MenuSection = {
   id: string;
@@ -402,3 +410,18 @@ export const menuSpecials = [
       "$49 per person for a choice of dish and 1.5 hours of mimosas. Available from 10am every day.",
   },
 ] as const;
+
+export type ResolvedMenu = { boards: MenuBoard[]; source: "square" | "local" | "unavailable" };
+
+/** The single entry point for both the displayed menu and its JSON-LD. */
+export async function getMenu(): Promise<ResolvedMenu> {
+  if (!process.env.SQUARE_ACCESS_TOKEN?.trim()) return { boards: [foodMenu, drinksMenu], source: "local" };
+  try {
+    const { getSquareMenu } = await import("./square-server");
+    return { boards: await getSquareMenu(), source: "square" };
+  } catch (error) {
+    // Log only our own safe messages, never provider responses or credentials.
+    console.error("Square menu unavailable:", error instanceof Error ? error.message : "Request failed");
+    return { boards: [], source: "unavailable" };
+  }
+}

@@ -1,0 +1,349 @@
+/* Peacock sketchbook: approved third pass, using the existing design tokens. */
+.dog-card-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 30px;
+}
+.dog-card-grid > * {
+  grid-column: span 2;
+}
+.dog-card-grid > :nth-child(4) {
+  grid-column: 2 / span 2;
+}
+.dog-card-4 {
+  transform: rotate(-1.5deg);
+}
+.dog-photo-henry img {
+  width: 145% !important;
+  max-width: none;
+  height: 145% !important;
+  top: -45% !important;
+  object-fit: fill;
+}
+.illustrated-menu {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+.menu-motion-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding-top: 26px;
+  font-size: 10px;
+  letter-spacing: 0.09em;
+}
+.menu-motion-controls button {
+  border: 1px solid var(--rule);
+  padding: 10px 16px;
+  min-height: 44px;
+  border-radius: 30px;
+  font-size: 12px;
+  letter-spacing: 0;
+  background: var(--paper);
+}
+.menu-masthead {
+  position: relative;
+  padding-top: 60px;
+  padding-bottom: 86px;
+}
+.menu-masthead h1 {
+  font-size: clamp(55px, 7.8vw, 106px);
+}
+.menu-doodles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  max-width: 1500px;
+  margin-inline: auto;
+}
+.menu-doodle {
+  position: absolute;
+  width: 110px;
+  text-align: center;
+}
+.menu-doodle svg {
+  width: 100%;
+  display: block;
+  animation: sketch-sway 5s ease-in-out infinite alternate;
+  transform-origin: 50% 90%;
+}
+.menu-doodle span {
+  display: block;
+  font-size: 12px;
+  font-style: italic;
+  margin-top: 7px;
+  transform: rotate(-7deg);
+}
+.doodle-plant {
+  top: 106px;
+  left: 3%;
+  transform: rotate(-16deg);
+}
+.doodle-coffee {
+  top: 87px;
+  right: 3%;
+  transform: rotate(14deg);
+}
+.doodle-coffee svg {
+  animation-delay: -2s;
+}
+.doodle-dog {
+  top: 315px;
+  left: 8%;
+  width: 94px;
+  transform: rotate(9deg);
+}
+.doodle-dog svg {
+  animation: sketch-bob 4s ease-in-out infinite alternate;
+}
+.doodle-pastry {
+  top: 330px;
+  right: 7%;
+  transform: rotate(-15deg);
+}
+.doodle-pastry svg {
+  animation-delay: -1s;
+}
+.illustrations-paused .menu-doodle svg {
+  animation-play-state: paused;
+}
+@keyframes sketch-sway {
+  from {
+    rotate: -6deg;
+  }
+  to {
+    rotate: 6deg;
+  }
+}
+@keyframes sketch-bob {
+  from {
+    translate: 0 0;
+    rotate: -4deg;
+  }
+  to {
+    translate: 0 -9px;
+    rotate: 4deg;
+  }
+}
+.place-intro {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  align-items: center;
+  gap: 65px;
+  padding-block: 70px 80px;
+}
+.place-intro-copy h1 {
+  font-size: clamp(76px, 9.5vw, 138px);
+  line-height: 0.87;
+  margin-top: 40px;
+}
+.place-intro-copy h1 > span {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--forest);
+  background: var(--mint);
+  padding: 3px 10px 14px;
+  rotate: -3deg;
+}
+.place-lead {
+  font-size: 20px;
+  line-height: 1.5;
+  margin-top: 38px;
+}
+.place-intro-copy .text-link {
+  display: inline-block;
+  margin-top: 25px;
+}
+.place-interior {
+  position: relative;
+  margin: 0 0 0 10px;
+  transform: rotate(2deg);
+  padding: 12px 12px 0;
+  background: var(--pale);
+}
+.place-interior-photo {
+  position: relative;
+  aspect-ratio: 0.74;
+  overflow: hidden;
+}
+.place-interior figcaption {
+  padding: 19px 6px;
+  font-size: 11px;
+  letter-spacing: 0.13em;
+  text-align: center;
+  font-weight: 600;
+}
+.place-photo-stamp {
+  position: absolute;
+  left: -43px;
+  bottom: 65px;
+  width: 122px;
+  height: 122px;
+  display: grid;
+  place-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--forest);
+  background: var(--pink);
+  font:
+    900 24px/0.95 var(--font-fira),
+    sans-serif;
+  text-align: center;
+  rotate: -14deg;
+}
+.place-story {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  gap: 48px;
+  padding-block: 60px 100px;
+  border-top: 1px solid var(--rule);
+}
+.place-story > .eyebrow {
+  padding-top: 7px;
+}
+.place-story h2 {
+  font-size: clamp(40px, 4.4vw, 62px);
+}
+.place-story-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 35px;
+  font-size: 18px;
+}
+@media (max-width: 1100px) {
+  .menu-doodle {
+    width: 80px;
+  }
+  .doodle-plant {
+    left: 1%;
+  }
+  .doodle-coffee {
+    right: 1%;
+  }
+  .doodle-dog {
+    left: 3%;
+    top: 305px;
+    width: 75px;
+  }
+  .doodle-pastry {
+    right: 3%;
+    top: 320px;
+  }
+  .place-intro {
+    gap: 35px;
+  }
+  .place-intro-copy h1 {
+    font-size: clamp(72px, 9.5vw, 105px);
+  }
+  .place-photo-stamp {
+    width: 98px;
+    height: 98px;
+    font-size: 20px;
+    left: -25px;
+  }
+}
+@media (max-width: 1000px) {
+  .dog-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dog-card-grid > * {
+    grid-column: auto;
+  }
+  .dog-card-grid > :nth-child(4) {
+    grid-column: auto;
+  }
+  .dog-card-grid > :last-child {
+    grid-column: 1 / -1;
+    width: calc(50% - 15px);
+    justify-self: center;
+  }
+}
+@media (max-width: 700px) {
+  .menu-motion-controls {
+    padding-top: 18px;
+    justify-content: flex-end;
+  }
+  .menu-motion-controls > span {
+    display: none;
+  }
+  .menu-masthead {
+    padding-top: 30px;
+    padding-bottom: 180px;
+  }
+  .menu-masthead h1 {
+    font-size: clamp(40px, 8.9vw, 65px);
+  }
+  .menu-masthead > p:not(.eyebrow) {
+    font-size: 16px;
+  }
+  .menu-doodle {
+    top: 390px;
+    width: 65px;
+  }
+  .menu-doodle span {
+    font-size: 10px;
+  }
+  .doodle-plant {
+    left: 5%;
+  }
+  .doodle-dog {
+    left: 28%;
+    width: 65px;
+  }
+  .doodle-coffee {
+    right: 27%;
+  }
+  .doodle-pastry {
+    right: 4%;
+  }
+  .place-intro {
+    grid-template-columns: 1fr;
+    gap: 46px;
+    padding-block: 40px 50px;
+  }
+  .place-intro-copy h1 {
+    font-size: clamp(80px, 18vw, 120px);
+    margin-top: 28px;
+  }
+  .place-lead {
+    margin-top: 30px;
+    font-size: 19px;
+  }
+  .place-interior {
+    margin-inline: 10px;
+  }
+  .place-photo-stamp {
+    left: -18px;
+  }
+  .place-story {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding-block: 40px 60px;
+  }
+  .place-story-columns {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    margin-top: 26px;
+  }
+}
+@media (max-width: 500px) {
+  .dog-card-grid {
+    grid-template-columns: 1fr;
+  }
+  .dog-card-grid > :last-child {
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-doodle svg {
+    animation: none;
+  }
+  .menu-motion-controls button {
+    display: none;
+  }
+  .menu-motion-controls {
+    min-height: 44px;
+  }
+}

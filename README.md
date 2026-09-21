@@ -1,75 +1,96 @@
 # The Peacock South Yarra
 
-The Peacock's website, rebuilt off Wix onto our own stack so we can run the
-booking system, SEO and analytics ourselves.
+A café website by [Peregrine Partners](https://www.peregrinepartners.space).
+Next.js 16, React 19, Tailwind CSS v4 and TypeScript.
 
-Built and maintained by [Peregrine Partners](https://www.peregrinepartners.space).
+## Current redesign
+The 21 September 2026 design uses the structure and oversized typography of
+the supplied Ferea Framer reference, adapted to The Peacock's forest green,
+turquoise and pink identity, real café photography and original copy.
+See [design direction](docs/research/PEACOCK_REDESIGN.md) and
+[photo sources](docs/research/INSTAGRAM_ASSETS.md). Earlier Wix measurements
+are retained as historical research, not the new layout specification.
 
-- **Live (Wix, still authoritative):** https://www.thepeacock.com.au
-- **Stack:** Next.js 16 (App Router) · React 19 · Tailwind CSS v4 · TypeScript
+The approved [second pass](docs/research/SECOND_PASS.md) adds an original coffee
+hero, motion, real dog-regular photos and a photo-led Square menu. The homepage
+has no menu teaser or story/place section. Motion supports reduced-motion
+preferences and a manual pause for the hero/ribbon.
 
-## Getting started
+The approved [third pass](docs/research/THIRD_PASS.md) adds Henry to the review
+board, replaces menu photo features with pausable café sketches, and gives Our
+Place a distinct editorial layout with the supplied hanging-plant interior photo.
+
+Pages: home, our place, searchable menu, bookings, and find us/contact.
+The old /cafe-menu route permanently redirects to /menu.
+
+## Run locally
+Use Node.js 24 (Node 22+ supports the TypeScript test scripts).
 
 ```bash
 npm install
-npm run dev
+npm run dev -- --hostname 127.0.0.1
 ```
 
-Copy `.env.example` to `.env.local` and fill it in before testing the contact
-form; without a mail provider the form falls back to a mailto prompt rather
-than dropping enquiries.
+Open http://127.0.0.1:3000. Copy .env.example to .env.local only if a local
+file does not already exist; do not overwrite existing credentials.
 
-## Layout
+## Square menu
+Paste Jenny's production token into SQUARE_ACCESS_TOKEN in .env.local.
+This file is ignored by Git. Secrets are never exposed to the browser.
 
-```
-src/app/            routes — /, /cafe-menu, /menu, /book-a-table, /contact-us
-src/components/     header, footer, hero slideshow, contact form, JSON-LD
-src/lib/site.ts     NAP, hours, navigation — the single source of truth
-src/lib/menu.ts     the full menu as structured data
-public/images/      web-ready assets
-_assets_raw/        untouched originals pulled from Wix, kept for re-cropping
-docs/research/      measurements and screenshots taken from the live site
-scripts/            one-off asset pipeline
+```bash
+npm run square:check
+npm test
 ```
 
-## How the rebuild was made
+With the local server running, `TEST_BASE_URL=http://127.0.0.1:3000 npm test`
+also runs the three page-level regressions (16 tests total).
 
-Every spacing, type and colour value was measured off the live site with
-`getComputedStyle` at 1440 / 834 / 390 rather than eyeballed. The measurements,
-the section-by-section layout, and the interaction notes are in
-[`docs/research/`](docs/research). The home page reproduces the original within
-8px of total height.
+[Square setup](docs/SQUARE_SETUP.md) explains location selection, category
+filtering, caching and permissions. Without a token the original transcribed
+menu is shown with a confirmation note. Once connected, Square supplies
+item names, grouped variations, descriptions, attached photos and AUD prices. Errors show an explicit
+contact option instead of silently substituting old prices.
 
-## Deliberate differences from the Wix site
+## Production verification
+```bash
+npm run build
+```
 
-Each of these fixes a defect in the source rather than reproducing it:
+If the local sandbox blocks Turbopack's worker port, use
+`npm run build -- --webpack`; this performs the same production typecheck
+and route generation with Next.js's alternate compiler.
 
-1. **One responsive layout.** Wix served a separate mobile site by user-agent and
-   otherwise scaled its 1440px canvas down, clipping body copy off the left edge
-   below ~980px.
-2. **The booking CTA survives on mobile.** The Wix mobile layout dropped both the
-   page title and the "Book a table" button, leaving no call to action above the fold.
-3. **The menu is real text.** It was published as two ~842px JPEGs, so none of the
-   food, drinks or prices were indexable. It is now structured data rendered as
-   HTML, with `Menu` JSON-LD, and the original boards kept below as images.
-4. **The Instagram link is visible.** The Wix feed widget occupied the slot but
-   never painted anything.
-5. **Full `CafeOrCoffeeShop` schema** — opening hours, geo, cuisine, price range,
-   reservation URL. Wix emitted a bare `LocalBusiness` with none of it.
-6. **Accessibility** — skip link, landmarks, form labels, visible focus rings,
-   `aria-current` on the active nav item, and reduced-motion support.
-7. **Fonts.** Avenir LT, Brandon Grotesque, DIN Neuzeit Grotesk and TT Lakes are
-   Wix-licensed and cannot ship here. Each is mapped to its closest free
-   equivalent; every measured size, weight and line-height is preserved. See
-   [`docs/research/DESIGN_TOKENS.md`](docs/research/DESIGN_TOKENS.md).
+## Content ownership
+- src/lib/site.ts: name, address, phone, hours and navigation.
+- src/lib/menu.ts: menu entry point, legacy menu, dietary legend and surcharges.
+- src/lib/square-catalog.ts: read-only API and catalog transformation.
+- src/components/structured-data.tsx: schema from the same site/menu sources.
+- public/images: optimised client imagery.
+- docs/research: old measurements, redesign direction and asset provenance.
 
-## Redirects
+## Bookings and contact
+The existing booking integration has been removed at the user's request.
+The booking route currently offers a phone contact. Jason owns the new system:
+see [booking handoff](docs/BOOKING_HANDOFF.md).
+With no email provider configured, the contact page offers a direct email link.
+Set the existing RESEND_API_KEY and CONTACT_FROM_EMAIL settings to enable
+the enquiry form; verify sender-domain delivery before launch.
 
-`/general-1` → `/menu` and `/book-online` → `/book-a-table`, both permanent, so
-the Wix URLs keep their link equity.
+## Domain and launch
+The existing production website remains unchanged. See
+[Cloudflare preparation](docs/CLOUDFLARE_SETUP.md). Recommended: keep Jenny's
+registration and billing at Crazy Domains, use Cloudflare for DNS, and
+connect the approved production deployment afterwards.
 
-## Still to do
+Square is connected to the user-selected The Peacock South Yarra location.
+The Vercel project is `peacock-south-yarra`, with server-only production Square
+variables and GitHub integration. The existing custom domain is not switched by
+this deployment; keep DNS changes separate from publishing to Vercel.
+Before launch: review the POS duplicates/internal entries noted in the Square guide,
+confirm café hours/prices and
+image permissions with Jenny, check bookings/contact, then deploy and update
+DNS. Nothing in the local build changes domain registration or billing.
 
-- Replace the ResOS booking iframe with our own booking system.
-- Provision an email provider for the contact form.
-- Point DNS at the new deployment once the client signs off.
+Permanent legacy redirects remain: /general-1 → /menu,
+/book-online → /book-a-table, /cafe-menu → /menu.

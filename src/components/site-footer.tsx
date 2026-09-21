@@ -1,41 +1,86 @@
-import { hours, site } from "@/lib/site";
+import Link from "next/link";
+import { hours, nav, site } from "@/lib/site";
 
 export function SiteFooter() {
   return (
-    <footer className="bg-teal text-white">
-      <div className="mx-auto max-w-[1440px] px-5 py-10 text-center lg:pt-10 lg:pb-4">
-        <p className="font-ui text-[14px] leading-[19.6px] font-semibold">
-          CAFE: {hours.weekdays.label} {hours.weekdays.display} &nbsp;|&nbsp;{" "}
-          {hours.weekend.label} {hours.weekend.display}
-        </p>
-        <p className="font-ui text-[14px] leading-[19.6px] font-semibold">
-          {hours.publicHolidays.label} {hours.publicHolidays.display}
-        </p>
-
-        <p className="mt-[18px] font-strapline text-[16px] tracking-[1px] uppercase lg:text-[20px]">
-          {site.strapline}
-        </p>
-
-        <address className="mt-[14px] not-italic">
-          <p className="font-ui text-[14px] font-semibold">{site.addressLine}</p>
-          <p className="font-ui text-[14px] text-balance">
-            EMAIL{" "}
+    <footer className="site-footer">
+      <div className="container">
+        <div className="footer-invitation">
+          <h2>
+            MAKE YOURSELF
+            <br />
+            AT HOME.
+          </h2>
+          <Link href="/book-a-table" className="button">
+            See you for brunch <span aria-hidden="true">↗</span>
+          </Link>
+        </div>
+        <div className="footer-grid">
+          <div>
+            <p className="eyebrow">Come on over</p>
+            <address>
+              {site.street}
+              <br />
+              {site.suburb}, {site.state} {site.postcode}
+            </address>
             <a
-              href={`mailto:${site.email}`}
-              className="whitespace-nowrap underline underline-offset-2 hover:no-underline"
+              className="text-link"
+              href={`https://www.google.com/maps/search/?api=1&query=${site.googleMapsQuery}`}
+              target="_blank"
+              rel="noreferrer"
             >
-              {site.email}
+              Get directions ↗
             </a>
-            <span className="mx-2" />
-            <span className="text-[16px] font-semibold">PHONE</span>{" "}
+          </div>
+          <div>
+            <p className="eyebrow">Coffee’s on</p>
+            <p>
+              Monday–Friday <span>{hours.weekdays.display}</span>
+            </p>
+            <p>
+              Saturday–Sunday <span>{hours.weekend.display}</span>
+            </p>
+            <p>
+              Public holidays <span>{hours.publicHolidays.display}</span>
+            </p>
+          </div>
+          <div>
+            <p className="eyebrow">Say hello</p>
+            <a href={site.phoneHref}>{site.phone}</a>
+            <a href={`mailto:${site.email}`}>{site.email}</a>
+            <a href={site.instagram} target="_blank" rel="noreferrer">
+              Instagram ↗
+            </a>
+          </div>
+          <nav aria-label="Footer">
+            <p className="eyebrow">Take a look</p>
+            {nav.map((item) => (
+              <Link href={item.href} key={item.href}>
+                {item.label}
+              </Link>
+            ))}
+            <Link href="/book-a-table">Book a table</Link>
+          </nav>
+        </div>
+        <p className="footer-wordmark" aria-hidden="true">
+          THE PEACOCK
+        </p>
+        <div className="footer-bottom">
+          <span>
+            © {new Date().getFullYear()} {site.name}
+          </span>
+          <span>
+            Made with care by{" "}
             <a
-              href={site.phoneHref}
-              className="text-[16px] font-semibold whitespace-nowrap underline underline-offset-2 hover:no-underline"
+              href="https://www.peregrinepartners.space"
+              target="_blank"
+              rel="noreferrer"
             >
-              {site.phone}
+              Peregrine Partners ↗
             </a>
-          </p>
-        </address>
+          </span>
+          <a href="#top">Back to top ↑</a>
+        </div>
       </div>
     </footer>
   );

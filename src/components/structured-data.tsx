@@ -1,12 +1,14 @@
 import { hours, site } from "@/lib/site";
-import { drinksMenu, foodMenu } from "@/lib/menu";
+import type { MenuBoard } from "@/lib/menu";
 
 function JsonLd({ data }: { data: object }) {
   return (
     <script
       type="application/ld+json"
-      // Values are all authored in this repo, not user input.
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      // Catalog text is external input: prevent closing the script element.
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(data).replace(/</g, "\\u003c"),
+      }}
     />
   );
 }
@@ -25,7 +27,10 @@ export function LocalBusinessSchema() {
         name: site.name,
         alternateName: site.shortName,
         url: site.url,
-        image: [`${site.url}/images/cafe-menu-hero.jpg`, `${site.url}/images/shopfront.jpg`],
+        image: [
+          `${site.url}/images/cafe-menu-hero.jpg`,
+          `${site.url}/images/shopfront.jpg`,
+        ],
         logo: `${site.url}/images/logo.png`,
         telephone: site.phoneRaw,
         email: site.email,
@@ -84,7 +89,13 @@ export function WebSiteSchema() {
 }
 
 /** Full Menu graph so the food and prices are machine-readable. */
-export function MenuSchema() {
+export function MenuSchema({
+  boards,
+  includePrices = true,
+}: {
+  boards: MenuBoard[];
+  includePrices?: boolean;
+}) {
   return (
     <JsonLd
       data={{
@@ -94,31 +105,39 @@ export function MenuSchema() {
         name: `${site.name} menu`,
         url: `${site.url}/menu`,
         inLanguage: "en-AU",
-        hasMenuSection: [...foodMenu.sections, ...drinksMenu.sections].map((section) => ({
-          "@type": "MenuSection",
-          name: section.title,
-          description: section.subtitle,
-          hasMenuItem: section.items.map((item) => ({
-            "@type": "MenuItem",
-            name: item.name,
-            ...(item.description ? { description: item.description } : {}),
-            ...(item.price && /^\+?[\d.]+/.test(item.price)
-              ? {
-                  offers: {
-                    "@type": "Offer",
-                    price: item.price.replace(/[^\d.]/g, ""),
-                    priceCurrency: "AUD",
-                  },
-                }
-              : {}),
+        hasMenuSection: boards
+          .flatMap((board) => board.sections)
+          .map((section) => ({
+            "@type": "MenuSection",
+            name: section.title,
+            description: section.subtitle,
+            hasMenuItem: section.items.map((item) => ({
+              "@type": "MenuItem",
+              name: item.name,
+              ...(item.description ? { description: item.description } : {}),
+              ...(includePrices &&
+              item.price &&
+              /^\d+(\.\d+)?$/.test(item.price)
+                ? {
+                    offers: {
+                      "@type": "Offer",
+                      price: item.price.replace(/[^\d.]/g, ""),
+                      priceCurrency: "AUD",
+                    },
+                  }
+                : {}),
+            })),
           })),
-        })),
       }}
     />
   );
 }
 
-export function BreadcrumbSchema({ items }: { items: { name: string; path: string }[] }) {
+export function BreadcrumbSchema({
+  items,
+}: {
+  items: { name: string; path: string }[];
+}) {
   return (
     <JsonLd
       data={{

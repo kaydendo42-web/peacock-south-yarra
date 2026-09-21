@@ -4,7 +4,7 @@ export const site = {
   name: "The Peacock South Yarra",
   shortName: "The Peacock",
   url: "https://www.thepeacock.com.au",
-  strapline: "South Yarra's best brunch cafe",
+  strapline: "Your daily happy place",
   street: "68 River Street",
   suburb: "South Yarra",
   state: "VIC",
@@ -33,9 +33,7 @@ export const hours = {
 } as const;
 
 export const nav = [
-  { href: "/", label: "HOME" },
-  { href: "/cafe-menu", label: "CAFE MENU" },
-  { href: "/menu", label: "MENU" },
-  { href: "/book-a-table", label: "BOOKINGS" },
-  { href: "/contact-us", label: "CONTACT" },
+  { href: "/about", label: "Our place" },
+  { href: "/menu", label: "The menu" },
+  { href: "/contact-us", label: "Find us" },
 ] as const;

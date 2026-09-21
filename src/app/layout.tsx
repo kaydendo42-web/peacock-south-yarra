@@ -1,99 +1,74 @@
 import type { Metadata, Viewport } from "next";
-import { Nunito_Sans, Jost, Oswald, Raleway, Archivo_Black } from "next/font/google";
+import { Fira_Sans_Extra_Condensed, Jost } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { LocalBusinessSchema } from "@/components/structured-data";
 import { site } from "@/lib/site";
 import "./globals.css";
+import "./redesign.css";
+import "./third-pass.css";
 
-/*
-  The live site sets these in Wix-licensed faces (Avenir LT, Brandon Grotesque,
-  DIN Neuzeit Grotesk, TT Lakes). Those cannot be redistributed, so each role is
-  mapped to its closest free equivalent while the measured sizes, weights and
-  line-heights are kept exactly. See docs/research/DESIGN_TOKENS.md.
-*/
-const nunitoSans = Nunito_Sans({
-  variable: "--font-nunito-sans",
+const display = Fira_Sans_Extra_Condensed({
+  variable: "--font-fira",
   subsets: ["latin"],
-  weight: ["300", "400", "600", "700", "800"],
+  weight: ["700", "900"],
   display: "swap",
 });
-const jost = Jost({
+const body = Jost({
   variable: "--font-jost",
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
-  display: "swap",
-});
-const oswald = Oswald({
-  variable: "--font-oswald",
-  subsets: ["latin"],
-  weight: ["400", "600"],
-  display: "swap",
-});
-const raleway = Raleway({
-  variable: "--font-raleway",
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  display: "swap",
-});
-const archivoBlack = Archivo_Black({
-  variable: "--font-archivo-black",
-  subsets: ["latin"],
-  weight: ["400"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: "Best Brunch Cafe in South Yarra | The Peacock South Yarra",
-    template: "%s | The Peacock South Yarra",
+    default: `${site.shortName} | Brunch, Coffee & Good Company in ${site.suburb}`,
+    template: `%s | ${site.name}`,
   },
-  description:
-    "We're a cozy cafe nestled on River St, South Yarra serving Melbourne's best breakfast and brunch. Visit us on weekends for our cocktails & tapas nights!",
+  description: `All-day brunch, St. ALi coffee and a little green escape in ${site.suburb}. Find your favourite corner at ${site.shortName}, with a dog-friendly deck and courtyard.`,
   applicationName: site.name,
-  authors: [{ name: site.name, url: site.url }],
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "en_AU",
     siteName: site.name,
     url: site.url,
-    title: "Best Brunch Cafe in South Yarra | The Peacock South Yarra",
+    title: site.name,
     description:
-      "The Peacock South Yarra is Melbourne's best brunch cafe to enjoy with friends and family. Join us today.",
-    images: [{ url: "/images/cafe-menu-hero.jpg", width: 2560, height: 1708, alt: site.name }],
+      "Your daily happy place. All-day brunch, coffee and good company.",
+    images: [
+      {
+        url: "/images/hero-1.jpg",
+        width: 2560,
+        height: 1708,
+        alt: "Brunch at The Peacock",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Best Brunch Cafe in South Yarra | The Peacock South Yarra",
-    description:
-      "The Peacock South Yarra is Melbourne's best brunch cafe to enjoy with friends and family.",
-    images: ["/images/cafe-menu-hero.jpg"],
+    title: site.name,
+    images: ["/images/hero-1.jpg"],
   },
   robots: { index: true, follow: true },
 };
-
 export const viewport: Viewport = {
-  themeColor: "#18c1c0",
+  themeColor: "#fff9ed",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en-AU"
-      className={`${nunitoSans.variable} ${jost.variable} ${oswald.variable} ${raleway.variable} ${archivoBlack.variable} h-full antialiased`}
-    >
-      <body className="flex min-h-full flex-col bg-white">
+    <html lang="en-AU" className={`${display.variable} ${body.variable}`}>
+      <body>
         <a href="#main" className="skip-link">
           Skip to content
         </a>
         <SiteHeader />
-        <main id="main" className="flex-1">
-          {children}
-        </main>
+        <main id="main">{children}</main>
         <SiteFooter />
         <LocalBusinessSchema />
       </body>

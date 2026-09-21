@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "square:check": "node --experimental-strip-types scripts/check-square.mjs"
   },
   "dependencies": {
     "next": "16.3.4",
