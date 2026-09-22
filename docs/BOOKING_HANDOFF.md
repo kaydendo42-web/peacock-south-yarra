@@ -1,3 +1,8 @@
+> **Superseded, 22 September 2026.** The booking system landed: `/book-a-table`
+> runs PeregrineTable, ported from the standalone build. See
+> [BOOKING_SYSTEM.md](BOOKING_SYSTEM.md). What follows is the brief it was
+> built against, kept for the record.
+
 # Booking handoff for Jason
 
 The owner requested the existing booking implementation be removed on 21 September

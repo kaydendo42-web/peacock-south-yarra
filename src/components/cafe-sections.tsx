@@ -129,7 +129,8 @@ export function CafeFaq() {
       q: "How do I book a table?",
       a: (
         <>
-          Online bookings are on their way. For a table or a larger group,
+          <Link href="/book-a-table">Book online</Link> — pick the table you
+          want on the floor plan, then a time. For a party of more than eight,
           call the team on <a href={site.phoneHref}>{site.phone}</a>.
         </>
       ),

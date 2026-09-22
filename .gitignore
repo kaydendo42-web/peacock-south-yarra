@@ -46,3 +46,11 @@ next-env.d.ts
 
 # build info
 tsconfig.tsbuildinfo
+
+# The dev booking store. Real bookings; never a build artefact to commit.
+/.data/
+
+# The standalone booking build this site's src/booking was ported from.
+# Its own git repo; nothing here imports it.
+/peregrinetable/
+/peregrinetable - Copy/
