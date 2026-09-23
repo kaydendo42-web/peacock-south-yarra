@@ -164,6 +164,9 @@ Three things, in order of how badly they matter.
   from the run sheet in the meantime.
 - **Sign-in throttling is per-instance**, so on serverless it is a speed bump
   rather than a lock. A shared counter in the store is the real fix.
-- **No confirmation email.** The guest gets a reference on screen and nothing
-  else. `RESEND_API_KEY` is already wired for the contact form and could carry
-  this too.
+- **Booking emails need a verified domain.** `src/booking/server/email.ts`
+  sends the guest a confirmation and the venue an alert when a booking is
+  made, and the guest a note when the venue cancels one. It is off until
+  `RESEND_API_KEY` and a from-address are set, and a failed send is logged,
+  never surfaced: the booking already stands. Until `thepeacock.com.au` is
+  verified in Resend, Resend delivers only to the account owner's address.

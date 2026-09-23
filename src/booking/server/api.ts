@@ -14,6 +14,7 @@ import {
   verifyPassword,
 } from './auth'
 import type { Config } from './config'
+import { notify } from './email'
 
 /**
  * The API, written against plain request/response shapes rather than against
@@ -142,7 +143,7 @@ export async function handle(req: ApiRequest, config: Config): Promise<ApiRespon
       }
 
       // Check and write under the lock, or two guests can both take one table.
-      return store.exclusive(async () => {
+      const out = await store.exclusive(async () => {
         const all = await store.all()
         const violation = checkBooking(input, all)
         if (violation) return json(409, { error: violation.message, code: violation.code })
@@ -157,6 +158,10 @@ export async function handle(req: ApiRequest, config: Config): Promise<ApiRespon
         // The guest gets their own booking back in full; that is their own data.
         return json(201, booking)
       })
+
+      // Outside the lock: a slow mail provider must not hold up other guests.
+      if (out.status === 201) await notify(config.mailer, 'created', out.body as Booking, process.env)
+      return out
     }
 
     return json(405, { error: 'Method not allowed.' })
@@ -170,12 +175,14 @@ export async function handle(req: ApiRequest, config: Config): Promise<ApiRespon
     const id = match[1]
     const patch = sanitise((req.body ?? {}) as Partial<Booking>)
 
-    return store.exclusive(async () => {
+    let wasCancelled = false
+    const out = await store.exclusive(async () => {
       const all = await store.all()
       const current = all.find((b) => b.id === id)
       if (!current) return json(404, { error: 'No such booking.' })
 
       const next: Booking = { ...current, ...patch, id: current.id }
+      wasCancelled = current.status === 'cancelled'
 
       if (next.status === 'confirmed' || next.status === 'seated') {
         const violation = checkBooking(next, all, id)
@@ -185,6 +192,13 @@ export async function handle(req: ApiRequest, config: Config): Promise<ApiRespon
       await store.put(next)
       return json(200, next)
     })
+
+    // Tell the guest when the venue cancels; not on seated or no-show.
+    const saved = out.body as Booking
+    if (out.status === 200 && saved.status === 'cancelled' && !wasCancelled) {
+      await notify(config.mailer, 'cancelled', saved, process.env)
+    }
+    return out
   }
 
   return json(404, { error: 'No such endpoint.' })

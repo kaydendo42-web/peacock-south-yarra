@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto'
+import { resendMailer, type Mailer } from './email'
 import { storeFromEnv, type Store } from './store'
 
 /**
@@ -11,6 +12,8 @@ import { storeFromEnv, type Store } from './store'
 
 export type Config = {
   store: Store
+  /** Null until RESEND_API_KEY and a from-address are set; bookings still work. */
+  mailer: Mailer | null
   passwordHash: string
   username: string
   sessionSecret: string
@@ -41,6 +44,7 @@ export function config(): Config {
 
   cached = {
     store: storeFromEnv(env),
+    mailer: resendMailer(env),
     passwordHash: env.PEACOCK_OWNER_PASSWORD_HASH || DEMO_PASSWORD_HASH,
     username: env.PEACOCK_OWNER_USERNAME || 'owner',
     /**
