@@ -124,7 +124,7 @@ export default function BookingFlow({
     } catch (e) {
       // The adapter rejects with the reason; a guest deserves to see it rather
       // than a shrug — most often the table was taken while they were typing.
-      setError(e instanceof BookingRejected ? e.message : 'That did not save. Try again.')
+      setError(e instanceof BookingRejected ? e.message : 'Something went wrong. Please try again.')
       await refresh(gate.date)
     } finally {
       setBusy(false)
@@ -230,9 +230,8 @@ export default function BookingFlow({
                   <span className="display t-16">Pick a table</span>
                   {/* No legend: the desaturation does the explaining (§4). */}
                   <span className="t-13 ink-60">
-                    The room is set for {gate.partySize}{' '}
-                    {gate.partySize === 1 ? 'guest' : 'guests'} at {gate.time}. Choose where you
-                    would like to sit.
+                    Showing tables for {gate.partySize}{' '}
+                    {gate.partySize === 1 ? 'guest' : 'guests'} at {gate.time}.
                   </span>
                 </header>
               </div>
@@ -250,8 +249,8 @@ function Confirmation({ booking, onDone }: { booking: Booking; onDone: () => voi
   return (
     <div className="dock__body enter">
       <header className="dock__head">
-        <span className="display t-22">You’re booked</span>
-        <span className="t-13 ink-60">We’ll see you then.</span>
+        <span className="display t-22">You’re booked!</span>
+        <span className="t-13 ink-60">See you then.</span>
       </header>
 
       <hr className="rule" />

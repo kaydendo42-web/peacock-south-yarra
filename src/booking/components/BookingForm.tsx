@@ -101,7 +101,7 @@ export default function BookingForm({
       </label>
 
       <label className="stack-8">
-        <span className="label">Anything we should know</span>
+        <span className="label">Notes (allergies, high chair, etc.)</span>
         <textarea
           className="field"
           rows={3}

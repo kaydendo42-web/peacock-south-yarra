@@ -37,7 +37,7 @@ function Alternatives({
   heading: string
 }) {
   if (!tables.length) {
-    return <p className="t-13 ink-45">Nothing else is free at that time. Try another time.</p>
+    return <p className="t-13 ink-45">No other tables are free at that time. Try another time.</p>
   }
   return (
     <>
@@ -95,7 +95,7 @@ export default function TablePanel({
         <TableHead table={table} />
         <hr className="rule" />
         <p className="t-13">
-          This table seats {table.seats}. Your party is {gate.partySize}, so it will not fit.
+          This table only seats {table.seats}.
         </p>
         <hr className="rule" />
         <Alternatives
@@ -144,7 +144,7 @@ export default function TablePanel({
             ) : null}
           </>
         ) : (
-          <p className="t-13 ink-45">This table is not free again today.</p>
+          <p className="t-13 ink-45">This table is booked for the rest of the day.</p>
         )}
 
         <hr className="rule" />

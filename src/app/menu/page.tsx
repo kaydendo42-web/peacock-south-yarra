@@ -30,23 +30,17 @@ export default async function MenuPage({
       />
       <MenuAtmosphere>
         <header className="page-masthead container menu-masthead">
-          <p className="eyebrow">Made for mornings. And a little longer.</p>
           <h1>
-            WHAT ARE YOU
+            our
             <br />
-            <span className="angled-title">IN THE MOOD FOR?</span>
+            <span className="angled-title">menu</span>
           </h1>
-          <p>
-            All-day favourites, a proper coffee and something sweet.
-            <br />
-            Find your usual. Or find a new one.
-          </p>
         </header>
         <div className="container menu-layout">
           {menu.source === "local" && (
             <p className="menu-notice">
-              Menu and prices are being confirmed. This is our existing café
-              menu; please check with the team before ordering.
+              Menu and prices are being confirmed. Please check with the team
+              before ordering.
             </p>
           )}
           {menu.source === "square" && (
@@ -57,10 +51,9 @@ export default async function MenuPage({
           )}
           {menu.source === "unavailable" ? (
             <div className="empty-menu" role="status">
-              <h2>OUR MENU IS TAKING A MOMENT.</h2>
+              <h2>THE MENU ISN&rsquo;T LOADING.</h2>
               <p>
-                Please refresh in a little while, or call us and we’ll help you
-                with today’s dishes and prices.
+                Please try again soon, or give us a call.
               </p>
               <a className="button" href={site.phoneHref}>
                 Call {site.phone} <span aria-hidden="true">↗</span>

@@ -38,7 +38,7 @@ export async function submitEnquiry(
       return {
         status: "error",
         message:
-          "Our contact form isn't connected yet. Please email us directly and we'll get straight back to you.",
+          "Our contact form isn't working yet. Please email us directly.",
       };
     }
     console.error("Contact form send failed", error);

@@ -19,19 +19,18 @@ export default function BookingPage() {
         ]}
       />
       <header className="page-masthead container booking-masthead">
-        <p className="eyebrow">There’s a place for you here</p>
         <h1>
-          LET’S MAKE
+          book a
           <br />
-          <span className="angled-title">BRUNCH PLANS.</span>
+          <span className="angled-title">table</span>
         </h1>
         <p className="booking-masthead__lede">
-          Choose where you’d like to sit, not just when. Weekdays{" "}
-          {hours.weekdays.display}, weekends {hours.weekend.display} — or call{" "}
+          Open weekdays {hours.weekdays.display} and weekends{" "}
+          {hours.weekend.display}. For groups of more than eight, call us on{" "}
           <a className="text-link" href={site.phoneHref}>
             {site.phone}
-          </a>{" "}
-          for a party of more than eight.
+          </a>
+          .
         </p>
       </header>
 
