@@ -132,9 +132,15 @@ Three things, in order of how badly they matter.
 2. **The store.** With neither `KV_REST_API_URL` nor `KV_REST_API_TOKEN` set,
    bookings go to `.data/bookings.json`. That is right for local work and wrong
    on Vercel, where the filesystem is per-instance and discarded — bookings
-   would silently disappear. Point those two at Vercel KV / Upstash before
-   deploying. `kvStore` in `src/booking/server/store.ts` is written but has
-   never been run against a real instance; exercise it before launch.
+   would silently disappear. Connect Upstash for Redis from the Vercel
+   Marketplace (`vercel integration add upstash`, region Sydney), which sets
+   both variables. `kvStore` keeps one hash field per booking under
+   `peacock:diary` and takes a short lock around every read-check-write, so two
+   guests racing for one table cannot both be confirmed
+   (`tests/booking-store.test.mjs`). Once connected, copy the two
+   values from the database's page (Storage tab → Show secret) into
+   `.env.local` and run `npm run store:check` to exercise the real instance
+   under a separate test prefix.
 
 3. **The session secret.** Without `PEACOCK_SESSION_SECRET` the cookie is signed
    with a random per-instance secret, so the owner is signed out by a deploy or

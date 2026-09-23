@@ -8,7 +8,9 @@
     "start": "next start",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "square:check": "node --experimental-strip-types scripts/check-square.mjs",
-    "hash-password": "node scripts/hash-password.mjs"
+    "hash-password": "node scripts/hash-password.mjs",
+    "set-owner-password": "bash scripts/set-owner-password.sh",
+    "store:check": "node --experimental-strip-types scripts/check-store.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",

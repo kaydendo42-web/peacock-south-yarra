@@ -141,19 +141,22 @@ export async function handle(req: ApiRequest, config: Config): Promise<ApiRespon
         return json(400, { error: 'A name, a phone number and an email are required.' })
       }
 
-      const all = await store.all()
-      const violation = checkBooking(input, all)
-      if (violation) return json(409, { error: violation.message, code: violation.code })
+      // Check and write under the lock, or two guests can both take one table.
+      return store.exclusive(async () => {
+        const all = await store.all()
+        const violation = checkBooking(input, all)
+        if (violation) return json(409, { error: violation.message, code: violation.code })
 
-      const booking: Booking = {
-        ...input,
-        id: newReference(new Set(all.map((b) => b.id))),
-        // A guest cannot talk themselves into a seated or cancelled booking.
-        status: 'confirmed',
-      }
-      await store.replace([...all, booking])
-      // The guest gets their own booking back in full; that is their own data.
-      return json(201, booking)
+        const booking: Booking = {
+          ...input,
+          id: newReference(new Set(all.map((b) => b.id))),
+          // A guest cannot talk themselves into a seated or cancelled booking.
+          status: 'confirmed',
+        }
+        await store.put(booking)
+        // The guest gets their own booking back in full; that is their own data.
+        return json(201, booking)
+      })
     }
 
     return json(405, { error: 'Method not allowed.' })
@@ -165,22 +168,23 @@ export async function handle(req: ApiRequest, config: Config): Promise<ApiRespon
     if (req.method !== 'PATCH') return json(405, { error: 'Method not allowed.' })
 
     const id = match[1]
-    const all = await store.all()
-    const i = all.findIndex((b) => b.id === id)
-    if (i === -1) return json(404, { error: 'No such booking.' })
-
     const patch = sanitise((req.body ?? {}) as Partial<Booking>)
-    const next: Booking = { ...all[i], ...patch, id: all[i].id }
 
-    if (next.status === 'confirmed' || next.status === 'seated') {
-      const violation = checkBooking(next, all, id)
-      if (violation) return json(409, { error: violation.message, code: violation.code })
-    }
+    return store.exclusive(async () => {
+      const all = await store.all()
+      const current = all.find((b) => b.id === id)
+      if (!current) return json(404, { error: 'No such booking.' })
 
-    const updated = [...all]
-    updated[i] = next
-    await store.replace(updated)
-    return json(200, next)
+      const next: Booking = { ...current, ...patch, id: current.id }
+
+      if (next.status === 'confirmed' || next.status === 'seated') {
+        const violation = checkBooking(next, all, id)
+        if (violation) return json(409, { error: violation.message, code: violation.code })
+      }
+
+      await store.put(next)
+      return json(200, next)
+    })
   }
 
   return json(404, { error: 'No such endpoint.' })
