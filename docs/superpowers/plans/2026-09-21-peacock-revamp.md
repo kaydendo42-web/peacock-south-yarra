@@ -1,5 +1,11 @@
 # The Peacock Revamp — Implementation Plan (Codex pickup file)
 
+> **Superseded, 23 September 2026.** Hosting moved back to Vercel (project
+> `peacock-south-yarra`), and Jason's PeregrineTable booking system replaced
+> Resos (`docs/BOOKING_SYSTEM.md`). Cloudflare Workers, OpenNext, Resos and
+> the plan's task list no longer apply. `CLAUDE.md` holds the current rules.
+> Kept for the record.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Turn the 1:1 Wix migration in this repo into a Ferea-style redesign of thepeacock.com.au, fed by Square's catalog, deployed on Cloudflare Workers, ready for DNS cutover.

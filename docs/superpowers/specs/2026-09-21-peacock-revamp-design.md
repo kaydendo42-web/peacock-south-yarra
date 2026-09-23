@@ -1,5 +1,11 @@
 # The Peacock South Yarra — website revamp design
 
+> **Superseded, 23 September 2026.** Hosting moved back to Vercel (project
+> `peacock-south-yarra`), and Jason's PeregrineTable booking system replaced
+> Resos (`docs/BOOKING_SYSTEM.md`). Cloudflare Workers, OpenNext, Resos and
+> the plan's task list no longer apply. `CLAUDE.md` holds the current rules.
+> Kept for the record.
+
 Date: 2026-09-21
 Author: Peregrine Partners (Kayden Do, with Claude)
 Implementer: Codex (see `docs/superpowers/plans/2026-09-21-peacock-revamp.md`)

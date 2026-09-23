@@ -1,5 +1,11 @@
 # The Peacock South Yarra — agent instructions
 
+> **Superseded, 23 September 2026.** Hosting moved back to Vercel (project
+> `peacock-south-yarra`), and Jason's PeregrineTable booking system replaced
+> Resos (`docs/BOOKING_SYSTEM.md`). Cloudflare Workers, OpenNext, Resos and
+> the plan's task list no longer apply. `CLAUDE.md` holds the current rules.
+> Kept for the record.
+
 Client site for a South Yarra brunch cafe. Peregrine Partners is the agency;
 the venue (Jenny) is the client. Kayden Do owns this repo; Jason owns bookings.
 
