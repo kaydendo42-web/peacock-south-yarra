@@ -65,9 +65,9 @@ export default function Gate({
         if (ready) onSubmit({ partySize, date, time })
       }}
     >
-      <h1 className="display t-22 gate__title">Book a table</h1>
+      <h1 className="display t-22 gate__title">Your booking</h1>
       <p className="t-13 ink-60 gate__lede">
-        Tell us who is coming and when. Then pick where you would like to sit.
+        Choose how many people, the day and a time. Then pick your table.
       </p>
 
       <hr className="rule" />
@@ -120,7 +120,7 @@ export default function Gate({
       <div className="gate__field">
         <span className="label">What time</span>
         {partySize === 0 ? (
-          <p className="t-13 ink-45">Choose a party size first.</p>
+          <p className="t-13 ink-45">Choose how many people first.</p>
         ) : (
           <>
             {[
@@ -153,7 +153,7 @@ export default function Gate({
             })}
             {!morning.length && !midday.length ? (
               <p className="t-13 ink-45">
-                A sitting that long does not fit inside opening hours on {dateLabel(date)}.
+                No times left for a group this size on {dateLabel(date)}.
               </p>
             ) : null}
           </>
@@ -171,7 +171,7 @@ export default function Gate({
           <span />
         )}
         <button type="submit" className="btn btn--primary" disabled={!ready}>
-          See the room
+          Show tables
         </button>
       </div>
     </form>

@@ -4,9 +4,9 @@ import { BreadcrumbSchema } from "@/components/structured-data";
 import { ContactForm } from "@/components/contact-form";
 import { hours, site } from "@/lib/site";
 export const metadata: Metadata = {
-  title: "Find us & say hello",
+  title: "Find us",
   description:
-    "Find The Peacock South Yarra, check opening hours, get directions or get in touch with our café team.",
+    "Address, opening hours and contact details for The Peacock South Yarra.",
   alternates: { canonical: "/contact-us" },
 };
 export const dynamic = "force-dynamic";
@@ -23,17 +23,11 @@ export default function ContactPage() {
         ]}
       />
       <header className="page-masthead container">
-        <p className="eyebrow">A little off the beaten track</p>
         <h1>
-          FOLLOW THE
+          find
           <br />
-          <span className="angled-title">SMELL OF COFFEE.</span>
+          <span className="angled-title">us</span>
         </h1>
-        <p>
-          You’ll find us among the plants in our little weatherboard house.
-          <br />
-          We’d love to see you.
-        </p>
       </header>
       <section className="container visit-layout">
         <div className="visit-photo">
@@ -76,22 +70,21 @@ export default function ContactPage() {
             <br />
             <a href={`mailto:${site.email}`}>{site.email}</a>
           </p>
-          <p className="eyebrow">Bring your four-legged friend</p>
-          <p>Our front deck and rear courtyard are dog-friendly.</p>
+          <p className="eyebrow">Pets welcome!</p>
+          <p>Dogs are welcome on our front deck and in the rear courtyard.</p>
         </div>
       </section>
       <section className="contact-panel">
         <div className="contact-inner">
-          <h2>DROP US A LINE.</h2>
+          <h2>GET IN TOUCH.</h2>
           <p>
-            A question, a bigger gathering, or a little feedback? We’d love to
-            hear from you.
+            Questions, group bookings or feedback? Send us a message.
           </p>
           {emailReady ? (
             <ContactForm />
           ) : (
             <a className="button" href={`mailto:${site.email}`}>
-              Email the team <span aria-hidden="true">↗</span>
+              Email us <span aria-hidden="true">↗</span>
             </a>
           )}
         </div>

@@ -37,7 +37,7 @@ export function MenuExplorer({
         <div className="menu-tabs" aria-label="Choose menu">
           {[
             ["all", "Everything"],
-            ["food", "All-day food"],
+            ["food", "Food"],
             ["drinks", "Drinks"],
           ].map(([id, label]) => (
             <button
@@ -55,7 +55,7 @@ export function MenuExplorer({
           <input
             className="menu-search"
             type="search"
-            placeholder="Find your favourite…"
+            placeholder="Search the menu…"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
@@ -150,8 +150,8 @@ export function MenuExplorer({
             ))
           ) : (
             <div className="empty-menu">
-              <h2>NOTHING HERE JUST YET.</h2>
-              <p>Try a different search or browse the full menu.</p>
+              <h2>NO RESULTS.</h2>
+              <p>Try a different search.</p>
               <button
                 className="button"
                 type="button"

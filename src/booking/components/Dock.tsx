@@ -77,7 +77,7 @@ export default function Dock({
 
       {onBackToRoom ? (
         <button type="button" className="dock__back" onClick={onBackToRoom}>
-          Back to the room
+          Back to the floor plan
         </button>
       ) : null}
     </aside>

@@ -76,8 +76,7 @@ export function InstagramSection() {
     <section className="container section instagram-section">
       <div className="section-top">
         <div>
-          <p className="eyebrow">A little taste of life here</p>
-          <h2>THE PEACOCK, LATELY.</h2>
+          <h2>THE PEACOCK, LATELY...</h2>
         </div>
         <a
           className="text-link"
@@ -115,23 +114,23 @@ export function CafeFaq() {
   const faqs = [
     {
       q: "Can I bring my dog?",
-      a: "Absolutely. Dogs are welcome on our front deck and in the rear courtyard. Ask the team about our housemade peanut butter doggo biscuits.",
+      a: "Yes! Dogs are welcome on our front deck and in the rear courtyard. Ask the team about our homemade peanut butter dog biscuits.",
     },
     {
-      q: "What time can I pop in?",
-      a: `We’re here ${hours.weekdays.display} Monday to Friday, ${hours.weekend.display} on weekends, and ${hours.publicHolidays.display} on public holidays.`,
+      q: "What are your opening hours?",
+      a: `We’re open ${hours.weekdays.display} Monday to Friday, ${hours.weekend.display} on weekends, and ${hours.publicHolidays.display} on public holidays.`,
     },
     {
       q: "Do you have vegetarian or vegan options?",
-      a: "Yes, our all-day menu includes vegetarian and vegan options. Let the team know about dietary requirements or allergies when ordering so we can help you choose.",
+      a: "Yes. Just let the team know about any dietary requirements or allergies when you order.",
     },
     {
       q: "How do I book a table?",
       a: (
         <>
-          <Link href="/book-a-table">Book online</Link> — pick the table you
-          want on the floor plan, then a time. For a party of more than eight,
-          call the team on <a href={site.phoneHref}>{site.phone}</a>.
+          <Link href="/book-a-table">Book online</Link> and pick your table on
+          the floor plan. For groups of more than eight, call us on{" "}
+          <a href={site.phoneHref}>{site.phone}</a>.
         </>
       ),
     },
@@ -139,14 +138,13 @@ export function CafeFaq() {
   return (
     <section className="container section faq-section">
       <div>
-        <p className="eyebrow">Before you pop by</p>
         <h2>
           GOOD
           <br />
           TO KNOW.
         </h2>
         <Link href="/contact-us" className="text-link">
-          Anything else? Say hello ↗
+          Other questions? Get in touch ↗
         </Link>
       </div>
       <div className="faq-list">

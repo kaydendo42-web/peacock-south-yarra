@@ -20,7 +20,7 @@ export function ContactForm() {
         role="status"
         className="mx-auto mt-10 max-w-[384px] bg-teal px-6 py-5 text-center font-ui text-[15px] text-white"
       >
-        Thanks for getting in touch — we&apos;ll come back to you shortly.
+        Thanks! We&apos;ll get back to you soon.
       </p>
     );
   }
@@ -62,7 +62,7 @@ function SubmitButton() {
       disabled={pending}
       className="inline-flex min-h-11 min-w-[97px] items-center justify-center bg-teal px-6 font-button text-[15px] leading-[21px] text-white transition-colors hover:bg-teal-dark disabled:opacity-60"
     >
-      {pending ? "Sending…" : "Submit"}
+      {pending ? "Sending…" : "Send"}
     </button>
   );
 }

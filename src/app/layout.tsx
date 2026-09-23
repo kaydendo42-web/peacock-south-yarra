@@ -25,10 +25,10 @@ const body = Jost({
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: `${site.shortName} | Brunch, Coffee & Good Company in ${site.suburb}`,
+    default: `${site.shortName} | Brunch & Coffee in ${site.suburb}`,
     template: `%s | ${site.name}`,
   },
-  description: `All-day brunch, St. ALi coffee and a little green escape in ${site.suburb}. Find your favourite corner at ${site.shortName}, with a dog-friendly deck and courtyard.`,
+  description: `All-day brunch and St. ALi coffee in ${site.suburb}, with a dog-friendly deck and courtyard.`,
   applicationName: site.name,
   alternates: { canonical: "/" },
   openGraph: {
@@ -37,8 +37,7 @@ export const metadata: Metadata = {
     siteName: site.name,
     url: site.url,
     title: site.name,
-    description:
-      "Your daily happy place. All-day brunch, coffee and good company.",
+    description: `All-day brunch and coffee in ${site.suburb}.`,
     images: [
       {
         url: "/images/hero-1.jpg",

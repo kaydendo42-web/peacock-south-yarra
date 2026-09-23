@@ -38,7 +38,7 @@ export function CoffeeHero() {
       <div className="container coffee-hero-inner">
         <div className="coffee-hero-copy">
           <p className="eyebrow hero-enter">
-            YOUR LOCAL LITTLE ESCAPE · {site.suburb.toUpperCase()}
+            {site.suburb.toUpperCase()}
           </p>
           <div className="coffee-headline hero-enter">
             <span className="good-mood-sticker" aria-hidden="true">
@@ -47,19 +47,14 @@ export function CoffeeHero() {
               MOOD FOOD
             </span>
             <h1 id="home-title">
-              MORNINGS,
+              {site.suburb}&rsquo;s
               <br />
-              <span className="angled-title">MADE BETTER.</span>
+              <span className="angled-title">Best Brunch Spot!</span>
             </h1>
           </div>
           <div className="coffee-hero-intro hero-enter">
-            <p>
-              Proper coffee. A buttery croissant.
-              <br />
-              And absolutely no rush to leave.
-            </p>
             <Link href="/menu" className="button hero-menu-button">
-              Find your favourite<span aria-hidden="true">↗</span>
+              See our menu<span aria-hidden="true">↗</span>
             </Link>
           </div>
           <a className="dog-invite hero-enter" href="#four-legged-regulars">
@@ -72,9 +67,9 @@ export function CoffeeHero() {
               />
             </span>
             <span>
-              Four legs? You’re invited, too.
+              Pets welcome!
               <small>
-                Meet the regulars <span aria-hidden="true">↘</span>
+                Meet our regulars <span aria-hidden="true">↘</span>
               </small>
             </span>
           </a>
@@ -88,7 +83,6 @@ export function CoffeeHero() {
             priority
             className="coffee-art-image"
           />
-          <span className="coffee-art-note">a little cup of happy ↗</span>
         </div>
         <button
           type="button"
@@ -101,18 +95,16 @@ export function CoffeeHero() {
       </div>
       <div
         className="coffee-ribbon"
-        aria-label="All-day brunch, St. ALi coffee, dogs welcome"
+        aria-label="All-day brunch, pets welcome, fresh coffee"
       >
         <div className="coffee-ribbon-track" aria-hidden="true">
           {[0, 1].map((i) => (
             <div className="coffee-ribbon-copy" key={i}>
-              <span>GOOD COFFEE</span>
+              <span>all-day brunch</span>
               <b>✳</b>
-              <span>ALL-DAY BRUNCH</span>
+              <span>pets welcome</span>
               <b>✳</b>
-              <span>DOGS WELCOME</span>
-              <b>✳</b>
-              <span>ST. ALi IN YOUR CUP</span>
+              <span>fresh coffee</span>
               <b>✳</b>
             </div>
           ))}

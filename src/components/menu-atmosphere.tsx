@@ -60,23 +60,19 @@ export function MenuAtmosphere({ children }: { children: ReactNode }) {
       <div aria-hidden="true" className="menu-doodles">
         <div className="menu-doodle doodle-plant">
           <LeafDrawing />
-          <span>a little greenery</span>
         </div>
         <div className="menu-doodle doodle-coffee">
           <CoffeeDrawing />
-          <span>your usual?</span>
         </div>
         <div className="menu-doodle doodle-dog">
           <DogDrawing />
-          <span>crumb patrol</span>
         </div>
         <div className="menu-doodle doodle-pastry">
           <CroissantDrawing />
-          <span>something flaky</span>
         </div>
       </div>
       <div className="menu-motion-controls container">
-        <span>GOOD FOOD. GOOD COMPANY. TAKE YOUR TIME.</span>
+        <span />
         <button
           type="button"
           aria-pressed={paused}
