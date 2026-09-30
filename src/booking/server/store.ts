@@ -264,8 +264,10 @@ async function refuse(res: Response): Promise<void> {
  * diary Peregrine reads), then Upstash, then a JSON file for development.
  */
 export function storeFromEnv(env: NodeJS.ProcessEnv, bufferMinutes = 15): Store {
-  const supabaseUrl = env.SUPABASE_URL
-  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY
+  // The Vercel Supabase integration may prefix its variables (STORAGE_…);
+  // accept either spelling so connecting it is enough.
+  const supabaseUrl = env.SUPABASE_URL ?? env.STORAGE_SUPABASE_URL ?? env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY ?? env.STORAGE_SUPABASE_SERVICE_ROLE_KEY
   const venueId = env.PEREGRINE_VENUE_ID
   if (supabaseUrl && serviceKey && venueId) return supabaseStore(supabaseUrl, serviceKey, venueId, bufferMinutes)
 
