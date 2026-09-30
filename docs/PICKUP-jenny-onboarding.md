@@ -47,7 +47,7 @@ database, add Development in the integration, or put the values in `.env.local`.
 
 ## Finish line, in order
 
-1. **Confirm the schema ran.** Supabase → Table Editor: `venues` 1 row,
+1. **Confirm the seed ran.** (30 Sep: all five tables exist, so the migration ran; row counts are hidden from the public key by RLS.) Supabase → Table Editor: `venues` 1 row,
    `sections` 4, `venue_tables` 31, `bookings` 0. If the tables aren't there,
    run the migration (whole file, Cmd+A), then the seed.
 2. **Logins.** Supabase → Authentication → Users → Add user: Jenny's email +
