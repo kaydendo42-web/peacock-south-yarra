@@ -22,21 +22,38 @@
 }
 .coffee-hero-inner {
   position: relative;
-  min-height: 755px;
   padding-top: 65px;
   padding-bottom: 80px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 56px;
+  align-items: center;
 }
 .coffee-hero-copy {
   position: relative;
   z-index: 2;
-  width: 56%;
+}
+/* One of Jenny's own photos, framed plainly. */
+.hero-photo {
+  position: relative;
+  /* An aspect-ratio item does not stretch in a grid by default. */
+  width: 100%;
+  margin: 0;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--pale);
+  animation-delay: 0.2s;
+}
+.hero-photo img {
+  object-fit: cover;
 }
 .coffee-headline {
   position: relative;
-  margin-top: 69px;
+  margin-top: 24px;
 }
 .coffee-headline h1 {
-  font-size: clamp(78px, 10.1vw, 145px);
+  font-size: clamp(64px, 7.2vw, 112px);
   line-height: 0.88;
   letter-spacing: -0.035em;
 }
@@ -45,20 +62,6 @@
   padding: 8px 14px 12px;
   font-size: 0.8em;
   white-space: nowrap;
-}
-.good-mood-sticker {
-  position: absolute;
-  left: 40px;
-  top: -48px;
-  padding: 9px 18px;
-  border: 2px solid var(--forest);
-  border-radius: 50%;
-  background: var(--paper);
-  font:
-    900 22px/0.85 var(--font-fira),
-    sans-serif;
-  text-align: center;
-  transform: rotate(-15deg);
 }
 .coffee-hero-intro {
   margin-top: 48px;
@@ -78,28 +81,6 @@
 }
 .hero-menu-button:hover {
   color: var(--forest);
-}
-.coffee-art {
-  position: absolute;
-  width: 62%;
-  aspect-ratio: 1;
-  right: -1%;
-  top: 20px;
-  z-index: 1;
-  transform: translateY(var(--coffee-shift, 0px))
-    rotate(var(--coffee-turn, 0deg));
-}
-.coffee-art-image {
-  object-fit: contain;
-  animation: coffee-arrive 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-.coffee-art-note {
-  position: absolute;
-  top: 11%;
-  left: 5%;
-  transform: rotate(-11deg);
-  font-size: 16px;
-  font-style: italic;
 }
 .dog-invite {
   display: inline-flex;
@@ -134,54 +115,6 @@
 .dog-invite:hover .dog-invite-photo {
   transform: rotate(8deg);
 }
-.motion-toggle {
-  position: absolute;
-  right: var(--gutter);
-  bottom: 20px;
-  z-index: 3;
-  background: var(--paper);
-  color: var(--forest);
-  border: 1px solid var(--rule);
-  border-radius: 30px;
-  padding: 9px 15px;
-  font-size: 12px;
-  min-height: 40px;
-}
-.coffee-ribbon {
-  position: relative;
-  z-index: 2;
-  overflow: hidden;
-  background: var(--mint);
-  border-block: 1px solid var(--forest);
-  padding: 21px 0;
-}
-.coffee-ribbon-track {
-  display: flex;
-  width: max-content;
-  animation: coffee-marquee 34s linear infinite;
-}
-.coffee-ribbon-copy {
-  display: flex;
-  align-items: center;
-  gap: 52px;
-  padding-right: 52px;
-  font:
-    900 29px/1 var(--font-fira),
-    sans-serif;
-  white-space: nowrap;
-}
-.coffee-ribbon-copy b {
-  font-size: 34px;
-  font-weight: 400;
-}
-.motion-paused .coffee-ribbon-track,
-.motion-paused .hero-enter,
-.motion-paused .coffee-art-image {
-  animation-play-state: paused;
-}
-.coffee-ribbon:hover .coffee-ribbon-track {
-  animation-play-state: paused;
-}
 .hero-enter {
   animation: hero-arrive 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
@@ -194,16 +127,6 @@
 .dog-invite {
   animation-delay: 0.26s;
 }
-@keyframes coffee-arrive {
-  from {
-    opacity: 0;
-    transform: translate(65px, 35px) rotate(9deg) scale(0.94);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
 @keyframes hero-arrive {
   from {
     opacity: 0;
@@ -212,11 +135,6 @@
   to {
     opacity: 1;
     translate: 0 0;
-  }
-}
-@keyframes coffee-marquee {
-  to {
-    transform: translateX(-50%);
   }
 }
 .reveal[data-reveal="waiting"] {
@@ -429,36 +347,15 @@
 .menu-category h2 {
   font-size: 48px;
 }
-.menu-category-nav a {
-  border-bottom: 1px solid var(--rule);
-  transition: padding 0.2s;
-}
-.menu-category-nav a:hover {
-  padding-left: 8px;
-}
 @media (min-width: 1600px) {
-  .coffee-art {
-    right: -4%;
-    width: 63%;
-  }
 }
 @media (max-width: 1000px) {
   .coffee-hero-inner {
-    min-height: 710px;
     padding-top: 48px;
+    gap: 32px;
   }
   .coffee-headline h1 {
-    font-size: clamp(76px, 10.7vw, 107px);
-  }
-  .coffee-art {
-    top: 95px;
-    right: -10%;
-    width: 68%;
-  }
-  .coffee-art-note {
-    top: 3%;
-    left: 20%;
-    font-size: 13px;
+    font-size: clamp(56px, 7.4vw, 80px);
   }
   .coffee-hero-intro p {
     font-size: 17px;
@@ -490,9 +387,13 @@
 }
 @media (max-width: 700px) {
   .coffee-hero-inner {
-    min-height: 0;
+    grid-template-columns: 1fr;
+    gap: 36px;
     padding-top: 30px;
-    padding-bottom: 65px;
+    padding-bottom: 48px;
+  }
+  .hero-photo {
+    aspect-ratio: 4 / 3;
   }
   .coffee-hero-copy {
     width: 100%;
@@ -502,20 +403,14 @@
     letter-spacing: 0.1em;
   }
   .coffee-headline {
-    margin-top: 65px;
+    margin-top: 18px;
   }
   .coffee-headline h1 {
-    font-size: clamp(68px, 16vw, 108px);
+    font-size: clamp(54px, 14vw, 96px);
   }
   .coffee-headline .angled-title {
     font-size: 0.82em;
     padding: 6px 8px 10px;
-  }
-  .good-mood-sticker {
-    left: 18px;
-    top: -40px;
-    font-size: 19px;
-    padding: 7px 14px;
   }
   .coffee-hero-intro {
     margin-top: 35px;
@@ -526,35 +421,12 @@
   .hero-menu-button {
     margin-top: 21px;
   }
-  .coffee-art {
-    position: relative;
-    right: auto;
-    top: auto;
-    width: 115%;
-    margin: -5px -7.5% -5px;
-  }
-  .coffee-art-note {
-    top: 8%;
-    left: 10%;
-    font-size: 12px;
-  }
   .dog-invite {
     margin-top: 26px;
   }
   .dog-invite-photo {
     width: 46px;
     height: 46px;
-  }
-  .coffee-ribbon {
-    padding-block: 18px;
-  }
-  .coffee-ribbon-copy {
-    font-size: 24px;
-    gap: 28px;
-    padding-right: 28px;
-  }
-  .coffee-ribbon-copy b {
-    font-size: 26px;
   }
   .dog-section-heading {
     margin-bottom: 40px;
@@ -623,27 +495,8 @@
     animation: none !important;
     transition: none !important;
   }
-  .coffee-art {
-    transform: none;
-  }
   .reveal[data-reveal] {
     opacity: 1;
     transform: none;
-  }
-  .motion-toggle {
-    display: none;
-  }
-  .coffee-ribbon-track {
-    width: auto;
-  }
-  .coffee-ribbon-copy {
-    white-space: normal;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding-inline: 20px;
-    font-size: 20px;
-  }
-  .coffee-ribbon-copy:nth-child(2) {
-    display: none;
   }
 }

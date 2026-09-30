@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -25,10 +26,14 @@ export function SiteHeader() {
     <header className="site-header" id="top">
       <div className="header-inner">
         <Link href="/" className="wordmark" aria-label={`${site.name} home`}>
-          <span>THE</span> PEACOCK
-          <span className="wordmark-dot" aria-hidden="true">
-            ✳
-          </span>
+          <Image
+            src="/images/logo.png"
+            alt=""
+            width={828}
+            height={117}
+            priority
+            className="wordmark-logo"
+          />
         </Link>
         <nav aria-label="Main navigation" className="desktop-nav">
           {nav.map((item) => (

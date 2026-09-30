@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { CafeFaq } from "@/components/cafe-sections";
-import { CoffeeDrawing } from "@/components/cafe-art";
 import { BreadcrumbSchema } from "@/components/structured-data";
 import Image from "next/image";
 import Link from "next/link";
@@ -64,24 +63,24 @@ export default function AboutPage() {
       </Reveal>
       <section className="values-section">
         <div className="container section">
-          <CoffeeDrawing className="values-coffee" />
           <h2>what we&rsquo;re about</h2>
           <div className="values-grid">
             <div>
-              <h3>GOOD FOOD.</h3>
+              <h3>Good food.</h3>
+              {/* Jenny is rewriting this paragraph (30 Sep 2026). */}
               <p>
                 An all-day menu, from savoury breakfasts to something sweet in
                 the afternoon.
               </p>
             </div>
             <div>
-              <h3>GOOD COFFEE.</h3>
+              <h3>Good coffee.</h3>
               <p>
                 St. ALi coffee, our own sticky chai and ceremonial matcha.
               </p>
             </div>
             <div>
-              <h3>EVERYONE’S WELCOME.</h3>
+              <h3>Everyone’s welcome.</h3>
               <p>
                 Friends, families, or just you. Dogs can join you on the deck or
                 in the courtyard.

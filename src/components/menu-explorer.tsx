@@ -6,37 +6,22 @@ import { groupMenuItems } from "@/lib/menu-display";
 
 export function MenuExplorer({
   boards,
-  initialView = "all",
+  initialView = "food",
 }: {
   boards: MenuBoard[];
   initialView?: string;
 }) {
   const [view, setView] = useState(
-    ["food", "drinks"].includes(initialView) ? initialView : "all",
+    initialView === "drinks" ? "drinks" : "food",
   );
-  const [query, setQuery] = useState("");
-  const selected = boards.filter(
-    (b) =>
-      view === "all" ||
-      (view === "drinks" ? b.id === "drinks" : b.id !== "drinks"),
-  );
-  const sections = selected
-    .flatMap((b) => b.sections)
-    .map((section) => ({
-      ...section,
-      items: section.items.filter((item) =>
-        `${item.name} ${item.description || ""} ${section.title}`
-          .toLowerCase()
-          .includes(query.trim().toLowerCase()),
-      ),
-    }))
-    .filter((section) => section.items.length);
+  const sections = boards
+    .filter((b) => (view === "drinks" ? b.id === "drinks" : b.id !== "drinks"))
+    .flatMap((b) => b.sections);
   return (
     <>
       <div className="menu-toolbar">
         <div className="menu-tabs" aria-label="Choose menu">
           {[
-            ["all", "Everything"],
             ["food", "Food"],
             ["drinks", "Drinks"],
           ].map(([id, label]) => (
@@ -50,32 +35,10 @@ export function MenuExplorer({
             </button>
           ))}
         </div>
-        <label>
-          <span className="sr-only">Search the menu</span>
-          <input
-            className="menu-search"
-            type="search"
-            placeholder="Search the menu…"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </label>
       </div>
-      <p className="sr-only" aria-live="polite">
-        {sections.reduce((total, s) => total + s.items.length, 0)} menu items
-        shown
-      </p>
       <div className="menu-body">
-        <nav className="menu-category-nav" aria-label="Menu categories">
-          {sections.map((s) => (
-            <a href={`#${s.id}`} key={s.id}>
-              {s.title}
-            </a>
-          ))}
-        </nav>
         <div>
-          {sections.length ? (
-            sections.map((s) => (
+          {sections.map((s) => (
               <section className="menu-category" key={s.id} id={s.id}>
                 <h2>{s.title.toUpperCase()}</h2>
                 {s.subtitle && (
@@ -147,23 +110,7 @@ export function MenuExplorer({
                   ))}
                 </ul>
               </section>
-            ))
-          ) : (
-            <div className="empty-menu">
-              <h2>NO RESULTS.</h2>
-              <p>Try a different search.</p>
-              <button
-                className="button"
-                type="button"
-                onClick={() => {
-                  setQuery("");
-                  setView("all");
-                }}
-              >
-                Show everything <span aria-hidden="true">↗</span>
-              </button>
-            </div>
-          )}
+            ))}
         </div>
       </div>
     </>

@@ -24,24 +24,6 @@
   isolation: isolate;
   overflow: clip;
 }
-.menu-motion-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  padding-top: 26px;
-  font-size: 10px;
-  letter-spacing: 0.09em;
-}
-.menu-motion-controls button {
-  border: 1px solid var(--rule);
-  padding: 10px 16px;
-  min-height: 44px;
-  border-radius: 30px;
-  font-size: 12px;
-  letter-spacing: 0;
-  background: var(--paper);
-}
 .menu-masthead {
   position: relative;
   padding-top: 60px;
@@ -49,83 +31,6 @@
 }
 .menu-masthead h1 {
   font-size: clamp(55px, 7.8vw, 106px);
-}
-.menu-doodles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: -1;
-  max-width: 1500px;
-  margin-inline: auto;
-}
-.menu-doodle {
-  position: absolute;
-  width: 110px;
-  text-align: center;
-}
-.menu-doodle svg {
-  width: 100%;
-  display: block;
-  animation: sketch-sway 5s ease-in-out infinite alternate;
-  transform-origin: 50% 90%;
-}
-.menu-doodle span {
-  display: block;
-  font-size: 12px;
-  font-style: italic;
-  margin-top: 7px;
-  transform: rotate(-7deg);
-}
-.doodle-plant {
-  top: 106px;
-  left: 3%;
-  transform: rotate(-16deg);
-}
-.doodle-coffee {
-  top: 87px;
-  right: 3%;
-  transform: rotate(14deg);
-}
-.doodle-coffee svg {
-  animation-delay: -2s;
-}
-.doodle-dog {
-  top: 315px;
-  left: 8%;
-  width: 94px;
-  transform: rotate(9deg);
-}
-.doodle-dog svg {
-  animation: sketch-bob 4s ease-in-out infinite alternate;
-}
-.doodle-pastry {
-  top: 330px;
-  right: 7%;
-  transform: rotate(-15deg);
-}
-.doodle-pastry svg {
-  animation-delay: -1s;
-}
-.illustrations-paused .menu-doodle svg {
-  animation-play-state: paused;
-}
-@keyframes sketch-sway {
-  from {
-    rotate: -6deg;
-  }
-  to {
-    rotate: 6deg;
-  }
-}
-@keyframes sketch-bob {
-  from {
-    translate: 0 0;
-    rotate: -4deg;
-  }
-  to {
-    translate: 0 -9px;
-    rotate: 4deg;
-  }
 }
 .place-intro {
   display: grid;
@@ -213,24 +118,6 @@
   font-size: 18px;
 }
 @media (max-width: 1100px) {
-  .menu-doodle {
-    width: 80px;
-  }
-  .doodle-plant {
-    left: 1%;
-  }
-  .doodle-coffee {
-    right: 1%;
-  }
-  .doodle-dog {
-    left: 3%;
-    top: 305px;
-    width: 75px;
-  }
-  .doodle-pastry {
-    right: 3%;
-    top: 320px;
-  }
   .place-intro {
     gap: 35px;
   }
@@ -261,13 +148,6 @@
   }
 }
 @media (max-width: 700px) {
-  .menu-motion-controls {
-    padding-top: 18px;
-    justify-content: flex-end;
-  }
-  .menu-motion-controls > span {
-    display: none;
-  }
   .menu-masthead {
     padding-top: 30px;
     padding-bottom: 180px;
@@ -277,26 +157,6 @@
   }
   .menu-masthead > p:not(.eyebrow) {
     font-size: 16px;
-  }
-  .menu-doodle {
-    top: 390px;
-    width: 65px;
-  }
-  .menu-doodle span {
-    font-size: 10px;
-  }
-  .doodle-plant {
-    left: 5%;
-  }
-  .doodle-dog {
-    left: 28%;
-    width: 65px;
-  }
-  .doodle-coffee {
-    right: 27%;
-  }
-  .doodle-pastry {
-    right: 4%;
   }
   .place-intro {
     grid-template-columns: 1fr;
@@ -337,13 +197,41 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .menu-doodle svg {
-    animation: none;
-  }
-  .menu-motion-controls button {
-    display: none;
-  }
-  .menu-motion-controls {
-    min-height: 44px;
-  }
+}
+
+/* The three specials printed on Jenny's menus. */
+.menu-specials {
+  list-style: none;
+  padding: 28px 0 0;
+  margin: 0 0 8px;
+  border-top: 1px solid var(--rule);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+}
+.menu-specials h3 {
+  font-family: var(--font-body, inherit);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  margin: 0 0 6px;
+}
+.menu-specials p {
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Jenny: the stacked all-caps sub-headings read as "too chunky". Section
+   titles keep the display face; these drop to the body face. */
+.values-grid h3 {
+  font-family: var(--font-body);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-transform: none;
+}
+.values-grid p {
+  margin-top: 10px;
 }

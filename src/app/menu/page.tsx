@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { BreadcrumbSchema, MenuSchema } from "@/components/structured-data";
 import { MenuExplorer } from "@/components/menu-explorer";
-import { dietaryLegend, getMenu, menuFootnotes } from "@/lib/menu";
-import { site } from "@/lib/site";
-import { MenuAtmosphere } from "@/components/menu-atmosphere";
+import {
+  dietaryLegend,
+  getMenu,
+  menuFootnotes,
+  menuSpecials,
+} from "@/lib/menu";
 export const metadata: Metadata = {
   title: "The menu",
   description:
@@ -26,9 +29,9 @@ export default async function MenuPage({
       />
       <MenuSchema
         boards={menu.boards}
-        includePrices={menu.source === "square"}
+        includePrices
       />
-      <MenuAtmosphere>
+      <div className="illustrated-menu">
         <header className="page-masthead container menu-masthead">
           <h1>
             our
@@ -37,43 +40,29 @@ export default async function MenuPage({
           </h1>
         </header>
         <div className="container menu-layout">
-          {menu.source === "local" && (
-            <p className="menu-notice">
-              Menu and prices are being confirmed. Please check with the team
-              before ordering.
-            </p>
-          )}
-          {menu.source === "square" && (
-            <p className="menu-notice">
-              Prices in Australian dollars. Please let our team know about
-              allergies and dietary requirements before ordering.
-            </p>
-          )}
-          {menu.source === "unavailable" ? (
-            <div className="empty-menu" role="status">
-              <h2>THE MENU ISN&rsquo;T LOADING.</h2>
-              <p>
-                Please try again soon, or give us a call.
-              </p>
-              <a className="button" href={site.phoneHref}>
-                Call {site.phone} <span aria-hidden="true">↗</span>
-              </a>
-            </div>
-          ) : (
-            <MenuExplorer
-              key={params.view || "all"}
-              boards={menu.boards}
-              initialView={params.view}
-            />
-          )}
+          <p className="menu-notice">
+            Prices in Australian dollars. Please let our team know about
+            allergies and dietary requirements before ordering.
+          </p>
+          <MenuExplorer
+            key={params.view || "food"}
+            boards={menu.boards}
+            initialView={params.view}
+          />
+          <ul className="menu-specials">
+            {menuSpecials.map((special) => (
+              <li key={special.id}>
+                <h3>{special.title}</h3>
+                <p>{special.detail}</p>
+              </li>
+            ))}
+          </ul>
           <div className="menu-conditions">
-            {menu.source === "local" && (
-              <p>
-                {dietaryLegend
-                  .map((d) => `${d.code}: ${d.meaning}`)
-                  .join(" · ")}
-              </p>
-            )}
+            <p>
+              {dietaryLegend
+                .map((d) => `${d.code}: ${d.meaning}`)
+                .join(" · ")}
+            </p>
             <ul>
               {menuFootnotes.map((note) => (
                 <li key={note}>{note}</li>
@@ -81,7 +70,7 @@ export default async function MenuPage({
             </ul>
           </div>
         </div>
-      </MenuAtmosphere>
+      </div>
     </>
   );
 }

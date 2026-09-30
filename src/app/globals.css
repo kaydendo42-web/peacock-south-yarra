@@ -199,16 +199,11 @@ address {
   letter-spacing: -0.04em;
   line-height: 1;
 }
-.wordmark > span:first-child {
-  font-size: 15px;
-  letter-spacing: 0;
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-}
-.wordmark-dot {
-  color: var(--forest);
-  font-size: 32px;
-  margin-left: 4px;
+/* Jenny's own wordmark, as on her current site. */
+.wordmark-logo {
+  display: block;
+  width: 190px;
+  height: auto;
 }
 .desktop-nav {
   display: flex;
@@ -653,15 +648,6 @@ address {
   background: var(--forest);
   color: var(--paper);
 }
-.menu-search {
-  border: 1px solid var(--rule);
-  border-radius: 99px;
-  padding: 10px 20px;
-  background: transparent;
-  color: var(--forest);
-  font-size: 15px;
-  width: 270px;
-}
 .menu-notice {
   padding: 15px 20px;
   background: var(--pale);
@@ -670,26 +656,6 @@ address {
   margin-bottom: 30px;
 }
 .menu-notice a {
-  text-decoration: underline;
-}
-.menu-body {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 60px;
-  align-items: start;
-}
-.menu-category-nav {
-  position: sticky;
-  top: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.menu-category-nav a {
-  padding: 8px 0;
-  font-size: 15px;
-}
-.menu-category-nav a:hover {
   text-decoration: underline;
 }
 .menu-category {
@@ -917,10 +883,6 @@ address {
     flex-direction: column;
     gap: 18px;
   }
-  .menu-body {
-    grid-template-columns: 165px 1fr;
-    gap: 28px;
-  }
   .menu-items {
     column-gap: 24px;
   }
@@ -947,8 +909,8 @@ address {
   .wordmark {
     font-size: 25px;
   }
-  .wordmark-dot {
-    font-size: 24px;
+  .wordmark-logo {
+    width: 150px;
   }
   .desktop-nav {
     display: none;
@@ -1151,25 +1113,6 @@ address {
   }
   .menu-tabs button {
     padding: 8px 18px;
-  }
-  .menu-search {
-    width: 100%;
-  }
-  .menu-body {
-    grid-template-columns: 1fr;
-    gap: 25px;
-  }
-  .menu-category-nav {
-    position: static;
-    flex-direction: row;
-    overflow-x: auto;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--rule);
-    gap: 22px;
-  }
-  .menu-category-nav a {
-    white-space: nowrap;
-    font-size: 14px;
   }
   .menu-items {
     grid-template-columns: 1fr;

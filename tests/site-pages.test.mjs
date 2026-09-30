@@ -21,14 +21,14 @@ test(
 );
 
 test(
-  "menu keeps searchable dishes without the three promotional photo cards",
+  "menu shows the printed food and drinks menus, without promo cards or doodles",
   { skip: !base },
   async () => {
     const html = await main("/menu");
     assert.doesNotMatch(html, /class="menu-featured/);
-    assert.match(html, /Search the menu/);
-    assert.match(html, /Pause illustrations/);
-    assert.match(html, /aria-hidden="true"[^>]*class="menu-doodles/);
+    assert.doesNotMatch(html, /Search the menu/);
+    assert.doesNotMatch(html, /menu-doodles/);
+    assert.match(html, /Blueberry Honeycomb Hotcakes/);
   },
 );
 
