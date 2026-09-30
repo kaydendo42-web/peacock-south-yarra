@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Color } from 'three'
-import { fixtures, hedges, paintings, plants, type Painting, type Plant } from '../data'
+import { fixtures, greenWalls, hedges, paintings, plants, type GreenWall, type Painting, type Plant } from '../data'
 import { boxGeo, coneGeo, gemGeo, potGeo, prismGeo, toScene } from './geometry'
 import { facesCamera, floorHeightAt } from './layout'
 import { art, clay, leaf, timber } from './palette'
@@ -26,6 +26,9 @@ export default function Decor({ quarter }: { quarter: number }) {
       ))}
       {hedges.map((h, i) => (
         <HedgeMesh key={i} x={h.x} y={h.y} w={h.w} d={h.d} />
+      ))}
+      {greenWalls.map((g, i) => (
+        <GreenWallMesh key={i} wall={g} quarter={quarter} />
       ))}
       {planters.map((f) => {
         // A row of little bushes along the top of each planter box.
@@ -62,6 +65,45 @@ function PlantMesh({ plant, base = 0, potless = false }: { plant: Plant; base?: 
   const upper = useMemo(() => coneGeo(+(size * 0.68).toFixed(3), +(size * 0.85).toFixed(3), 6), [size])
   const gem = useMemo(() => gemGeo(+(size * (kind === 'pot' ? 0.75 : 0.85)).toFixed(3), 0.8), [size, kind])
 
+  const blade = useMemo(() => coneGeo(+(size * 0.22).toFixed(3), +(size * 1.4).toFixed(3), 4), [size])
+  const line = useMemo(() => boxGeo(0.02, 0.3, 0.02), [])
+  const post = useMemo(() => boxGeo(0.1, 2.75, 0.1), [])
+  const arm = useMemo(() => boxGeo(0.42, 0.07, 0.07), [])
+  const trail = useMemo(() => gemGeo(+(size * 0.6).toFixed(3), 1.6), [size])
+
+  if (kind === 'tuft') {
+    // Three blades, no pot: grass along a fence line.
+    return (
+      <group position={[sx, floor, sz]}>
+        {[
+          [0, 0],
+          [size * 0.3, size * 0.15],
+          [-size * 0.25, size * 0.2],
+        ].map(([dx, dz], i) => (
+          <Solid key={i} geometry={blade} toneKey="leaf" tone={leaf} position={[dx, size * 0.7 * (1 - i * 0.12), dz]} />
+        ))}
+      </group>
+    )
+  }
+
+  if (kind === 'hanging') {
+    // A veranda post with an arm, and a basket on a short line from the arm,
+    // foliage trailing below it. The post is what stops it reading as a
+    // basket floating in the air.
+    const basketY = 2.25
+    return (
+      <group position={[sx, floor, sz]}>
+        <Solid geometry={post} toneKey="timber" tone={timber} position={[-0.21, 2.75 / 2, 0]} />
+        <Solid geometry={arm} toneKey="timber" tone={timber} position={[0, 2.62, 0]} />
+        <mesh geometry={line} position={[0.12, basketY + potH + 0.12, 0]} raycast={noRaycast}>
+          <meshBasicMaterial color={lineColour} />
+        </mesh>
+        <Solid geometry={pot} toneKey="clay" tone={clay} position={[0.12, basketY + potH / 2, 0]} />
+        <Solid geometry={trail} toneKey="leaf" tone={leaf} position={[0.12, basketY - size * 0.25, 0]} />
+      </group>
+    )
+  }
+
   const potTop = potless ? 0 : potH
   return (
     <group position={[sx, floor, sz]}>
@@ -85,6 +127,45 @@ function PlantMesh({ plant, base = 0, potless = false }: { plant: Plant; base?: 
       ) : (
         <Solid geometry={gem} toneKey="leaf" tone={leaf} position={[0, potTop + size * 0.45, 0]} />
       )}
+    </group>
+  )
+}
+
+const lineColour = new Color('#3D7D65')
+
+/**
+ * A planted wall: a tall green panel with cut-gem foliage bulging from its
+ * face. Stands on the far fences; when the room turns and it would stand
+ * between the camera and the tables, it drops out like the house walls do.
+ */
+function GreenWallMesh({ wall, quarter }: { wall: GreenWall; quarter: number }) {
+  const floor = floorHeightAt(wall.x, wall.y)
+  const [sx, sz] = toScene(wall.x, wall.y)
+  const panel = useMemo(() => boxGeo(wall.w, wall.h, wall.d), [wall.w, wall.d, wall.h])
+  const bump = useMemo(() => gemGeo(0.22, 1), [])
+  // Facing is in venue axes; scene z runs opposite to venue y.
+  const facing: [number, number] = [wall.facing[0], -wall.facing[1]]
+  const visible = !facesCamera([-facing[0], -facing[1]], quarter)
+  const long = wall.w > wall.d ? 'x' : 'z'
+  const span = Math.max(wall.w, wall.d)
+  const count = Math.max(2, Math.round(span / 0.55))
+  return (
+    <group position={[sx, floor, sz]} visible={visible}>
+      <Solid geometry={panel} toneKey="leaf" tone={leaf} position={[0, wall.h / 2, 0]} />
+      {Array.from({ length: count }, (_, i) => {
+        const t = -span / 2 + (span / count) * (i + 0.5)
+        const y = 0.35 + ((i * 7) % 5) * 0.22
+        const out = (long === 'x' ? wall.d : wall.w) / 2 + 0.06
+        return (
+          <Solid
+            key={i}
+            geometry={bump}
+            toneKey="leaf"
+            tone={leaf}
+            position={long === 'x' ? [t, y, facing[1] * out] : [facing[0] * out, y, t]}
+          />
+        )
+      })}
     </group>
   )
 }

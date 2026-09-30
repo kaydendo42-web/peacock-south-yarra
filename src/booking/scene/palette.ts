@@ -50,6 +50,13 @@ export const stone: Tone = { top: c('#FFF9ED'), mid: c('#F2EAD6'), dark: c('#E0D
 /** The display case — the site's mint, a shade up from the sky behind it. */
 export const sky: Tone = { top: c('#B4E2D7'), mid: c('#A6DCCF'), dark: c('#97D5C7') }
 
+/**
+ * Floor slabs and steps: the paper top, with sides a clear step darker than
+ * `stone`'s, so a riser reads as a riser and the four levels don't blur into
+ * one surface.
+ */
+export const plinth: Tone = { top: c('#FFF9ED'), mid: c('#EADDBF'), dark: c('#D2C19C') }
+
 /** Planting — a green between the site's mint and forest. */
 export const leaf: Tone = { top: c('#9BCDA5'), mid: c('#7DB58A'), dark: c('#629A70') }
 /** Terracotta pots, pulled toward the site's pink so they belong to it. */

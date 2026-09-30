@@ -52,6 +52,11 @@ export * from './time.ts'
 export {
   MIDDAY,
   HOUSE_FLOOR,
+  RISER,
+  ZONE_ELEVATIONS,
+  PLATFORM_RISE,
+  steps,
+  greenWalls,
   PLAN_SCALE,
   room,
   zones,
@@ -73,4 +78,4 @@ export {
   planY,
   auditVenue,
 } from './venue.ts'
-export type { Zone, Fixture, Wall, Plant, Hedge, Painting } from './venue.ts'
+export type { Zone, Fixture, Wall, Plant, Hedge, Painting, Step, GreenWall } from './venue.ts'

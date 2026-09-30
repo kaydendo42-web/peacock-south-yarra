@@ -47,6 +47,19 @@ export function prismGeo(radius: number, h: number, sides = 12): BufferGeometry 
   return cached(`prism:${radius}:${h}:${sides}`, () => new CylinderGeometry(radius, radius, h, sides))
 }
 
+/**
+ * A box turned about Y by `theta` radians, baked into the geometry so its faces
+ * shade against world normals like everything else (§2). For the steps that sit
+ * along the diagonal glazed wall.
+ */
+export function orientedBoxGeo(w: number, h: number, d: number, theta: number): BufferGeometry {
+  return cached(`obox:${w}:${h}:${d}:${theta.toFixed(4)}`, () => {
+    const g = new BoxGeometry(w, h, d)
+    g.rotateY(theta)
+    return g
+  })
+}
+
 /** A cone of `sides` facets — a stylised tree tier. Point up. */
 export function coneGeo(radius: number, h: number, sides = 6): BufferGeometry {
   return cached(`cone:${radius}:${h}:${sides}`, () => new CylinderGeometry(0, radius, h, sides))

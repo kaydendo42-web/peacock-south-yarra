@@ -2,8 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { checkBooking } from "../src/booking/data/rules.ts";
 import {
+  PLATFORM_RISE,
+  RISER,
+  ZONE_ELEVATIONS,
   auditVenue,
   floorAt,
+  steps,
   inside,
   openingOn,
   tables,
@@ -212,9 +216,28 @@ test("every table sits in the section it claims, and every section has tables", 
   }
 });
 
-test("the house and Deck are raised, the Court Yard is at grade", () => {
+test("the levels read as a journey: Deck, up into the house, down to the Court Yard", () => {
+  const e = ZONE_ELEVATIONS;
+  assert.ok(e.peacock > e.deck, "the café is a step up from the Deck");
+  assert.equal(e.main, e.peacock, "Main and Peacock share the house floor");
+  assert.ok(e.courtyard < e.main, "the Court Yard is a step down from Main");
+  // One step each way, not a storey.
+  close(e.peacock - e.deck, RISER, "Deck to Peacock is one riser");
+  close(e.main - e.courtyard, RISER, "Main to Court Yard is one riser");
+});
+
+test("every table stands on its section's floor, or on the yard's timber platform", () => {
   for (const table of tables) {
     const zone = zones.find((z) => z.id === table.zone);
-    assert.equal(floorAt(table.x, table.y), zone.floor, `${table.label} is on the wrong floor`);
+    const under = floorAt(table.x, table.y);
+    const onPlatform = table.zone === "courtyard" && Math.abs(under - (zone.floor + PLATFORM_RISE)) < 1e-9;
+    assert.ok(Math.abs(under - zone.floor) < 1e-9 || onPlatform, `${table.label} is on the wrong floor (${under})`);
+  }
+});
+
+test("each step sits on the lower floor, below the one it leads to", () => {
+  for (const step of steps) {
+    const under = floorAt(step.x, step.y);
+    assert.ok(step.top > under && step.top < under + RISER + 1e-9, `${step.id} is not one tread up`);
   }
 });

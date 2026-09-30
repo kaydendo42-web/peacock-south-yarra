@@ -3,16 +3,19 @@ import { Html } from '@react-three/drei'
 import { Color } from 'three'
 import {
   HOUSE_FLOOR,
+  ZONE_ELEVATIONS,
   fixtures,
   floors,
   room,
   stairs,
+  steps,
   walls,
   zones,
   type Fixture,
+  type Step,
   type Wall,
 } from '../data'
-import { boxGeo, inlayGeo, parapetGeo, slabGeo, toScene, wallGeo, type Hole } from './geometry'
+import { boxGeo, inlayGeo, orientedBoxGeo, parapetGeo, slabGeo, toScene, wallGeo, type Hole } from './geometry'
 import {
   PARAPET_BASE,
   PARAPET_MERLON,
@@ -22,7 +25,7 @@ import {
   platformD,
   platformW,
 } from './layout'
-import { hex, ornamentOf, stone, timber } from './palette'
+import { hex, ornamentOf, plinth, stone, timber } from './palette'
 import { noRaycast } from './shading'
 import Decor from './Decor'
 import Ornament from './Ornament'
@@ -69,7 +72,11 @@ function toRun(wall: Wall): Run {
   const mz = (az + bz) / 2
   let n: [number, number] = [dz / len, -dx / len]
   if (n[0] * (ix - mx) + n[1] * (iz - mz) > 0) n = [-n[0], -n[1]]
-  const [vx, vy] = [(wall.from[0] + wall.to[0]) / 2, (wall.from[1] + wall.to[1]) / 2]
+  // A parapet stands on the floor it edges: sample that floor a little way in
+  // from the run, toward the side it encloses, not on the seam itself.
+  const [mvx, mvy] = [(wall.from[0] + wall.to[0]) / 2, (wall.from[1] + wall.to[1]) / 2]
+  const toward = Math.hypot(wall.inside[0] - mvx, wall.inside[1] - mvy) || 1
+  const [vx, vy] = [mvx + ((wall.inside[0] - mvx) / toward) * 0.3, mvy + ((wall.inside[1] - mvy) / toward) * 0.3]
   return {
     wall,
     len,
@@ -88,18 +95,22 @@ export default function Room({ quarter }: { quarter: number }) {
   const floorOrnament = useMemo(() => ornamentOf(stone.top), [])
   const marker = useMemo(() => new Color(hex.marker), [])
 
-  const slabs = useMemo(() => floors.map((f) => ({ id: f.id, geo: slabGeo(f.id, f.outline, f.height) })), [])
+  const slabs = useMemo(
+    () => floors.map((f) => ({ id: f.id, tone: f.tone, geo: slabGeo(f.id, f.outline, f.height) })),
+    [],
+  )
 
   /** The street stairs, each tread a box stepping down toward River St. */
   const treads = useMemo(() => {
     const run = stairs.x1 - stairs.x0
     const step = run / stairs.treads
-    const rise = HOUSE_FLOOR / stairs.treads
+    const top = ZONE_ELEVATIONS.deck
+    const rise = top / stairs.treads
     const depth = stairs.y1 - stairs.y0
     return Array.from({ length: stairs.treads - 1 }, (_, i) => {
       const from = stairs.x0 + step * i
       const w = stairs.x1 - from
-      const h = HOUSE_FLOOR - rise * (i + 1)
+      const h = top - rise * (i + 1)
       const [sx, sz] = toScene(from + w / 2, stairs.y0 + depth / 2)
       return { geo: boxGeo(+w.toFixed(3), +h.toFixed(3), +depth.toFixed(3)), x: sx, z: sz, h }
     })
@@ -111,8 +122,17 @@ export default function Room({ quarter }: { quarter: number }) {
       <Solid geometry={platform} toneKey="stone" tone={stone} position={[0, -PLATFORM_THICK / 2, 0]} />
       <Ornament width={platformW} depth={platformD} y={0.008} base={floorOrnament} inset={0.16} />
 
-      {slabs.map((s) => (
-        <Solid key={s.id} geometry={s.geo} toneKey="stone" tone={stone} />
+      {/* Each level is its own slab, so its riser faces show where the floor
+          changes height: Deck, one step up to the house, one down to the yard. */}
+      {slabs.map((s) =>
+        s.tone === 'timber' ? (
+          <Solid key={s.id} geometry={s.geo} toneKey="timber" tone={timber} />
+        ) : (
+          <Solid key={s.id} geometry={s.geo} toneKey="plinth" tone={plinth} />
+        ),
+      )}
+      {steps.map((s) => (
+        <StepTread key={s.id} step={s} />
       ))}
       {treads.map((t, i) => (
         <Solid key={i} geometry={t.geo} toneKey="stone" tone={stone} position={[t.x, t.h / 2, t.z]} />
@@ -148,7 +168,67 @@ export default function Room({ quarter }: { quarter: number }) {
   )
 }
 
+/** One tread, from the ground up to half a riser below the floor it leads to. */
+function StepTread({ step }: { step: Step }) {
+  const [sx, sz] = toScene(step.x, step.y)
+  // Scene direction of the wall: venue y runs the other way to scene z.
+  const theta = Math.atan2(step.along[1], step.along[0])
+  const geo = useMemo(
+    () => orientedBoxGeo(step.w, +step.top.toFixed(3), step.d, theta),
+    [step.w, step.d, step.top, theta],
+  )
+  return <Solid geometry={geo} toneKey="plinth" tone={plinth} position={[sx, step.top / 2, sz]} />
+}
+
+/**
+ * A glazed run: a sill to just above the house floor, broken at the doorways,
+ * and slim posts up to the head. Reads as a window wall without hiding the
+ * room behind it or the steps outside it.
+ */
+function GlassRun({ run }: { run: Run }) {
+  const { wall, len } = run
+  const sillH = HOUSE_FLOOR + 0.35
+  const postH = H * 0.8 + HOUSE_FLOOR
+  const pieces = useMemo(() => {
+    const doors = (wall.arches ?? []).map((a) => [a.at - a.width / 2, a.at + a.width / 2] as const)
+    const cuts = [0, ...doors.flat(), len]
+    const sills: { from: number; to: number }[] = []
+    for (let i = 0; i < cuts.length; i += 2) if (cuts[i + 1] - cuts[i] > 0.05) sills.push({ from: cuts[i], to: cuts[i + 1] })
+    const posts: number[] = [0, len, ...doors.flat()]
+    for (const s of sills) {
+      const n = Math.max(1, Math.round((s.to - s.from) / 1.1))
+      for (let k = 1; k < n; k++) posts.push(s.from + ((s.to - s.from) / n) * k)
+    }
+    return { sills, posts }
+  }, [wall, len])
+
+  // Unit direction of the run in scene space, from its quarter-turns.
+  const theta = run.turns * (Math.PI / 2)
+  const [ux, uz] = [Math.cos(theta), -Math.sin(theta)]
+  const at = (t: number): [number, number] => [run.x + ux * (t - len / 2), run.z + uz * (t - len / 2)]
+
+  return (
+    <group>
+      {pieces.sills.map((p, i) => {
+        const [x, z] = at((p.from + p.to) / 2)
+        const geo = orientedBoxGeo(+(p.to - p.from).toFixed(3), +sillH.toFixed(3), T, theta)
+        return <Solid key={`s${i}`} geometry={geo} toneKey="stone" tone={stone} position={[x, sillH / 2, z]} />
+      })}
+      {pieces.posts.map((t, i) => {
+        const [x, z] = at(t)
+        const geo = orientedBoxGeo(0.12, +postH.toFixed(3), T, theta)
+        return <Solid key={`p${i}`} geometry={geo} toneKey="stone" tone={stone} position={[x, postH / 2, z]} />
+      })}
+    </group>
+  )
+}
+
 function WallRun({ run, quarter }: { run: Run; quarter: number }) {
+  if (run.wall.kind === 'glass') return <GlassRun run={run} />
+  return <SolidRun run={run} quarter={quarter} />
+}
+
+function SolidRun({ run, quarter }: { run: Run; quarter: number }) {
   const { wall, len } = run
   const geo = useMemo(() => {
     if (wall.kind === 'parapet') {

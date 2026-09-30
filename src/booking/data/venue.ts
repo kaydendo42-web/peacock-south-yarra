@@ -44,8 +44,31 @@ export const room = {
   wallThickness: 0.2,
 } as const
 
-/** The house sits up on its stumps; the Deck is level with it. The Court Yard is at grade. */
-export const HOUSE_FLOOR = 0.24
+/**
+ * One riser, in scene metres. A real step is 150–180 mm; at the default zoom a
+ * table is a few pixels tall, so the step is drawn about 1.8x real to read as a
+ * step and not as a seam. Every level below is a whole number of these.
+ */
+export const RISER = 0.3
+
+/**
+ * Finished floor of each section. The journey the room should make legible
+ * without reading a label: up the street stairs onto the Deck, one step up into
+ * the house (Peacock, then Main on the same floor), one step down out to the
+ * Court Yard, which sits back at the Deck's level.
+ */
+export const ZONE_ELEVATIONS = {
+  deck: RISER,
+  peacock: RISER * 2,
+  main: RISER * 2,
+  courtyard: RISER,
+} as const
+
+/** The timber seating platform in the Court Yard stands half a riser proud of it. */
+export const PLATFORM_RISE = RISER / 2
+
+/** The house floor, which Peacock and Main share. */
+export const HOUSE_FLOOR = ZONE_ELEVATIONS.main
 
 export type Zone = {
   id: string
@@ -67,7 +90,7 @@ export const zones: Zone[] = [
     name: 'Court Yard',
     outline: [pt(10, 50), pt(600, 50), pt(600, 405), pt(890, 860), pt(10, 860)],
     open: true,
-    floor: 0,
+    floor: ZONE_ELEVATIONS.courtyard,
     labelAt: pt(385, 525),
   },
   {
@@ -75,7 +98,7 @@ export const zones: Zone[] = [
     name: 'Main',
     outline: [pt(600, 405), pt(1050, 405), pt(1050, 450), pt(1440, 450), pt(1440, 860), pt(890, 860)],
     open: false,
-    floor: HOUSE_FLOOR,
+    floor: ZONE_ELEVATIONS.main,
     labelAt: pt(1128, 690),
   },
   {
@@ -83,7 +106,7 @@ export const zones: Zone[] = [
     name: 'Peacock',
     outline: [pt(1310, 155), pt(1660, 155), pt(1660, 450), pt(1310, 450)],
     open: false,
-    floor: HOUSE_FLOOR,
+    floor: ZONE_ELEVATIONS.peacock,
     labelAt: pt(1485, 380),
   },
   {
@@ -91,17 +114,29 @@ export const zones: Zone[] = [
     name: 'Deck',
     outline: [pt(1660, 60), pt(1970, 60), pt(1970, 700), pt(1890, 860), pt(1660, 860)],
     open: true,
-    floor: HOUSE_FLOOR,
+    floor: ZONE_ELEVATIONS.deck,
     labelAt: pt(1850, 420),
   },
 ]
 
-/** Raised floor plates. Anything not on one of these is at grade. */
-export const floors: { id: string; outline: [number, number][]; height: number }[] = [
+/**
+ * Floor plates, each its own solid so its riser faces show. The first match
+ * wins, so the Court Yard's timber platform comes before the Court Yard.
+ * Anything on none of them is at grade — the site slab outside the fence.
+ */
+export const floors: { id: string; outline: [number, number][]; height: number; tone: 'stone' | 'timber' }[] = [
+  {
+    // The raised timber seating platform under the long tables.
+    id: 'yard-platform',
+    outline: [pt(368, 712), pt(702, 712), pt(702, 852), pt(368, 852)],
+    height: ZONE_ELEVATIONS.courtyard + PLATFORM_RISE,
+    tone: 'timber',
+  },
   {
     id: 'house',
     outline: [pt(600, 155), pt(1660, 155), pt(1660, 860), pt(890, 860), pt(600, 405)],
     height: HOUSE_FLOOR,
+    tone: 'stone',
   },
   {
     // The Deck, with the notch the street stairs come up through.
@@ -110,7 +145,14 @@ export const floors: { id: string; outline: [number, number][]; height: number }
       pt(1660, 60), pt(1970, 60), pt(1970, 445), pt(1780, 445), pt(1780, 525),
       pt(1970, 525), pt(1970, 700), pt(1890, 860), pt(1660, 860),
     ],
-    height: HOUSE_FLOOR,
+    height: ZONE_ELEVATIONS.deck,
+    tone: 'stone',
+  },
+  {
+    id: 'courtyard',
+    outline: [pt(10, 50), pt(600, 50), pt(600, 405), pt(890, 860), pt(10, 860)],
+    height: ZONE_ELEVATIONS.courtyard,
+    tone: 'stone',
   },
 ]
 
@@ -122,6 +164,56 @@ export const stairs = {
   y1: planY(445),
   treads: 4,
 } as const
+
+/**
+ * The single steps between levels, drawn where people actually cross: up from
+ * the Deck through the side door into the house, and down through the first
+ * and last of the glazed arches into the Court Yard. (The middle arch has L1
+ * against it, so it is a window.) Each is a tread half a riser below the
+ * higher floor, set against the wall on the lower side.
+ */
+export type Step = {
+  id: string
+  /** Centre, venue metres. */
+  x: number
+  y: number
+  /** Along the wall, and out from it. */
+  w: number
+  d: number
+  /** Top of the tread. */
+  top: number
+  /** Direction of the wall it sits against, venue metres (unnormalised). */
+  along: [number, number]
+}
+
+function stepAt(id: string, from: [number, number], to: [number, number], f: number, out: number, w: number, top: number): Step {
+  const [ax, ay] = pt(...from)
+  const [bx, by] = pt(...to)
+  const dx = bx - ax
+  const dy = by - ay
+  const l = Math.hypot(dx, dy)
+  // Perpendicular, pointing to the side `out` says (+1 left of the run, −1 right).
+  const nx = (-dy / l) * out
+  const ny = (dx / l) * out
+  const d = 0.36
+  return {
+    id,
+    x: +(ax + dx * f + nx * (d / 2 + 0.12)).toFixed(3),
+    y: +(ay + dy * f + ny * (d / 2 + 0.12)).toFixed(3),
+    w,
+    d,
+    top,
+    along: [dx, dy],
+  }
+}
+
+export const steps: Step[] = [
+  // Deck → house, at the side door. The door is 332 px down the house's deck wall.
+  stepAt('deck-door', [1660, 155], [1660, 860], 332 / 705, 1, 0.9, ZONE_ELEVATIONS.deck + RISER / 2),
+  // Main → Court Yard, outside the first and last glazed arches.
+  stepAt('yard-arch-1', [600, 405], [890, 860], 150 / 539.6, -1, 1.05, ZONE_ELEVATIONS.courtyard + RISER / 2),
+  stepAt('yard-arch-3', [600, 405], [890, 860], 390 / 539.6, -1, 1.05, ZONE_ELEVATIONS.courtyard + RISER / 2),
+]
 
 type TableSpec = {
   label: string
@@ -255,7 +347,8 @@ export const fixtures: Fixture[] = [
  */
 export type Wall = {
   id: string
-  kind: 'wall' | 'parapet'
+  /** glass: a low sill and window posts, open at its doorways (`arches`). */
+  kind: 'wall' | 'parapet' | 'glass'
   from: [number, number]
   to: [number, number]
   /** A point on the side the wall faces away from — decides which side is "out". */
@@ -285,11 +378,12 @@ export const walls: Wall[] = [
   },
   {
     // The glazed run between the Court Yard and Main, drawn on the diagonal.
-    id: 'house-glass', kind: 'wall', from: pt(600, 405), to: pt(890, 860), inside: houseInside,
+    // Glass, so it is drawn as its sill and frame: the room behind it and the
+    // steps down to the yard stay in view. Its two doorways carry the steps.
+    id: 'house-glass', kind: 'glass', from: pt(600, 405), to: pt(890, 860), inside: houseInside,
     arches: [
-      { at: len(150), width: 0.95, height: 2.4 },
-      { at: len(270), width: 0.95, height: 2.4 },
-      { at: len(390), width: 0.95, height: 2.4 },
+      { at: len(150), width: 1.1, height: 2.4 },
+      { at: len(390), width: 1.1, height: 2.4 },
     ],
   },
   { id: 'house-kitchen', kind: 'wall', from: pt(600, 155), to: pt(600, 405), inside: houseInside },
@@ -313,7 +407,17 @@ export const walls: Wall[] = [
  * fence, the art on the walls. Decor only — nothing here takes a booking or
  * blocks one.
  */
-export type Plant = { x: number; y: number; size: number; kind: 'tree' | 'pot' | 'fern' }
+export type Plant = {
+  x: number
+  y: number
+  size: number
+  /**
+   * tree: trunk and two cones. fern: a cut-gem bush in a pot. pot: a small one.
+   * tuft: three blades of grass, no pot. hanging: a basket on a line from the
+   * beam, trailing below it.
+   */
+  kind: 'tree' | 'pot' | 'fern' | 'tuft' | 'hanging'
+}
 export type Hedge = { x: number; y: number; w: number; d: number }
 export type Painting = {
   /** Centre of the canvas on the wall face, venue metres. */
@@ -337,23 +441,72 @@ const plant = (px: number, py: number, size: number, kind: Plant['kind']): Plant
 })
 
 export const plants: Plant[] = [
-  // Court Yard — the trees and pots on the plan.
+  // --- Court Yard: the lushest part of the site --------------------------
+  // The trees and pots Jenny drew.
   plant(362, 100, 0.55, 'tree'),
   plant(452, 110, 0.5, 'tree'),
   plant(520, 108, 0.45, 'tree'),
   plant(298, 338, 0.42, 'fern'),
   plant(535, 532, 0.75, 'tree'),
   plant(302, 622, 0.42, 'fern'),
-  plant(848, 800, 0.45, 'fern'),
-  // Peacock — the big one in the corner and the three little pots by the door.
+  plant(790, 836, 0.42, 'fern'),
+  // A second big tree on the concrete by the store.
+  plant(120, 770, 0.8, 'tree'),
+  // Grouped pots: by the lounge chairs, and by the store.
+  plant(252, 548, 0.2, 'pot'),
+  plant(270, 566, 0.26, 'fern'),
+  plant(236, 572, 0.18, 'pot'),
+  plant(228, 652, 0.22, 'pot'),
+  plant(206, 664, 0.18, 'pot'),
+  // Grass along the back fence, between the tables.
+  ...[40, 78, 196, 236, 276, 560, 584].map((px) => plant(px, 68, 0.3, 'tuft')),
+  ...[400, 470, 540, 610].map((py) => plant(46, py, 0.26, 'tuft')),
+
+  // --- Main: small pots at the edges, the middle left clear -----------------
+  plant(1046, 470, 0.2, 'pot'),
+  plant(1424, 470, 0.22, 'fern'),
+  plant(1418, 842, 0.2, 'pot'),
+
+  // --- Peacock: the big one in the corner, three little pots by the door ----
   plant(1608, 405, 0.5, 'fern'),
   plant(1330, 385, 0.18, 'pot'),
   plant(1330, 410, 0.18, 'pot'),
   plant(1330, 435, 0.18, 'pot'),
+  plant(1646, 170, 0.22, 'pot'),
+
   // FOH, at the end of the pass.
   plant(1446, 556, 0.26, 'pot'),
-  // Deck — the planters along the rail.
+
+  // --- Deck -------------------------------------------------------------------
+  // Planters along the rail.
   ...[210, 272, 335, 392, 582, 656, 730, 800].map((py) => plant(1778, py, 0.2, 'pot')),
+  // Either side of the top of the street stairs.
+  plant(1792, 432, 0.22, 'fern'),
+  plant(1792, 540, 0.22, 'fern'),
+  // Hanging baskets on veranda posts along the house's deck wall.
+  ...[215, 395, 600, 770].map((py) => plant(1690, py, 0.2, 'hanging')),
+]
+
+/**
+ * A planted wall: a tall green panel with foliage bulging from it, standing
+ * just inside a boundary. `facing` is the side it looks into, venue axes, so
+ * it can drop out of view when it would stand between the camera and the room.
+ */
+export type GreenWall = { x: number; y: number; w: number; d: number; h: number; facing: [number, number] }
+
+const greenWall = (x0: number, y0: number, x1: number, y1: number, h: number, facing: [number, number]): GreenWall => ({
+  x: +((planX(x0) + planX(x1)) / 2).toFixed(3),
+  y: +((planY(y0) + planY(y1)) / 2).toFixed(3),
+  w: len(x1 - x0),
+  d: len(y1 - y0),
+  h,
+  facing,
+})
+
+/** Along the Court Yard's side fence and the back fence, the far sides from the default view. */
+export const greenWalls: GreenWall[] = [
+  greenWall(14, 60, 30, 655, 1.5, [1, 0]),
+  greenWall(170, 54, 305, 66, 1.3, [0, -1]),
 ]
 
 const hedge = (x0: number, y0: number, x1: number, y1: number): Hedge => ({
@@ -364,7 +517,6 @@ const hedge = (x0: number, y0: number, x1: number, y1: number): Hedge => ({
 })
 
 export const hedges: Hedge[] = [
-  hedge(14, 55, 34, 660),
   hedge(340, 862, 870, 882),
   hedge(328, 672, 346, 858),
   hedge(316, 60, 410, 150),
