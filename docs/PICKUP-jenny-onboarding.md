@@ -8,7 +8,7 @@ it is the state of play and the list of what's left, in order.
 | What | Where | State |
 | --- | --- | --- |
 | Peacock website | `kaydendo42-web/peacock-south-yarra`, branch `main` | Pushed. **Not deployed** — the Vercel project isn't git-connected; deploy with `vercel --prod` (or connect the repo in Vercel → Settings → Git). |
-| Peregrine console | `kaydendo42-web/PeregrinePartners` (the repo behind www.peregrinepartners.space, Vercel project `peregrine-partners`), branch `console/bookings`; local worktree `~/Documents/Projects/peregrine-v2-console` | Pushed, preview deployed and checked 30 Sep. **Not merged to `main`** — merging deploys it to www.peregrinepartners.space. (The first build lived on the old `consilium` repo in `~/Documents/Projects/peregrine-console`; that copy is superseded.) |
+| Peregrine console | `kaydendo42-web/PeregrinePartners` (the repo behind www.peregrinepartners.space, Vercel project `peregrine-partners`), branch `console/bookings`; local worktree `~/Documents/Projects/peregrine-v2-console` | **Live** — merged to `main` 30 Sep (`44903f4`), deployed to www.peregrinepartners.space. (The first build lived on the old `consilium` repo in `~/Documents/Projects/peregrine-console`; that copy is superseded.) |
 | Database | Supabase project `supabase-booking` (ref `pzljcmcnthzklaurzxpa`), Sydney, Free | Created. Connected to both Vercel projects. |
 | Schema + Peacock seed | `supabase/migrations/20260930000000_bookings.sql`, `supabase/seed/peacock.sql` in the PeregrinePartners repo | Pasted into the SQL editor — **confirm it ran** (step 1). |
 | Console setup doc | PeregrinePartners `docs/console-setup.md` | |
@@ -47,10 +47,10 @@ database, add Development in the integration, or put the values in `.env.local`.
 
 ## Finish line, in order
 
-1. **Confirm the seed ran.** (30 Sep: all five tables exist, so the migration ran; row counts are hidden from the public key by RLS.) Supabase → Table Editor: `venues` 1 row,
+1. ✅ **Schema + seed** (30 Sep: 1 venue, 4 sections, 31 tables). Supabase → Table Editor: `venues` 1 row,
    `sections` 4, `venue_tables` 31, `bookings` 0. If the tables aren't there,
    run the migration (whole file, Cmd+A), then the seed.
-2. **Logins.** Supabase → Authentication → Users → Add user: Jenny's email +
+2. ✅ **Logins** (30 Sep: Jenny `ohagan.jen@gmail.com` owner, Kayden manager; sign-in to console checked). Supabase → Authentication → Users → Add user: Jenny's email +
    a password (auto-confirm), and one for each of us. Then SQL:
 
    ```sql
@@ -64,12 +64,12 @@ database, add Development in the integration, or put the values in `.env.local`.
    redirect URLs `https://www.peregrinepartners.space/auth/confirm`,
    `https://*-kaydendo42-webs-projects.vercel.app/auth/confirm` and
    `http://localhost:3000/auth/confirm`. Only email-link sign-in needs these.
-4. **Put the console on www.peregrinepartners.space.** Done on branch
+4. ✅ **Console on www.peregrinepartners.space** (30 Sep). Done on branch
    `console/bookings` of `PeregrinePartners`; the preview already redirects
    `/console` to sign-in, so it sees the Supabase variables. Once step 2 gives
    you a login, sign in on the preview, then merge to `main` (Vercel deploys
    it). Don't set `PEREGRINE_CONSOLE_DEMO` anywhere but a laptop.
-5. **Prove the loop on a preview.** `vercel` (preview) from the Peacock repo →
+5. **Prove the loop** — ✅ on a preview 30 Sep. **Still to do: `vercel --prod` from this repo** (Claude is blocked from prod deploys). `vercel` (preview) from the Peacock repo →
    book a table → the row appears in Supabase `bookings` with
    `source = website` → it appears on `/console/the-peacock/list` for that day
    without a refresh → Seat it from the console → try to book the same table
