@@ -8,11 +8,11 @@ it is the state of play and the list of what's left, in order.
 | What | Where | State |
 | --- | --- | --- |
 | Peacock website | `kaydendo42-web/peacock-south-yarra`, branch `main` | Pushed. **Not deployed** — the Vercel project isn't git-connected; deploy with `vercel --prod` (or connect the repo in Vercel → Settings → Git). |
-| Peregrine console | local worktree `~/Documents/Projects/peregrine-console`, branch `console/bookings` | Committed locally, **not pushed, not merged**. Kept apart from the uncommitted Peregrine WIP in `~/Documents/Projects/Peregrine Partners`. |
+| Peregrine console | `kaydendo42-web/PeregrinePartners` (the repo behind www.peregrinepartners.space, Vercel project `peregrine-partners`), branch `console/bookings`; local worktree `~/Documents/Projects/peregrine-v2-console` | Pushed, preview deployed and checked 30 Sep. **Not merged to `main`** — merging deploys it to www.peregrinepartners.space. (The first build lived on the old `consilium` repo in `~/Documents/Projects/peregrine-console`; that copy is superseded.) |
 | Database | Supabase project `supabase-booking` (ref `pzljcmcnthzklaurzxpa`), Sydney, Free | Created. Connected to both Vercel projects. |
-| Schema + Peacock seed | `peregrine-console/supabase/migrations/20260930000000_bookings.sql`, `peregrine-console/supabase/seed/peacock.sql` | Pasted into the SQL editor — **confirm it ran** (step 1). |
-| Console setup doc | `peregrine-console/docs/console-setup.md` | |
-| New-client prompt | `peregrine-console/docs/onboard-new-venue-prompt.md` | Copy-paste prompt for the next venue. |
+| Schema + Peacock seed | `supabase/migrations/20260930000000_bookings.sql`, `supabase/seed/peacock.sql` in the PeregrinePartners repo | Pasted into the SQL editor — **confirm it ran** (step 1). |
+| Console setup doc | PeregrinePartners `docs/console-setup.md` | |
+| New-client prompt | PeregrinePartners `docs/onboard-new-venue-prompt.md` | Copy-paste prompt for the next venue. |
 
 The Peacock's venue id, used everywhere: `fb19b599-8b90-4576-b84a-1ff0f4eb1f7e`.
 
@@ -23,7 +23,7 @@ guest ─▶ thepeacock.com.au/book-a-table ─▶ /api/booking (server, service
                                                                                     ▼
                                                 Supabase: bookings (RLS by venue_members)
                                                                                     ▲
-Jenny ─▶ peregrinepartners.space/sign-in ─▶ /console/the-peacock (her session, RLS) ┘
+Jenny ─▶ www.peregrinepartners.space/sign-in ─▶ /console/the-peacock (her session, RLS) ┘
 ```
 
 The Postgres constraint `bookings_no_double_booking` is the last word on a
@@ -60,20 +60,15 @@ database, add Development in the integration, or put the values in `.env.local`.
    from auth.users where email in ('<jenny's email>', 'kaydendo42@gmail.com');
    ```
 3. **Auth URLs.** Supabase → Authentication → URL configuration: Site URL
-   `https://peregrinepartners.space`; redirect URLs
-   `https://peregrinepartners.space/auth/confirm` and
-   `http://localhost:3001/auth/confirm`.
-4. **Put the console on peregrinepartners.space.** Two ways:
-   - *Now:* merge `console/bookings` into the Peregrine repo's `main` once the
-     WIP there is committed (the console touches `app/sign-in/page.tsx`,
-     `components/forms/sign-in-form.tsx`, `package.json` — expect small
-     conflicts only there), push, deploy.
-   - *With the redesign:* copy `app/console/`, `app/sign-in/` (actions, css),
-     `app/auth/`, `lib/supabase/`, `lib/console/`, `proxy.ts`, and the two
-     `@supabase/*` dependencies into the new site. The console's whole look is
-     `app/console/console.css`.
-
-   Don't set `PEREGRINE_CONSOLE_DEMO` anywhere but a laptop.
+   `https://www.peregrinepartners.space` (the bare domain 308s to `www`);
+   redirect URLs `https://www.peregrinepartners.space/auth/confirm`,
+   `https://*-kaydendo42-webs-projects.vercel.app/auth/confirm` and
+   `http://localhost:3000/auth/confirm`. Only email-link sign-in needs these.
+4. **Put the console on www.peregrinepartners.space.** Done on branch
+   `console/bookings` of `PeregrinePartners`; the preview already redirects
+   `/console` to sign-in, so it sees the Supabase variables. Once step 2 gives
+   you a login, sign in on the preview, then merge to `main` (Vercel deploys
+   it). Don't set `PEREGRINE_CONSOLE_DEMO` anywhere but a laptop.
 5. **Prove the loop on a preview.** `vercel` (preview) from the Peacock repo →
    book a table → the row appears in Supabase `bookings` with
    `source = website` → it appears on `/console/the-peacock/list` for that day
