@@ -13,7 +13,7 @@ import {
 
 const booking = {
   id: "PK-ABC234",
-  tableId: "v5",
+  tableId: "t53",
   // 9:00am in Melbourne is 23:00 the day before in UTC — the server's clock.
   startsAt: "2026-09-30T23:00:00.000Z",
   durationMin: 75,
@@ -33,7 +33,7 @@ test("the guest gets their reference, time, party and table, with replies going 
   const m = guestConfirmation(booking, "hello@thepeacock.com.au");
   assert.equal(m.to, "sarah@example.com");
   assert.equal(m.replyTo, "hello@thepeacock.com.au");
-  for (const s of ["PK-ABC234", "Thursday 1 October at 9:00 am", "4 people", "V5", "Birthday", "03 8596 2342"]) {
+  for (const s of ["PK-ABC234", "Thursday 1 October at 9:00 am", "4 people", "53", "Birthday", "03 8596 2342"]) {
     assert.ok(m.text.includes(s), `text mentions ${s}`);
     assert.ok(m.html.includes(s), `html mentions ${s}`);
   }

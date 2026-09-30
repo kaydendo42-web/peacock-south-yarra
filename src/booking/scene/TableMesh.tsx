@@ -46,25 +46,31 @@ export default function TableMesh({ table, state, selected, onSelect, onHover, l
   const from = useRef(0)
   const startedAt = useRef(-1)
 
+  // The footprint as it stands, so the geometry is built already turned and
+  // the group never rotates — a rotated mesh would shade its faces against
+  // local normals and put its dark side on the wrong edge (§2).
   const { w, d } = sizeOf(table)
-  const round = table.shape === 'round'
+  const shape = table.shape
   const bodyH = TABLE_HEIGHT - PLINTH_HEIGHT
 
-  const body = useMemo(
-    () => (round ? prismGeo(w / 2, bodyH, 12) : boxGeo(w, bodyH, d)),
-    [round, w, d, bodyH],
-  )
-  const plinth = useMemo(
-    () => (round ? prismGeo(w / 2 + 0.1, PLINTH_HEIGHT, 12) : boxGeo(w + 0.2, PLINTH_HEIGHT, d + 0.2)),
-    [round, w, d],
-  )
+  const body = useMemo(() => {
+    // A four-sided prism is a square set on its points: a diamond table.
+    if (shape === 'diamond') return prismGeo(table.w / Math.SQRT2, bodyH, 4)
+    if (shape === 'round') return prismGeo(w / 2, bodyH, 12)
+    return boxGeo(w, bodyH, d)
+  }, [shape, table.w, w, d, bodyH])
+  const plinth = useMemo(() => {
+    if (shape === 'diamond') return prismGeo(table.w / Math.SQRT2 + 0.1, PLINTH_HEIGHT, 4)
+    if (shape === 'round') return prismGeo(w / 2 + 0.1, PLINTH_HEIGHT, 12)
+    return boxGeo(w + 0.2, PLINTH_HEIGHT, d + 0.2)
+  }, [shape, table.w, w, d])
 
   const { key, tone } = toneFor(state, selected)
   const bodyMats = useMemo(() => materialsFor(key, tone), [key, tone])
   const plinthMats = useMemo(() => materialsFor('stone', stone), [])
 
   const [sx, sz] = toScene(table.x, table.y)
-  const floorY = floorHeightAt(table.y)
+  const floorY = floorHeightAt(table.x, table.y)
 
   // Hover lifts the table 0.06 over 160ms. No colour change, no outline, no glow (§4).
   useFrame(() => {
@@ -98,7 +104,7 @@ export default function TableMesh({ table, state, selected, onSelect, onHover, l
   }
 
   return (
-    <group ref={group} position={[sx, floorY, sz]} rotation={[0, (-table.rot * Math.PI) / 180, 0]}>
+    <group ref={group} position={[sx, floorY, sz]}>
       <mesh
         geometry={plinth}
         material={plinthMats}

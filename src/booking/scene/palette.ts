@@ -50,6 +50,21 @@ export const stone: Tone = { top: c('#FFF9ED'), mid: c('#F2EAD6'), dark: c('#E0D
 /** The display case — the site's mint, a shade up from the sky behind it. */
 export const sky: Tone = { top: c('#B4E2D7'), mid: c('#A6DCCF'), dark: c('#97D5C7') }
 
+/** Planting — a green between the site's mint and forest. */
+export const leaf: Tone = { top: c('#9BCDA5'), mid: c('#7DB58A'), dark: c('#629A70') }
+/** Terracotta pots, pulled toward the site's pink so they belong to it. */
+export const clay: Tone = { top: c('#F0C3B4'), mid: c('#E2A994'), dark: c('#C98D79') }
+/** Timber — benches, the counter tops, tree trunks. */
+export const timber: Tone = { top: c('#E9D3B0'), mid: c('#D9BE96'), dark: c('#C2A57C') }
+
+/** Canvas colours for the paintings. Flat: a canvas has no sides worth shading. */
+export const art = {
+  frame: '#244D3D',
+  peacock: ['#18C1C0', '#244D3D', '#F7D3DC', '#E9B949'],
+  pink: ['#F7D3DC', '#EFB8C4', '#244D3D'],
+  mint: ['#B4E2D7', '#18C1C0', '#FFF9ED'],
+} as const
+
 /**
  * Drop a tone's saturation to a fraction of itself and carry its lightness part
  * of the way toward another tone. §4 asks for "coral at 55% saturation, sitting

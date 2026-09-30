@@ -51,15 +51,26 @@ export * from './rules.ts'
 export * from './time.ts'
 export {
   MIDDAY,
-  ZONE_DEPTH,
+  HOUSE_FLOOR,
+  PLAN_SCALE,
   room,
   zones,
+  floors,
+  stairs,
   tables,
   fixtures,
+  walls,
+  plants,
+  hedges,
+  paintings,
   service,
   openingOn,
   sizeOf,
   footprint,
+  floorAt,
+  inside,
+  planX,
+  planY,
   auditVenue,
 } from './venue.ts'
-export type { Zone, Fixture } from './venue.ts'
+export type { Zone, Fixture, Wall, Plant, Hedge, Painting } from './venue.ts'

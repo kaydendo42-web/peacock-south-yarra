@@ -1269,12 +1269,183 @@
   opacity: 1;
 }
 
-@media (max-width: 860px) {
-  .booking-masthead {
-    padding-block: 40px 0;
+/* --- The booking screen ----------------------------------------------
+   Booking takes the whole viewport, over the site's header and footer, with a
+   bar carrying the logo, a call link and the way back home. The frame inside
+   fills whatever the bar leaves. */
+
+html:has(.book-screen) {
+  overflow: hidden;
+}
+
+.book-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+}
+
+.book-screen__bar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--rule);
+  flex: 0 0 auto;
+}
+
+.book-screen__logo img {
+  display: block;
+  width: 150px;
+  height: auto;
+}
+
+.book-screen__note {
+  margin: 0;
+  font-size: 14px;
+  color: var(--body);
+}
+
+.book-screen__note a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.book-screen__call {
+  display: none;
+}
+
+.book-screen__home {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 99px;
+  background: var(--forest);
+  color: var(--paper);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.book-screen__home:hover {
+  background: var(--forest-dark, #17382c);
+}
+
+.book-screen .pt-frame {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+}
+
+@media (max-width: 767px) {
+  .book-screen__bar {
+    gap: 10px;
+    padding: 10px 16px;
   }
 
-  .booking-section {
-    padding-block: 28px 64px;
+  .book-screen__logo img {
+    width: 112px;
   }
+
+  .book-screen__note {
+    display: none;
+  }
+
+  .book-screen__call {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-left: auto;
+    font-size: 14px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .book-screen__home {
+    margin-left: 0;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+
+  /* On the phone the page no longer scrolls: the frame is the screen. The room
+     fills what is left and the table panel sits under it like a bottom sheet,
+     scrolling inside itself when it is taller than the room allows. These undo
+     the phone rules above, which were written for a frame inside a page. */
+  .book-screen .pt-root,
+  .book-screen .pt-root .app {
+    height: 100%;
+  }
+
+  .book-screen .pt-root .app__body {
+    min-height: 0;
+  }
+
+  .book-screen .pt-root .gate-wrap {
+    flex: 1 1 auto;
+    overflow-y: auto;
+  }
+
+  .book-screen .pt-root .guest__scene {
+    order: 0;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .book-screen .pt-root .guest__scene .scene {
+    height: 100%;
+    aspect-ratio: auto;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .book-screen .pt-root .dock {
+    order: 1;
+    flex: 0 0 auto;
+    max-height: 52dvh;
+    overflow-y: auto;
+    border-bottom: 0;
+    border-top: 1px solid var(--mv-hairline);
+  }
+}
+
+@media (max-width: 380px) {
+  .book-screen__home {
+    font-size: 0;
+    gap: 0;
+  }
+
+  .book-screen__home::after {
+    content: "Home";
+    font-size: 13px;
+  }
+}
+
+/* Full screen, there is no page behind the room to scroll: a finger on the
+   room drags it (once zoomed) and two pinch it. */
+.book-screen .pt-root .scene canvas {
+  touch-action: none;
+}
+
+/* --- Section names on the room ------------------------------------- */
+
+.pt-root .zone-tag {
+  display: inline-block;
+  padding: 3px 8px;
+  background: color-mix(in srgb, var(--mv-stone-top) 88%, transparent);
+  border: 1px solid var(--mv-hairline);
+  border-radius: var(--mv-radius);
+  color: var(--mv-ink);
+  font-family: var(--font-jost), sans-serif;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  user-select: none;
 }

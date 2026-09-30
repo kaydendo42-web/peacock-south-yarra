@@ -23,6 +23,7 @@ type Cast = { x: number; z: number; y: number; w: number; d: number }
 export default function Shadows({ tables, quarter }: { tables: Table[]; quarter: number }) {
   const rectRef = useRef<InstancedMesh>(null)
   const roundRef = useRef<InstancedMesh>(null)
+  const diamondRef = useRef<InstancedMesh>(null)
 
   const rectGeo = useMemo(() => {
     const g = new PlaneGeometry(1, 1)
@@ -38,6 +39,13 @@ export default function Shadows({ tables, quarter }: { tables: Table[]; quarter:
     return g
   }, [])
 
+  // Four segments from angle 0 put the points on the axes: a diamond.
+  const diamondGeo = useMemo(() => {
+    const g = new CircleGeometry(0.5, 4)
+    g.rotateX(-Math.PI / 2)
+    return g
+  }, [])
+
   const material = useMemo(
     () =>
       new MeshBasicMaterial({
@@ -49,21 +57,22 @@ export default function Shadows({ tables, quarter }: { tables: Table[]; quarter:
     [],
   )
 
-  const { rect, round } = useMemo(() => {
+  const { rect, round, diamond } = useMemo(() => {
     const rect: Cast[] = []
     const round: Cast[] = []
+    const diamond: Cast[] = []
     for (const t of tables) {
       const { w, d } = sizeOf(t)
       const [x, z] = toScene(t.x, t.y)
       // The plinth is what actually meets the floor, so it casts the shadow.
-      const cast: Cast = { x, z, y: floorHeightAt(t.y), w: w + 0.2, d: d + 0.2 }
-      ;(t.shape === 'round' ? round : rect).push(cast)
+      const cast: Cast = { x, z, y: floorHeightAt(t.x, t.y), w: w + 0.2, d: d + 0.2 }
+      ;(t.shape === 'round' ? round : t.shape === 'diamond' ? diamond : rect).push(cast)
     }
     for (const f of fixtures) {
       const [x, z] = toScene(f.x, f.y)
-      rect.push({ x, z, y: floorHeightAt(f.y), w: f.w, d: f.d })
+      rect.push({ x, z, y: floorHeightAt(f.x, f.y), w: f.w, d: f.d })
     }
-    return { rect, round }
+    return { rect, round, diamond }
   }, [tables])
 
   useLayoutEffect(() => {
@@ -86,7 +95,8 @@ export default function Shadows({ tables, quarter }: { tables: Table[]; quarter:
     }
     place(rectRef.current, rect)
     place(roundRef.current, round)
-  }, [rect, round, quarter])
+    place(diamondRef.current, diamond)
+  }, [rect, round, diamond, quarter])
 
   return (
     <>
@@ -100,6 +110,13 @@ export default function Shadows({ tables, quarter }: { tables: Table[]; quarter:
       <instancedMesh
         ref={roundRef}
         args={[roundGeo, material, round.length]}
+        raycast={noRaycast}
+        frustumCulled={false}
+        renderOrder={1}
+      />
+      <instancedMesh
+        ref={diamondRef}
+        args={[diamondGeo, material, diamond.length]}
         raycast={noRaycast}
         frustumCulled={false}
         renderOrder={1}

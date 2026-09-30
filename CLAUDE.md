@@ -25,10 +25,19 @@ Client site migrated off Wix. Peregrine Partners is the agency; the venue is the
   including what is still owed before it holds real bookings.
 - The booking system's service hours derive from `hours` in `site.ts` through
   `openingOn()`. Never give it its own opening times.
-- The floor plan is three equal zones across `room.depth`: verandah, inside,
-  courtyard. `ZONE_DEPTH` is the divisor — don't write 5.2 anywhere. Moving a
-  table or a fixture means re-running `npm test`: `auditVenue()` is the 0.9 m
-  clearance rule and the suite calls it.
+- The floor plan is traced from Jenny's drawing (Court Yard, Main, Peacock,
+  Deck; 31 tables by her numbers). `src/booking/data/venue.ts` writes every
+  position in the drawing's pixels through `planX`/`planY` (11 mm a pixel), so
+  a table can be checked against the drawing by eye. Moving, adding or
+  renumbering a table means re-running `npm test` (`auditVenue()`: no overlaps,
+  every table inside its section) and `npm run peregrine:seed` to update
+  Peregrine's copy of the floor.
+- Bookings live in Peregrine's Supabase when `SUPABASE_URL`,
+  `SUPABASE_SERVICE_ROLE_KEY` and `PEREGRINE_VENUE_ID` are set (Upstash, then a
+  JSON file, otherwise). The service key is server-only. The database's
+  `bookings_no_double_booking` constraint is the final word on double booking.
+- The menu page shows Jenny's printed menus from `src/lib/menu.ts`, not the
+  Square catalogue. `docs/menu-price-check.md` lists where Square disagrees.
 - Compass words under `src/booking/` mean the isometric view, not a survey:
   screen-right is world (+x, −z), so west is the left corner of the diamond and
   the south-east wall is the lower-right face.

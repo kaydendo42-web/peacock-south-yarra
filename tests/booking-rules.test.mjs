@@ -2,12 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { checkBooking } from "../src/booking/data/rules.ts";
 import {
-  ZONE_DEPTH,
   auditVenue,
-  fixtures,
-  footprint,
+  floorAt,
+  inside,
   openingOn,
-  room,
   tables,
   zones,
 } from "../src/booking/data/venue.ts";
@@ -44,11 +42,11 @@ function close(actual, expected, what) {
   );
 }
 
-// C4 is the eight-top in the courtyard: big enough that these tests are about
-// the rule under test and never incidentally about seats.
+// D1 is the long table in the Court Yard, the only eight-top: big enough that
+// these tests are about the rule under test and never incidentally about seats.
 function booking(fields) {
   return {
-    tableId: "c4",
+    tableId: "td1",
     partySize: 2,
     durationMin: sittingFor(2),
     ...fields,
@@ -132,7 +130,7 @@ test("a booking still cannot overlap another on the same table", () => {
   const existing = [
     {
       id: "PK-EXISTING",
-      tableId: "c4",
+      tableId: "td1",
       startsAt: local(TUESDAY, "11:30"),
       durationMin: 75,
       partySize: 2,
@@ -174,64 +172,49 @@ test("a party larger than the table is refused", () => {
  * asserted in a comment, so the test for the layout is a call to it.
  */
 
-test("the room is three equal zones: verandah, inside, courtyard", () => {
+test("the room is Jenny's four sections: Court Yard, Main, Peacock, Deck", () => {
   assert.deepEqual(
-    zones.map((z) => z.id),
-    ["verandah", "inside", "courtyard"],
+    zones.map((z) => z.name),
+    ["Court Yard", "Main", "Peacock", "Deck"],
   );
-  close(ZONE_DEPTH * 3, room.depth, "three zones span the room");
-  for (const zone of zones) {
-    close(zone.span[1] - zone.span[0], ZONE_DEPTH, zone.id);
-  }
-  // Only the middle one is a building.
+  // Main and Peacock are inside the house; the other two are open to the sky.
   assert.deepEqual(
     zones.map((z) => z.open),
-    [true, false, true],
+    [true, false, false, true],
   );
 });
 
-test("every table clears its neighbours, the fixtures and the walls", () => {
+test("every table on Jenny's plan is here, once, by her numbers", () => {
+  const labels = tables.map((t) => t.label);
+  assert.equal(new Set(labels).size, labels.length, "a table number is used twice");
+  assert.deepEqual(
+    [...labels].sort(),
+    [
+      "1", "13", "14", "16", "2", "20", "21", "22", "23", "24", "25", "26",
+      "28", "29", "3", "30", "31", "32", "4", "41", "42", "5", "51", "52",
+      "53", "6", "D1", "D3", "D4", "L1", "T1",
+    ].sort(),
+  );
+});
+
+test("no table overlaps another, a fixture, or leaves its section", () => {
   assert.deepEqual(auditVenue(), []);
 });
 
-test("every table sits in the zone it claims, and every zone has tables", () => {
+test("every table sits in the section it claims, and every section has tables", () => {
   for (const table of tables) {
     const zone = zones.find((z) => z.id === table.zone);
     assert.ok(zone, `${table.label} is in unknown zone ${table.zone}`);
-    const { y0, y1 } = footprint(table);
-    assert.ok(
-      y0 >= zone.span[0] && y1 <= zone.span[1],
-      `${table.label} pokes out of ${zone.name}`,
-    );
+    assert.ok(inside([table.x, table.y], zone.outline), `${table.label} is outside ${zone.name}`);
   }
   for (const zone of zones) {
     assert.ok(tables.some((t) => t.zone === zone.id), `${zone.name} has no tables`);
   }
 });
 
-test("the coffee station is in the western corner of the middle zone", () => {
-  // West, as the isometric view reads it, is the corner where x = 0 meets the
-  // verandah partition — so the counters hug x = 0 and the start of the zone.
-  const counters = fixtures.filter((f) => f.kind === "counter");
-  assert.ok(counters.length, "no counters");
-  const inside = zones.find((z) => z.id === "inside");
-  for (const c of counters) {
-    assert.ok(c.x - c.w / 2 < 1.2, `${c.id} is not against the x = 0 wall or its corner`);
-    assert.ok(c.y - c.d / 2 >= inside.span[0], `${c.id} starts before the middle zone`);
-    assert.ok(c.y + c.d / 2 <= inside.span[1], `${c.id} runs past the middle zone`);
+test("the house and Deck are raised, the Court Yard is at grade", () => {
+  for (const table of tables) {
+    const zone = zones.find((z) => z.id === table.zone);
+    assert.equal(floorAt(table.x, table.y), zone.floor, `${table.label} is on the wrong floor`);
   }
-  // Between them they turn the corner: one runs along x, one along y.
-  assert.deepEqual(new Set(counters.map((c) => c.rail)), new Set(["x", "y"]));
-});
-
-test("the bathrooms are a slice of the middle of the south-east wall", () => {
-  const wc = fixtures.find((f) => f.kind === "bathroom");
-  assert.ok(wc, "no bathrooms");
-  // The south-east wall is x = room.width.
-  close(wc.x + wc.w / 2, room.width, "bathrooms against the south-east wall");
-  const inside = zones.find((z) => z.id === "inside");
-  const middle = (inside.span[0] + inside.span[1]) / 2;
-  close(wc.y, middle, "bathrooms centred on that wall");
-  // A slice of it, not the whole wall.
-  assert.ok(wc.d < ZONE_DEPTH / 2, "the bathrooms take up more than half the wall");
 });

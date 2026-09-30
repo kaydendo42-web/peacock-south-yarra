@@ -1,6 +1,7 @@
 /** Domain types. Spatial values are metres from the venue origin — never pixels. */
 
-export type TableShape = 'round' | 'rect'
+/** A diamond is a square table turned 45°, as several are on the Peacock plan. */
+export type TableShape = 'round' | 'rect' | 'diamond'
 
 export type Table = {
   id: string
@@ -9,8 +10,11 @@ export type Table = {
   shape: TableShape
   x: number // metres from origin
   y: number // metres from origin
-  rot: number // degrees
+  rot: number // degrees; 0 or 90 (a diamond carries its 45° in its shape)
   zone: string
+  /** Footprint in metres, before `rot`. Round and diamond tables use `w` only. */
+  w: number
+  d: number
 }
 
 export type BookingStatus = 'confirmed' | 'seated' | 'cancelled' | 'no_show'

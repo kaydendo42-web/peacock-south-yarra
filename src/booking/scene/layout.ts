@@ -1,4 +1,4 @@
-import { ZONE_DEPTH, room } from '../data'
+import { floorAt, room } from '../data'
 
 /** Scene composition constants, all in metres. Derived from the venue footprint. */
 
@@ -17,40 +17,12 @@ export const caseD = platformD + CASE_MARGIN * 2
 export const halfX = room.width / 2
 export const halfZ = room.depth / 2
 
-/**
- * The two partitions, at the thirds. Only the middle zone is enclosed: the
- * verandah and the courtyard are open to the sky and get a parapet instead of
- * a wall, so these two lines are where the building starts and stops.
- */
-export const VERANDAH_Y = ZONE_DEPTH
-export const COURTYARD_Y = ZONE_DEPTH * 2
-
 export const PARAPET_BASE = 0.72
 export const PARAPET_MERLON = 0.2
 
-/**
- * Openings, in venue x. The front door clears the coffee corner, which takes
- * the western end of the verandah partition; the courtyard opening is wider
- * because it is a way through rather than a door. The street gap is where the
- * verandah's parapet stops for the entry.
- */
-export const FRONT_DOOR_X = 7.0
-export const FRONT_DOOR_W = 1.4
-export const FRONT_DOOR_H = 2.3
-export const COURTYARD_DOOR_X = 5.5
-export const COURTYARD_DOOR_W = 2.2
-export const COURTYARD_DOOR_H = 2.5
-export const STREET_GAP_X = 5.5
-export const STREET_GAP_W = 2.4
-
-/** The courtyard is a raised terrace, reached by two treads (§5). */
-export const TERRACE_H = 0.24
-export const TREAD_H = 0.12
-export const TREAD_DEPTH = 0.3
-
-/** Floor height under a point, in metres. Flat inside, a terrace outdoors. */
-export function floorHeightAt(venueY: number): number {
-  return venueY >= COURTYARD_Y ? TERRACE_H : 0
+/** Floor height under a point, in metres: the house and Deck are raised, the Court Yard is not. */
+export function floorHeightAt(venueX: number, venueY: number): number {
+  return floorAt(venueX, venueY)
 }
 
 /**
@@ -78,4 +50,5 @@ export const FOG_NEAR = 27
 export const FOG_FAR = 68
 
 export const ZOOM_MIN = 0.6
-export const ZOOM_MAX = 1.8
+/** The real plan is long and shallow, so a phone needs to get closer than the synthetic room did. */
+export const ZOOM_MAX = 3

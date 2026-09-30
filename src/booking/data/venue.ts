@@ -2,14 +2,19 @@ import { hours } from '../../lib/site.ts'
 import type { DateKey, Table } from './types.ts'
 
 /**
- * The Peacock, South Yarra — hand-authored floor plan.
+ * The Peacock, South Yarra — traced from Jenny's floor plan (sent 25 Sep 2026).
  *
- * Origin is the inside face of the front door. x runs right along the front
- * wall, y runs into the room. All values are metres.
+ * Everything below is written in the drawing's own pixels and converted, so a
+ * table can be checked against the drawing by eye: find its number on the plan,
+ * read the pixel, compare. The drawing is 2000 × 933 px; the three "1770"
+ * dimensions under the Main banquette span 160 px each, which puts the scale at
+ * 11 mm a pixel.
  *
- * Synthetic layout standing in for the surveyed one. Every table clears its
- * neighbours' edges by at least 0.9 m and sits at least 0.9 m off any wall;
- * `auditVenue()` at the bottom of this file is the check.
+ * Orientation: venue x runs left to right across the drawing (Court Yard → Main
+ * → Peacock → Deck). Venue y runs from the drawing's bottom edge up, so the
+ * bottom of the drawing is the edge nearest the camera — the view is the plan
+ * lying on a table, seen from its bottom edge. That keeps Jenny's left and
+ * right where she drew them.
  */
 
 /**
@@ -19,119 +24,379 @@ import type { DateKey, Table } from './types.ts'
  */
 export const VENUE_TZ = 'Australia/Melbourne'
 
+/** Metres per drawing pixel. */
+export const PLAN_SCALE = 0.011
+/** The drawing's left edge and the lines that bound the site top and bottom. */
+const PLAN_X0 = 10
+const PLAN_TOP = 50
+const PLAN_BOTTOM = 890
+
+/** Drawing pixel → venue metres. */
+export const planX = (px: number) => +((px - PLAN_X0) * PLAN_SCALE).toFixed(3)
+export const planY = (py: number) => +((PLAN_BOTTOM - py) * PLAN_SCALE).toFixed(3)
+const pt = (px: number, py: number): [number, number] => [planX(px), planY(py)]
+const len = (px: number) => +(px * PLAN_SCALE).toFixed(3)
+
 export const room = {
-  width: 11.0, // x
-  depth: 15.6, // y — divides into three equal 5.2 m zones
+  width: planX(1975),
+  depth: +((PLAN_BOTTOM - PLAN_TOP) * PLAN_SCALE).toFixed(3),
   wallHeight: 3.0,
-  wallThickness: 0.22,
+  wallThickness: 0.2,
 } as const
 
-/**
- * The room is three equal slices across its depth: verandah at the street,
- * the enclosed room in the middle, courtyard at the back. 5.2 m each.
- *
- * `ZONE_DEPTH` is the divisor rather than a written-out number so the three
- * spans, the walls in `src/booking/scene/layout.ts` and the audit below can
- * never drift apart.
- */
-export const ZONE_DEPTH = room.depth / 3
+/** The house sits up on its stumps; the Deck is level with it. The Court Yard is at grade. */
+export const HOUSE_FLOOR = 0.24
 
 export type Zone = {
   id: string
   name: string
-  /** [yStart, yEnd) in metres */
-  span: [number, number]
-  /** Open to the sky — no ceiling, low parapet instead of full walls. */
+  /** Outline in venue metres, anticlockwise or clockwise — only membership is asked of it. */
+  outline: [number, number][]
+  /** Open to the sky: parapet, not walls. */
   open: boolean
+  /** Floor height, metres. */
+  floor: number
+  /** Where Jenny wrote the section's name on the plan; the scene labels it there. */
+  labelAt: [number, number]
 }
 
+/** The four sections Jenny named on the plan. */
 export const zones: Zone[] = [
-  { id: 'verandah', name: 'Front verandah', span: [0, ZONE_DEPTH], open: true },
-  { id: 'inside', name: 'Inside', span: [ZONE_DEPTH, ZONE_DEPTH * 2], open: false },
-  { id: 'courtyard', name: 'Courtyard', span: [ZONE_DEPTH * 2, room.depth], open: true },
+  {
+    id: 'courtyard',
+    name: 'Court Yard',
+    outline: [pt(10, 50), pt(600, 50), pt(600, 405), pt(890, 860), pt(10, 860)],
+    open: true,
+    floor: 0,
+    labelAt: pt(385, 525),
+  },
+  {
+    id: 'main',
+    name: 'Main',
+    outline: [pt(600, 405), pt(1050, 405), pt(1050, 450), pt(1440, 450), pt(1440, 860), pt(890, 860)],
+    open: false,
+    floor: HOUSE_FLOOR,
+    labelAt: pt(1128, 690),
+  },
+  {
+    id: 'peacock',
+    name: 'Peacock',
+    outline: [pt(1310, 155), pt(1660, 155), pt(1660, 450), pt(1310, 450)],
+    open: false,
+    floor: HOUSE_FLOOR,
+    labelAt: pt(1485, 380),
+  },
+  {
+    id: 'deck',
+    name: 'Deck',
+    outline: [pt(1660, 60), pt(1970, 60), pt(1970, 700), pt(1890, 860), pt(1660, 860)],
+    open: true,
+    floor: HOUSE_FLOOR,
+    labelAt: pt(1850, 420),
+  },
 ]
 
-/** Footprint of a table, in metres. Round tables use `w` as the diameter. */
-export const tableSize = {
-  2: { w: 0.72, d: 0.72 },
-  4: { w: 1.2, d: 0.75 },
-  6: { w: 1.8, d: 0.85 },
-  8: { w: 2.4, d: 0.95 },
+/** Raised floor plates. Anything not on one of these is at grade. */
+export const floors: { id: string; outline: [number, number][]; height: number }[] = [
+  {
+    id: 'house',
+    outline: [pt(600, 155), pt(1660, 155), pt(1660, 860), pt(890, 860), pt(600, 405)],
+    height: HOUSE_FLOOR,
+  },
+  {
+    // The Deck, with the notch the street stairs come up through.
+    id: 'deck',
+    outline: [
+      pt(1660, 60), pt(1970, 60), pt(1970, 445), pt(1780, 445), pt(1780, 525),
+      pt(1970, 525), pt(1970, 700), pt(1890, 860), pt(1660, 860),
+    ],
+    height: HOUSE_FLOOR,
+  },
+]
+
+/** The street stairs, down from the Deck to River St. */
+export const stairs = {
+  x0: planX(1780),
+  x1: planX(1970),
+  y0: planY(525),
+  y1: planY(445),
+  treads: 4,
 } as const
 
-export function sizeOf(t: Pick<Table, 'seats'>) {
-  return tableSize[t.seats as keyof typeof tableSize] ?? tableSize[4]
+type TableSpec = {
+  label: string
+  seats: number
+  shape: Table['shape']
+  at: [number, number] // drawing px, centre
+  /** Metres. `w` is along the table's long side; `rot: 90` stands it up the drawing. */
+  w: number
+  d?: number
+  rot?: 0 | 90
+  zone: string
+}
+
+const spec: TableSpec[] = [
+  // --- Court Yard ------------------------------------------------------
+  { label: '4', seats: 4, shape: 'rect', at: [137, 127], w: 1.38, d: 0.5, rot: 90, zone: 'courtyard' },
+  { label: 'T1', seats: 2, shape: 'rect', at: [335, 183], w: 0.6, d: 0.55, zone: 'courtyard' },
+  { label: '13', seats: 4, shape: 'diamond', at: [385, 297], w: 0.62, zone: 'courtyard' },
+  { label: '3', seats: 2, shape: 'rect', at: [57, 355], w: 0.6, d: 0.55, zone: 'courtyard' },
+  { label: '16', seats: 2, shape: 'rect', at: [554, 348], w: 0.62, d: 0.55, rot: 90, zone: 'courtyard' },
+  { label: '14', seats: 2, shape: 'rect', at: [416, 429], w: 0.62, d: 0.6, zone: 'courtyard' },
+  { label: '2', seats: 2, shape: 'rect', at: [232, 450], w: 0.6, d: 0.55, zone: 'courtyard' },
+  { label: '1', seats: 2, shape: 'round', at: [140, 618], w: 0.45, zone: 'courtyard' },
+  { label: 'D4', seats: 2, shape: 'diamond', at: [597, 611], w: 0.55, zone: 'courtyard' },
+  { label: 'L1', seats: 2, shape: 'diamond', at: [716, 620], w: 0.55, zone: 'courtyard' },
+  // Six chairs drawn; the ends take two more. Confirm with Jenny.
+  { label: 'D1', seats: 8, shape: 'rect', at: [463, 762], w: 1.82, d: 0.8, zone: 'courtyard' },
+  { label: 'D3', seats: 4, shape: 'rect', at: [662, 780], w: 1.3, d: 0.5, rot: 90, zone: 'courtyard' },
+
+  // --- Main ------------------------------------------------------------
+  { label: '26', seats: 2, shape: 'diamond', at: [765, 510], w: 0.55, zone: 'main' },
+  { label: '25', seats: 2, shape: 'diamond', at: [825, 588], w: 0.55, zone: 'main' },
+  { label: '28', seats: 2, shape: 'rect', at: [1097, 566], w: 0.55, d: 0.5, zone: 'main' },
+  { label: '29', seats: 2, shape: 'rect', at: [1177, 610], w: 0.55, d: 0.5, zone: 'main' },
+  { label: '30', seats: 2, shape: 'rect', at: [1272, 610], w: 0.55, d: 0.5, zone: 'main' },
+  { label: '24', seats: 2, shape: 'rect', at: [955, 788], w: 0.5, d: 0.5, zone: 'main' },
+  { label: '23', seats: 2, shape: 'rect', at: [1032, 788], w: 0.5, d: 0.5, zone: 'main' },
+  { label: '22', seats: 2, shape: 'rect', at: [1110, 788], w: 0.5, d: 0.5, zone: 'main' },
+  { label: '21', seats: 2, shape: 'rect', at: [1187, 788], w: 0.5, d: 0.5, zone: 'main' },
+  { label: '20', seats: 4, shape: 'rect', at: [1307, 787], w: 1.0, d: 0.5, zone: 'main' },
+
+  // --- Peacock ---------------------------------------------------------
+  { label: '6', seats: 4, shape: 'rect', at: [1392, 245], w: 1.5, d: 0.5, rot: 90, zone: 'peacock' },
+  { label: '5', seats: 4, shape: 'round', at: [1587, 250], w: 1.0, zone: 'peacock' },
+
+  // --- Deck --------------------------------------------------------------
+  { label: '53', seats: 4, shape: 'rect', at: [1912, 150], w: 1.05, d: 0.5, zone: 'deck' },
+  { label: '32', seats: 2, shape: 'rect', at: [1748, 235], w: 0.9, d: 0.42, rot: 90, zone: 'deck' },
+  { label: '52', seats: 2, shape: 'rect', at: [1935, 300], w: 0.5, d: 0.5, zone: 'deck' },
+  { label: '31', seats: 2, shape: 'rect', at: [1748, 335], w: 0.9, d: 0.42, rot: 90, zone: 'deck' },
+  { label: '42', seats: 2, shape: 'rect', at: [1815, 335], w: 0.5, d: 0.5, zone: 'deck' },
+  { label: '41', seats: 4, shape: 'rect', at: [1830, 610], w: 1.05, d: 0.5, zone: 'deck' },
+  { label: '51', seats: 2, shape: 'diamond', at: [1875, 765], w: 0.5, zone: 'deck' },
+]
+
+/** Every bookable table, numbered as Jenny's team numbers them. */
+export const tables: Table[] = spec.map((t) => ({
+  id: `t${t.label.toLowerCase()}`,
+  label: t.label,
+  seats: t.seats,
+  shape: t.shape,
+  x: planX(t.at[0]),
+  y: planY(t.at[1]),
+  rot: t.rot ?? 0,
+  zone: t.zone,
+  w: t.w,
+  d: t.shape === 'rect' ? (t.d ?? t.w) : t.w,
+}))
+
+/** Footprint of a table as it stands, in metres: `rot` applied, diamonds at 45°. */
+export function sizeOf(t: Pick<Table, 'w' | 'd' | 'rot' | 'shape'>): { w: number; d: number } {
+  if (t.shape === 'diamond') {
+    const across = t.w * Math.SQRT2
+    return { w: across, d: across }
+  }
+  const turned = Math.round(Math.abs(t.rot) / 90) % 2 === 1
+  return turned ? { w: t.d, d: t.w } : { w: t.w, d: t.d }
 }
 
 /**
- * Every table, laid out zone by zone.
- *
- * Two rows to a zone. A zone is 5.2 m deep and `auditVenue()` wants 0.9 m of
- * clearance off every wall including the partitions, which leaves 3.4 m —
- * enough for two rows of tables and the walkway between them, and not enough
- * for three. The rows are what the numbers below are: not an arbitrary
- * scatter, a pair of lines per zone with the fixtures cut out of them.
- */
-export const tables: Table[] = [
-  // --- Front verandah: the street row, then the sheltered row ----------
-  { id: 'v1', label: 'V1', seats: 2, shape: 'round', x: 2.0, y: 1.6, rot: 0, zone: 'verandah' },
-  { id: 'v2', label: 'V2', seats: 2, shape: 'round', x: 4.2, y: 1.6, rot: 0, zone: 'verandah' },
-  { id: 'v3', label: 'V3', seats: 2, shape: 'round', x: 6.4, y: 1.6, rot: 0, zone: 'verandah' },
-  { id: 'v4', label: 'V4', seats: 2, shape: 'round', x: 8.6, y: 1.6, rot: 0, zone: 'verandah' },
-  { id: 'v5', label: 'V5', seats: 4, shape: 'rect', x: 2.4, y: 3.5, rot: 0, zone: 'verandah' },
-  { id: 'v6', label: 'V6', seats: 4, shape: 'rect', x: 5.5, y: 3.5, rot: 0, zone: 'verandah' },
-  { id: 'v7', label: 'V7', seats: 4, shape: 'rect', x: 8.6, y: 3.5, rot: 0, zone: 'verandah' },
-
-  // --- Inside: the coffee corner takes the west end of the front row,
-  //     the bathrooms take the middle of the south-east wall ------------
-  { id: 'i1', label: 'I1', seats: 4, shape: 'rect', x: 5.1, y: 6.6, rot: 0, zone: 'inside' },
-  { id: 'i2', label: 'I2', seats: 4, shape: 'rect', x: 8.1, y: 6.6, rot: 0, zone: 'inside' },
-  { id: 'i3', label: 'I3', seats: 6, shape: 'rect', x: 3.0, y: 8.9, rot: 0, zone: 'inside' },
-  { id: 'i4', label: 'I4', seats: 4, shape: 'rect', x: 5.6, y: 8.9, rot: 0, zone: 'inside' },
-  { id: 'i5', label: 'I5', seats: 4, shape: 'rect', x: 8.0, y: 8.9, rot: 0, zone: 'inside' },
-
-  // --- Courtyard: the long tables go at the back, in the sun -----------
-  { id: 'c1', label: 'C1', seats: 4, shape: 'rect', x: 2.4, y: 11.9, rot: 0, zone: 'courtyard' },
-  { id: 'c2', label: 'C2', seats: 4, shape: 'rect', x: 5.5, y: 11.9, rot: 0, zone: 'courtyard' },
-  { id: 'c3', label: 'C3', seats: 4, shape: 'rect', x: 8.6, y: 11.9, rot: 0, zone: 'courtyard' },
-  { id: 'c4', label: 'C4', seats: 8, shape: 'rect', x: 3.2, y: 14.0, rot: 0, zone: 'courtyard' },
-  { id: 'c5', label: 'C5', seats: 6, shape: 'rect', x: 7.0, y: 14.0, rot: 0, zone: 'courtyard' },
-  { id: 'c6', label: 'C6', seats: 2, shape: 'round', x: 9.6, y: 14.0, rot: 0, zone: 'courtyard' },
-]
-
-/**
- * Non-bookable fixtures, all of them inside the middle zone.
- *
- * The coffee station is an L tucked into the western corner — west as the
- * isometric view reads it, which is the corner where the x = 0 wall meets the
- * verandah partition. The bathrooms are a block against the middle of the
- * south-east wall, the x = `room.width` one.
+ * Non-bookable things with a footprint: the back of house, counters, benches.
+ * Rectangles in venue metres, centred.
  */
 export type Fixture = {
   id: string
-  kind: 'counter' | 'bathroom'
+  kind: 'room' | 'bathroom' | 'counter' | 'bench' | 'planter'
   label: string
-  /** Centre of the footprint, in metres. */
   x: number
   y: number
   w: number
   d: number
   h: number
-  /**
-   * Counters only: the axis the brass rail runs along. It is fitted to the
-   * face away from the wall the counter is against — a rail along y sits on
-   * the +x face, a rail along x sits on the +y face.
-   */
-  rail?: 'x' | 'y'
 }
 
+const box = (
+  id: string,
+  kind: Fixture['kind'],
+  label: string,
+  [x0, y0, x1, y1]: [number, number, number, number],
+  h: number,
+): Fixture => ({
+  id,
+  kind,
+  label,
+  x: +((planX(x0) + planX(x1)) / 2).toFixed(3),
+  y: +((planY(y0) + planY(y1)) / 2).toFixed(3),
+  w: len(x1 - x0),
+  d: len(y1 - y0),
+  h,
+})
+
 export const fixtures: Fixture[] = [
-  // The long leg, against the x = 0 wall: grinders, machine, pass.
-  { id: 'coffee-machine', kind: 'counter', label: 'Coffee', x: 0.55, y: 6.85, w: 1.1, d: 3.0, h: 1.05, rail: 'y' },
-  // The short leg, turning the corner along the verandah partition: the till.
-  { id: 'coffee-till', kind: 'counter', label: 'Counter', x: 2.3, y: 5.9, w: 2.4, d: 1.1, h: 1.05, rail: 'x' },
-  { id: 'bathrooms', kind: 'bathroom', label: 'Bathrooms', x: 10.35, y: 7.8, w: 1.3, d: 2.4, h: 2.1 },
+  box('kitchen', 'room', 'Kitchen', [600, 155, 900, 405], 2.8),
+  box('storage', 'room', 'Storage', [900, 155, 1310, 300], 2.8),
+  box('toilets', 'bathroom', 'Toilets', [1050, 300, 1310, 450], 2.4),
+  box('waiters', 'counter', 'Waiters station', [905, 372, 1045, 430], 1.0),
+  box('foh-display', 'counter', 'FOH', [1440, 585, 1500, 775], 1.05),
+  box('foh-pass', 'counter', 'FOH', [1440, 530, 1610, 585], 1.05),
+  box('foh-back', 'counter', 'FOH', [1610, 585, 1655, 855], 1.05),
+  box('foh-till', 'counter', 'FOH', [1500, 810, 1610, 855], 1.05),
+  box('main-planter', 'planter', 'Planter', [1130, 520, 1340, 572], 0.5),
+  box('main-banquette', 'bench', 'Banquette', [910, 816, 1390, 852], 0.45),
+  box('peacock-banquette', 'bench', 'Banquette', [1520, 172, 1645, 198], 0.45),
+  box('peacock-bench', 'bench', 'Bench', [1335, 180, 1360, 315], 0.45),
+  box('yard-store', 'room', 'Store', [258, 685, 322, 790], 1.6),
 ]
+
+/**
+ * Walls and parapets, as runs between two drawing points. `openings` are along
+ * the run in metres from its first point.
+ */
+export type Wall = {
+  id: string
+  kind: 'wall' | 'parapet'
+  from: [number, number]
+  to: [number, number]
+  /** A point on the side the wall faces away from — decides which side is "out". */
+  inside: [number, number]
+  arches?: { at: number; width: number; height: number }[]
+  slits?: number[]
+}
+
+const houseInside = pt(1200, 600)
+const yardInside = pt(300, 450)
+const deckInside = pt(1820, 400)
+
+export const walls: Wall[] = [
+  // --- the house -------------------------------------------------------
+  {
+    id: 'house-back', kind: 'wall', from: pt(600, 155), to: pt(1660, 155), inside: houseInside,
+    slits: [len(820), len(950), len(1080)],
+  },
+  {
+    id: 'house-deck', kind: 'wall', from: pt(1660, 155), to: pt(1660, 860), inside: houseInside,
+    arches: [{ at: len(332), width: 0.72, height: 2.3 }],
+    slits: [len(120), len(560)],
+  },
+  {
+    id: 'house-front', kind: 'wall', from: pt(890, 860), to: pt(1660, 860), inside: houseInside,
+    slits: [len(90), len(250), len(410)],
+  },
+  {
+    // The glazed run between the Court Yard and Main, drawn on the diagonal.
+    id: 'house-glass', kind: 'wall', from: pt(600, 405), to: pt(890, 860), inside: houseInside,
+    arches: [
+      { at: len(150), width: 0.95, height: 2.4 },
+      { at: len(270), width: 0.95, height: 2.4 },
+      { at: len(390), width: 0.95, height: 2.4 },
+    ],
+  },
+  { id: 'house-kitchen', kind: 'wall', from: pt(600, 155), to: pt(600, 405), inside: houseInside },
+
+  // --- the Court Yard's fence line ------------------------------------
+  { id: 'yard-west', kind: 'parapet', from: pt(10, 50), to: pt(10, 860), inside: yardInside },
+  { id: 'yard-north', kind: 'parapet', from: pt(10, 50), to: pt(600, 50), inside: yardInside },
+  { id: 'yard-kitchen', kind: 'parapet', from: pt(600, 50), to: pt(600, 155), inside: yardInside },
+  { id: 'yard-south', kind: 'parapet', from: pt(10, 860), to: pt(890, 860), inside: yardInside },
+
+  // --- the Deck's rail -------------------------------------------------
+  { id: 'deck-north', kind: 'parapet', from: pt(1660, 60), to: pt(1970, 60), inside: deckInside },
+  { id: 'deck-east-a', kind: 'parapet', from: pt(1970, 60), to: pt(1970, 445), inside: deckInside },
+  { id: 'deck-east-b', kind: 'parapet', from: pt(1970, 525), to: pt(1970, 700), inside: deckInside },
+  { id: 'deck-corner', kind: 'parapet', from: pt(1970, 700), to: pt(1890, 860), inside: deckInside },
+  { id: 'deck-south', kind: 'parapet', from: pt(1660, 860), to: pt(1890, 860), inside: deckInside },
+]
+
+/**
+ * The small things that make it hers: the plants she drew, the hedges along the
+ * fence, the art on the walls. Decor only — nothing here takes a booking or
+ * blocks one.
+ */
+export type Plant = { x: number; y: number; size: number; kind: 'tree' | 'pot' | 'fern' }
+export type Hedge = { x: number; y: number; w: number; d: number }
+export type Painting = {
+  /** Centre of the canvas on the wall face, venue metres. */
+  x: number
+  y: number
+  w: number
+  h: number
+  /** Which way the canvas faces, in venue axes. */
+  facing: 'north' | 'south'
+  palette: 'peacock' | 'pink' | 'mint'
+  /** The wall this hangs on, so it hides with it. Omit for a free-standing block. */
+  wall?: string
+  floor: number
+}
+
+const plant = (px: number, py: number, size: number, kind: Plant['kind']): Plant => ({
+  x: planX(px),
+  y: planY(py),
+  size,
+  kind,
+})
+
+export const plants: Plant[] = [
+  // Court Yard — the trees and pots on the plan.
+  plant(362, 100, 0.55, 'tree'),
+  plant(452, 110, 0.5, 'tree'),
+  plant(520, 108, 0.45, 'tree'),
+  plant(298, 338, 0.42, 'fern'),
+  plant(535, 532, 0.75, 'tree'),
+  plant(302, 622, 0.42, 'fern'),
+  plant(848, 800, 0.45, 'fern'),
+  // Peacock — the big one in the corner and the three little pots by the door.
+  plant(1608, 405, 0.5, 'fern'),
+  plant(1330, 385, 0.18, 'pot'),
+  plant(1330, 410, 0.18, 'pot'),
+  plant(1330, 435, 0.18, 'pot'),
+  // FOH, at the end of the pass.
+  plant(1446, 556, 0.26, 'pot'),
+  // Deck — the planters along the rail.
+  ...[210, 272, 335, 392, 582, 656, 730, 800].map((py) => plant(1778, py, 0.2, 'pot')),
+]
+
+const hedge = (x0: number, y0: number, x1: number, y1: number): Hedge => ({
+  x: +((planX(x0) + planX(x1)) / 2).toFixed(3),
+  y: +((planY(y0) + planY(y1)) / 2).toFixed(3),
+  w: len(x1 - x0),
+  d: len(y1 - y0),
+})
+
+export const hedges: Hedge[] = [
+  hedge(14, 55, 34, 660),
+  hedge(340, 862, 870, 882),
+  hedge(328, 672, 346, 858),
+  hedge(316, 60, 410, 150),
+  hedge(592, 160, 600, 390),
+]
+
+export const paintings: Painting[] = [
+  // Above the Peacock banquette: the one that gives the room its name.
+  { x: planX(1582), y: planY(155) - 0.13, w: 1.0, h: 0.75, facing: 'south', palette: 'peacock', wall: 'house-back', floor: HOUSE_FLOOR },
+  // On the toilet block, facing the Main tables.
+  { x: planX(1120), y: planY(450) - 0.02, w: 0.55, h: 0.7, facing: 'south', palette: 'pink', floor: HOUSE_FLOOR },
+  { x: planX(1235), y: planY(450) - 0.02, w: 0.55, h: 0.7, facing: 'south', palette: 'mint', floor: HOUSE_FLOOR },
+  // Above the Main banquette's back, on the far side of the storage block.
+  { x: planX(980), y: planY(300) - 0.02, w: 0.7, h: 0.5, facing: 'south', palette: 'mint', floor: HOUSE_FLOOR },
+]
+
+/** Is a point inside an outline? Even-odd rule. */
+export function inside([x, y]: [number, number], outline: [number, number][]): boolean {
+  let hit = false
+  for (let i = 0, j = outline.length - 1; i < outline.length; j = i++) {
+    const [xi, yi] = outline[i]
+    const [xj, yj] = outline[j]
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) hit = !hit
+  }
+  return hit
+}
+
+/** Floor height under a point, in metres. */
+export function floorAt(x: number, y: number): number {
+  for (const f of floors) if (inside([x, y], f.outline)) return f.height
+  return 0
+}
 
 /**
  * The venue opens once a day and stays open — there is no lunch/dinner split at
@@ -160,22 +425,26 @@ export const service = {
   bufferMinutes: 15,
 } as const
 
-export const MIN_CLEARANCE = 0.9
+/**
+ * Minimum gap between two table footprints, and between a table and a fixture.
+ * The plan is a real café, drawn tight: tables sit a chair's width apart, not
+ * the 0.9 m a synthetic layout could afford, and pushed up against banquettes.
+ * The audit checks what can be
+ * wrong about a traced plan — overlaps and tables outside their section.
+ */
+export const MIN_CLEARANCE = 0.05
 
 // ---------------------------------------------------------------------------
-// Layout audit. Kept beside the data so the clearance rule is checkable rather
-// than asserted; called from the venue tests and safe to call at runtime.
+// Layout audit. Kept beside the data so the plan is checkable rather than
+// asserted; called from the venue tests and safe to call at runtime.
 // ---------------------------------------------------------------------------
 
 type Rect = { x0: number; y0: number; x1: number; y1: number }
 
-/** Axis-aligned footprint. Rotation is 90°-snapped, so this stays exact. */
-export function footprint(t: Pick<Table, 'seats' | 'rot' | 'x' | 'y'>): Rect {
+/** Axis-aligned footprint. Diamonds are measured across their points. */
+export function footprint(t: Pick<Table, 'w' | 'd' | 'rot' | 'shape' | 'x' | 'y'>): Rect {
   const { w, d } = sizeOf(t)
-  const turned = Math.round(Math.abs(t.rot) / 90) % 2 === 1
-  const hw = (turned ? d : w) / 2
-  const hd = (turned ? w : d) / 2
-  return { x0: t.x - hw, y0: t.y - hd, x1: t.x + hw, y1: t.y + hd }
+  return { x0: t.x - w / 2, y0: t.y - d / 2, x1: t.x + w / 2, y1: t.y + d / 2 }
 }
 
 function gap(a: Rect, b: Rect): number {
@@ -190,27 +459,16 @@ export function auditVenue(): string[] {
   const rects = tables.map((t) => ({ t, r: footprint(t) }))
 
   for (const { t, r } of rects) {
-    const wall = Math.min(r.x0, room.width - r.x1, r.y0, room.depth - r.y1)
-    if (wall < MIN_CLEARANCE - 1e-9) {
-      problems.push(`${t.label} is ${wall.toFixed(2)} m from a wall (min ${MIN_CLEARANCE})`)
+    if (r.x0 < 0 || r.y0 < 0 || r.x1 > room.width || r.y1 > room.depth) {
+      problems.push(`${t.label} is off the site`)
     }
-
-    /**
-     * And from the partitions either side of its own zone. The two dividers
-     * are walls with a door in them, not lines on a drawing, so a table has to
-     * clear them the way it clears the outside of the building — which is what
-     * makes each 5.2 m zone two rows deep and not three.
-     */
     const zone = zones.find((z) => z.id === t.zone)
     if (!zone) {
       problems.push(`${t.label} is in zone "${t.zone}", which does not exist`)
       continue
     }
-    const partition = Math.min(r.y0 - zone.span[0], zone.span[1] - r.y1)
-    if (partition < MIN_CLEARANCE - 1e-9) {
-      problems.push(
-        `${t.label} is ${partition.toFixed(2)} m from the edge of ${zone.name} (min ${MIN_CLEARANCE})`,
-      )
+    if (!inside([t.x, t.y], zone.outline)) {
+      problems.push(`${t.label} is not inside ${zone.name}`)
     }
   }
 

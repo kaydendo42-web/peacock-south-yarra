@@ -14,7 +14,7 @@ import { fileStore, kvStore } from "../src/booking/server/store.ts";
 
 const booking = (id, extra = {}) => ({
   id,
-  tableId: "v1",
+  tableId: "t14",
   startsAt: "2026-10-01T09:00:00+10:00",
   durationMin: 75,
   partySize: 2,
@@ -34,7 +34,7 @@ async function race(store, n) {
       store.exclusive(async () => {
         const all = await store.all();
         await pause(); // widen the window a missing lock would fall through
-        if (all.some((b) => b.tableId === "v1" && b.status === "confirmed")) return false;
+        if (all.some((b) => b.tableId === "t14" && b.status === "confirmed")) return false;
         await store.put(booking(`PK-${i}`));
         return true;
       }),
@@ -101,12 +101,12 @@ test("file store: put replaces one booking and leaves the rest alone", async () 
   try {
     const store = fileStore(path.join(dir, "bookings.json"));
     await store.put(booking("PK-A"));
-    await store.put(booking("PK-B", { tableId: "v2" }));
+    await store.put(booking("PK-B", { tableId: "t16" }));
     await store.put(booking("PK-A", { status: "cancelled" }));
     const all = await store.all();
     assert.equal(all.length, 2);
     assert.equal(all.find((b) => b.id === "PK-A").status, "cancelled");
-    assert.equal(all.find((b) => b.id === "PK-B").tableId, "v2");
+    assert.equal(all.find((b) => b.id === "PK-B").tableId, "t16");
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

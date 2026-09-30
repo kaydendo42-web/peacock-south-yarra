@@ -132,11 +132,16 @@ function useContainerSize() {
   return size
 }
 
+/** Screen-right and screen-up, in world space, for a camera at equal XYZ. */
+const RIGHT: [number, number, number] = [1 / SQRT2, 0, -1 / SQRT2]
+const UP: [number, number, number] = [-1 / SQRT6, 2 / SQRT6, -1 / SQRT6]
+
 /**
- * OrthographicCamera at equal XYZ. The ratio is never altered — only zoom, and
- * only within 0.6×–1.8× of the fitted base (§1).
+ * OrthographicCamera at equal XYZ. The ratio is never altered — only zoom,
+ * within ZOOM_MIN–ZOOM_MAX of the fitted base (§1), and a pan that slides the
+ * camera across the screen plane without ever tilting it.
  */
-function IsoCamera({ zoomMul }: { zoomMul: number }) {
+function IsoCamera({ zoomMul, pan }: { zoomMul: number; pan: { x: number; y: number } }) {
   const size = useContainerSize()
   const cam = useRef<Ortho>(null)
   const { base, targetY } = useMemo(() => fit(size.width, size.height), [size.width, size.height])
@@ -145,10 +150,16 @@ function IsoCamera({ zoomMul }: { zoomMul: number }) {
     const c = cam.current
     if (!c) return
     c.zoom = base * zoomMul
-    c.position.set(20, targetY + 20, 20)
-    c.lookAt(0, targetY, 0)
+    // The pan is held in screen pixels; a pixel is 1/zoom world units.
+    const r = pan.x / c.zoom
+    const u = pan.y / c.zoom
+    const ox = RIGHT[0] * r + UP[0] * u
+    const oy = RIGHT[1] * r + UP[1] * u
+    const oz = RIGHT[2] * r + UP[2] * u
+    c.position.set(20 + ox, targetY + 20 + oy, 20 + oz)
+    c.lookAt(ox, targetY + oy, oz)
     c.updateProjectionMatrix()
-  }, [base, targetY, zoomMul])
+  }, [base, targetY, zoomMul, pan])
 
   return <OrthographicCamera ref={cam} makeDefault position={[20, 20, 20]} near={-100} far={200} />
 }
@@ -284,11 +295,39 @@ export default function FloorPlan({
   const pointers = useRef(new Map<number, { x: number; y: number }>())
   const pinchFrom = useRef<{ gap: number; zoom: number } | null>(null)
 
-  const setZoom = useCallback((next: number) => {
-    const z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, next))
-    zoomRef.current = z
-    setZoomMul(z)
+  const [pan, setPanState] = useState({ x: 0, y: 0 })
+  const panRef = useRef({ x: 0, y: 0 })
+  /** One pointer down, and where it and the pan were when it went down. */
+  const drag = useRef<{ id: number; x: number; y: number; pan: { x: number; y: number } } | null>(null)
+  /** Set once a press travels far enough to be a drag; the tap that ends it selects nothing. */
+  const dragged = useRef(false)
+
+  /**
+   * Keep the pan inside what the zoom has pushed off screen, so the room can
+   * never be dragged away entirely. At the fitted zoom there is nothing to pan.
+   */
+  const setPan = useCallback((next: { x: number; y: number }, zoom = zoomRef.current) => {
+    const el = wrapper.current
+    const w = el?.clientWidth ?? 0
+    const h = el?.clientHeight ?? 0
+    const spare = Math.max(0, zoom - 1)
+    const p = {
+      x: Math.max(-w * 0.5 * spare, Math.min(w * 0.5 * spare, next.x)),
+      y: Math.max(-h * 0.5 * spare, Math.min(h * 0.5 * spare, next.y)),
+    }
+    panRef.current = p
+    setPanState(p)
   }, [])
+
+  const setZoom = useCallback(
+    (next: number) => {
+      const z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, next))
+      zoomRef.current = z
+      setZoomMul(z)
+      setPan(panRef.current, z)
+    },
+    [setPan],
+  )
   const reduced = useMemo(
     () =>
       typeof window !== 'undefined' &&
@@ -324,9 +363,13 @@ export default function FloorPlan({
   }
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
+    dragged.current = false
+    drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, pan: panRef.current }
     if (e.pointerType !== 'touch') return
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
     if (pointers.current.size === 2) {
+      // A second finger turns the press into a pinch; it is no longer a drag.
+      drag.current = null
       pinchFrom.current = { gap: gap(), zoom: zoomRef.current }
       setPinching(true)
     }
@@ -334,16 +377,28 @@ export default function FloorPlan({
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
+      const d = drag.current
+      if (d && d.id === e.pointerId && zoomRef.current > 1) {
+        const dx = e.clientX - d.x
+        const dy = e.clientY - d.y
+        // Eight pixels before a press counts as a drag, so a slightly wobbly
+        // tap on a table still selects it.
+        if (dragged.current || Math.hypot(dx, dy) > 8) {
+          dragged.current = true
+          setPan({ x: d.pan.x - dx, y: d.pan.y + dy })
+        }
+      }
       if (e.pointerType !== 'touch' || !pointers.current.has(e.pointerId)) return
       pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
       const from = pinchFrom.current
       if (!from || from.gap === 0 || pointers.current.size !== 2) return
       setZoom(from.zoom * (gap() / from.gap))
     },
-    [setZoom],
+    [setZoom, setPan],
   )
 
   const onPointerEnd = useCallback((e: React.PointerEvent) => {
+    if (drag.current?.id === e.pointerId) drag.current = null
     if (e.pointerType !== 'touch') return
     pointers.current.delete(e.pointerId)
     if (pointers.current.size < 2) {
@@ -351,6 +406,22 @@ export default function FloorPlan({
       setPinching(false)
     }
   }, [])
+
+  /** A press that became a drag ends on whatever is under it; that is not a choice. */
+  const select = useCallback(
+    (table: Table) => {
+      if (dragged.current) return
+      onSelect?.(table)
+    },
+    [onSelect],
+  )
+
+  // A portrait phone frames the long plan by its width and leaves the room a
+  // strip across the middle. Start closer there; the pan reaches the ends.
+  useEffect(() => {
+    const el = wrapper.current
+    if (el && el.clientWidth < 600 && el.clientHeight > el.clientWidth) setZoom(1.9)
+  }, [setZoom])
 
   return (
     <div
@@ -372,7 +443,7 @@ export default function FloorPlan({
           state.scene.fog = new Fog(hex.fog, FOG_NEAR, FOG_FAR)
         }}
       >
-        <IsoCamera zoomMul={zoomMul} />
+        <IsoCamera zoomMul={zoomMul} pan={pan} />
         <Turntable quarter={quarter} onShadeQuarter={setShadeQuarter} reduced={reduced}>
           <Case quarter={shadeQuarter} />
           <Room quarter={shadeQuarter} />
@@ -383,7 +454,7 @@ export default function FloorPlan({
               table={t}
               state={stateOf(t)}
               selected={selectedId === t.id}
-              onSelect={onSelect}
+              onSelect={select}
               onHover={onHover}
               label={labelFor?.(t)}
             />

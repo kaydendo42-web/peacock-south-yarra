@@ -3,6 +3,7 @@ import {
   BufferGeometry,
   CylinderGeometry,
   ExtrudeGeometry,
+  OctahedronGeometry,
   Shape,
 } from 'three'
 import { room } from '../data'
@@ -44,6 +45,44 @@ export function boxGeo(w: number, h: number, d: number): BufferGeometry {
 /** Round tables are 12-sided prisms, never smooth (§5). */
 export function prismGeo(radius: number, h: number, sides = 12): BufferGeometry {
   return cached(`prism:${radius}:${h}:${sides}`, () => new CylinderGeometry(radius, radius, h, sides))
+}
+
+/** A cone of `sides` facets — a stylised tree tier. Point up. */
+export function coneGeo(radius: number, h: number, sides = 6): BufferGeometry {
+  return cached(`cone:${radius}:${h}:${sides}`, () => new CylinderGeometry(0, radius, h, sides))
+}
+
+/** A tapered pot: wider at the lip than the foot. */
+export function potGeo(top: number, foot: number, h: number, sides = 8): BufferGeometry {
+  return cached(`pot:${top}:${foot}:${h}:${sides}`, () => new CylinderGeometry(top, foot, h, sides))
+}
+
+/** A cut-gem bush: an octahedron, squashed. Faceted, never round. */
+export function gemGeo(radius: number, squash = 0.75): BufferGeometry {
+  return cached(`gem:${radius}:${squash}`, () => {
+    const g = new OctahedronGeometry(radius, 0)
+    g.scale(1, squash, 1)
+    return g
+  })
+}
+
+/**
+ * A floor plate: an outline in venue metres, extruded up by `h` from y = 0.
+ * Built in scene coordinates, so it needs no rotation on the mesh.
+ */
+export function slabGeo(id: string, outline: [number, number][], h: number): BufferGeometry {
+  return cached(`slab:${id}:${h}`, () => {
+    const s = new Shape()
+    // Scene x = venue x − W/2; the shape's y becomes −(scene z) once turned flat.
+    outline.forEach(([x, y], i) => {
+      const [sx, sz] = toScene(x, y)
+      if (i === 0) s.moveTo(sx, -sz)
+      else s.lineTo(sx, -sz)
+    })
+    const g = new ExtrudeGeometry(s, { depth: h, bevelEnabled: false })
+    g.rotateX(-Math.PI / 2)
+    return g
+  })
 }
 
 // --- Walls ------------------------------------------------------------------
