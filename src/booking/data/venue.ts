@@ -46,10 +46,10 @@ export const room = {
 
 /**
  * One riser, in scene metres. A real step is 150–180 mm; at the default zoom a
- * table is a few pixels tall, so the step is drawn about 1.8x real to read as a
+ * table is a few pixels tall, so the step is drawn about 2.6x real to read as a
  * step and not as a seam. Every level below is a whole number of these.
  */
-export const RISER = 0.3
+export const RISER = 0.45
 
 /**
  * Finished floor of each section. The journey the room should make legible
