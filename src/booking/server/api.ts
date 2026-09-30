@@ -15,6 +15,7 @@ import {
 } from './auth'
 import type { Config } from './config'
 import { notify } from './email'
+import { StoreConflict } from './store'
 
 /**
  * The API, written against plain request/response shapes rather than against
@@ -154,7 +155,13 @@ export async function handle(req: ApiRequest, config: Config): Promise<ApiRespon
           // A guest cannot talk themselves into a seated or cancelled booking.
           status: 'confirmed',
         }
-        await store.put(booking)
+        try {
+          await store.put(booking)
+        } catch (e) {
+          // The database's own double-booking guard: someone got there first.
+          if (e instanceof StoreConflict) return json(409, { error: e.message, code: 'taken' })
+          throw e
+        }
         // The guest gets their own booking back in full; that is their own data.
         return json(201, booking)
       })
@@ -189,7 +196,12 @@ export async function handle(req: ApiRequest, config: Config): Promise<ApiRespon
         if (violation) return json(409, { error: violation.message, code: violation.code })
       }
 
-      await store.put(next)
+      try {
+        await store.put(next)
+      } catch (e) {
+        if (e instanceof StoreConflict) return json(409, { error: e.message, code: 'taken' })
+        throw e
+      }
       return json(200, next)
     })
 

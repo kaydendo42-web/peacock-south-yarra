@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { resendMailer, type Mailer } from './email'
 import { storeFromEnv, type Store } from './store'
+import { service } from '@/booking/data/venue'
 
 /**
  * Server configuration, resolved once per instance.
@@ -43,7 +44,7 @@ export function config(): Config {
   const production = env.NODE_ENV === 'production' || env.VERCEL === '1'
 
   cached = {
-    store: storeFromEnv(env),
+    store: storeFromEnv(env, service.bufferMinutes),
     mailer: resendMailer(env),
     passwordHash: env.PEACOCK_OWNER_PASSWORD_HASH || DEMO_PASSWORD_HASH,
     username: env.PEACOCK_OWNER_USERNAME || 'owner',
