@@ -7,7 +7,7 @@ it is the state of play and the list of what's left, in order.
 
 | What | Where | State |
 | --- | --- | --- |
-| Peacock website | `kaydendo42-web/peacock-south-yarra`, branch `main` | Pushed. **Not deployed** — the Vercel project isn't git-connected; deploy with `vercel --prod` (or connect the repo in Vercel → Settings → Git). |
+| Peacock website | `kaydendo42-web/peacock-south-yarra`, branch `main` | Live on peacock-south-yarra.vercel.app. The Vercel project is git-connected: every push to `main` deploys production. |
 | Peregrine console | `kaydendo42-web/PeregrinePartners` (the repo behind www.peregrinepartners.space, Vercel project `peregrine-partners`), branch `console/bookings`; local worktree `~/Documents/Projects/peregrine-v2-console` | **Live** — merged to `main` 30 Sep (`44903f4`), deployed to www.peregrinepartners.space. (The first build lived on the old `consilium` repo in `~/Documents/Projects/peregrine-console`; that copy is superseded.) |
 | Database | Supabase project `supabase-booking` (ref `pzljcmcnthzklaurzxpa`), Sydney, Free | Created. Connected to both Vercel projects. |
 | Schema + Peacock seed | `supabase/migrations/20260930000000_bookings.sql`, `supabase/seed/peacock.sql` in the PeregrinePartners repo | Pasted into the SQL editor — **confirm it ran** (step 1). |
@@ -69,7 +69,7 @@ database, add Development in the integration, or put the values in `.env.local`.
    `/console` to sign-in, so it sees the Supabase variables. Once step 2 gives
    you a login, sign in on the preview, then merge to `main` (Vercel deploys
    it). Don't set `PEREGRINE_CONSOLE_DEMO` anywhere but a laptop.
-5. **Prove the loop** — ✅ on a preview 30 Sep. **Still to do: `vercel --prod` from this repo** (Claude is blocked from prod deploys). `vercel` (preview) from the Peacock repo →
+5. ✅ **Prove the loop** — on a preview 30 Sep; production deployed the same day. `vercel` (preview) from the Peacock repo →
    book a table → the row appears in Supabase `bookings` with
    `source = website` → it appears on `/console/the-peacock/list` for that day
    without a refresh → Seat it from the console → try to book the same table
