@@ -260,14 +260,26 @@ async function refuse(res: Response): Promise<void> {
 }
 
 /**
+ * The Vercel Supabase integration prefixes its variables with whatever the
+ * store was named when it was connected (BookingStorage_SUPABASE_URL, …).
+ * Take the plain name if it is set, else any prefixed one, so connecting the
+ * store is all it takes.
+ */
+export function fromEnv(env: NodeJS.ProcessEnv, name: string): string | undefined {
+  if (env[name]) return env[name]
+  const key = Object.keys(env).find(
+    (k) => k.endsWith(`_${name}`) && !k.startsWith('NEXT_PUBLIC_') && env[k],
+  )
+  return key ? env[key] : undefined
+}
+
+/**
  * Which store this instance uses: Supabase when it is configured (the shared
  * diary Peregrine reads), then Upstash, then a JSON file for development.
  */
 export function storeFromEnv(env: NodeJS.ProcessEnv, bufferMinutes = 15): Store {
-  // The Vercel Supabase integration may prefix its variables (STORAGE_…);
-  // accept either spelling so connecting it is enough.
-  const supabaseUrl = env.SUPABASE_URL ?? env.STORAGE_SUPABASE_URL ?? env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY ?? env.STORAGE_SUPABASE_SERVICE_ROLE_KEY
+  const supabaseUrl = fromEnv(env, 'SUPABASE_URL')
+  const serviceKey = fromEnv(env, 'SUPABASE_SERVICE_ROLE_KEY')
   const venueId = env.PEREGRINE_VENUE_ID
   if (supabaseUrl && serviceKey && venueId) return supabaseStore(supabaseUrl, serviceKey, venueId, bufferMinutes)
 

@@ -88,3 +88,16 @@ test("reading the diary maps rows back to bookings, for this venue only", async 
     },
   ]);
 });
+
+test("the integration's prefixed variable names are found", async () => {
+  const { fromEnv } = await import("../src/booking/server/store.ts");
+  const env = {
+    BookingStorage_SUPABASE_URL: "https://x.supabase.co",
+    NEXT_PUBLIC_BookingStorage_SUPABASE_URL: "https://public.supabase.co",
+    BookingStorage_SUPABASE_SERVICE_ROLE_KEY: "secret",
+  };
+  assert.equal(fromEnv(env, "SUPABASE_URL"), "https://x.supabase.co");
+  assert.equal(fromEnv(env, "SUPABASE_SERVICE_ROLE_KEY"), "secret");
+  assert.equal(fromEnv({ SUPABASE_URL: "plain", X_SUPABASE_URL: "prefixed" }, "SUPABASE_URL"), "plain");
+  assert.equal(fromEnv({}, "SUPABASE_URL"), undefined);
+});
