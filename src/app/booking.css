@@ -1141,8 +1141,7 @@
   margin: 0 0 16px;
   padding: 12px 16px;
   background: var(--mv-stone-top);
-  border: 1px solid var(--mv-hairline);
-  border-left: 3px solid var(--mv-alert);
+  border: 1px solid color-mix(in srgb, var(--mv-alert) 35%, transparent);
   border-radius: var(--mv-radius);
   color: var(--mv-alert);
 }
