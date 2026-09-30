@@ -5,11 +5,21 @@ import { site } from "@/lib/site";
 /**
  * Home hero. Jenny's review (30 Sep 2026): keep the headline, the menu link and
  * the pets invite; lose the sticker, the cut-out coffee art and anything else
- * that reads as generated. The picture is one of her own photos.
+ * that reads as generated. The picture is one of her own photos, and since
+ * Kayden's pass it fills the hero behind the words, shaded where they sit.
  */
 export function CoffeeHero() {
   return (
     <section className="coffee-hero" aria-labelledby="home-title">
+      <figure className="hero-backdrop">
+        <Image
+          src="/images/hero-1.webp"
+          alt="Brunch plates on a table among the plants at The Peacock"
+          fill
+          sizes="100vw"
+          priority
+        />
+      </figure>
       <div className="container coffee-hero-inner">
         <div className="coffee-hero-copy">
           <p className="eyebrow hero-enter">{site.suburb.toUpperCase()}</p>
@@ -42,15 +52,6 @@ export function CoffeeHero() {
             </span>
           </a>
         </div>
-        <figure className="hero-photo hero-enter">
-          <Image
-            src="/images/hero-1.webp"
-            alt="Brunch plates on a table among the plants at The Peacock"
-            fill
-            sizes="(max-width:700px) 100vw, 44vw"
-            priority
-          />
-        </figure>
       </div>
     </section>
   );
