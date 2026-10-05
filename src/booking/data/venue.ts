@@ -1,5 +1,5 @@
 import { hours } from '../../lib/site.ts'
-import type { DateKey, Table } from './types.ts'
+import type { AreaId, DateKey, Table } from './types.ts'
 
 /**
  * The Peacock, South Yarra — traced from Jenny's floor plan (sent 25 Sep 2026).
@@ -215,9 +215,21 @@ export const steps: Step[] = [
   stepAt('yard-arch-3', [600, 405], [890, 860], 390 / 539.6, -1, 1.05, ZONE_ELEVATIONS.courtyard + RISER / 2),
 ]
 
+/**
+ * Seats, minimums and priorities are Jenny's own, from her Resos setup
+ * (docs/resos-tables.md); names are Resos's too, so her console reads the way
+ * she is used to. The ids are the original plan labels and never change, so
+ * bookings already made keep pointing at the right table.
+ */
 type TableSpec = {
+  id: string
   label: string
+  /** Most the table seats (Resos's max). */
   seats: number
+  /** Fewest it is offered for (Resos's min). */
+  min: number
+  /** Resos booking priority, 1–10: the higher, the sooner it is offered. */
+  priority: number
   shape: Table['shape']
   at: [number, number] // drawing px, centre
   /** Metres. `w` is along the table's long side; `rot: 90` stands it up the drawing. */
@@ -229,51 +241,53 @@ type TableSpec = {
 
 const spec: TableSpec[] = [
   // --- Court Yard ------------------------------------------------------
-  { label: '4', seats: 4, shape: 'rect', at: [137, 127], w: 1.38, d: 0.5, rot: 90, zone: 'courtyard' },
-  { label: 'T1', seats: 2, shape: 'rect', at: [335, 183], w: 0.6, d: 0.55, zone: 'courtyard' },
-  { label: '13', seats: 4, shape: 'diamond', at: [385, 297], w: 0.62, zone: 'courtyard' },
-  { label: '3', seats: 2, shape: 'rect', at: [57, 355], w: 0.6, d: 0.55, zone: 'courtyard' },
-  { label: '16', seats: 2, shape: 'rect', at: [554, 348], w: 0.62, d: 0.55, rot: 90, zone: 'courtyard' },
-  { label: '14', seats: 2, shape: 'rect', at: [416, 429], w: 0.62, d: 0.6, zone: 'courtyard' },
-  { label: '2', seats: 2, shape: 'rect', at: [232, 450], w: 0.6, d: 0.55, zone: 'courtyard' },
-  { label: '1', seats: 2, shape: 'round', at: [140, 618], w: 0.45, zone: 'courtyard' },
-  { label: 'D4', seats: 2, shape: 'diamond', at: [597, 611], w: 0.55, zone: 'courtyard' },
-  { label: 'L1', seats: 2, shape: 'diamond', at: [716, 620], w: 0.55, zone: 'courtyard' },
-  // Six chairs drawn; the ends take two more. Confirm with Jenny.
-  { label: 'D1', seats: 8, shape: 'rect', at: [463, 762], w: 1.82, d: 0.8, zone: 'courtyard' },
-  { label: 'D3', seats: 4, shape: 'rect', at: [662, 780], w: 1.3, d: 0.5, rot: 90, zone: 'courtyard' },
+  { id: 't4', label: '4', seats: 6, min: 1, priority: 7, shape: 'rect', at: [137, 127], w: 1.38, d: 0.5, rot: 90, zone: 'courtyard' },
+  { id: 'tt1', label: 'Tree 2', seats: 3, min: 1, priority: 7, shape: 'rect', at: [335, 183], w: 0.6, d: 0.55, zone: 'courtyard' },
+  { id: 't13', label: '13', seats: 4, min: 1, priority: 9, shape: 'diamond', at: [385, 297], w: 0.62, zone: 'courtyard' },
+  { id: 't3', label: '3', seats: 3, min: 1, priority: 7, shape: 'rect', at: [57, 355], w: 0.6, d: 0.55, zone: 'courtyard' },
+  { id: 't16', label: '16', seats: 2, min: 1, priority: 4, shape: 'rect', at: [554, 348], w: 0.62, d: 0.55, rot: 90, zone: 'courtyard' },
+  { id: 't14', label: '14', seats: 2, min: 1, priority: 9, shape: 'rect', at: [416, 429], w: 0.62, d: 0.6, zone: 'courtyard' },
+  { id: 't2', label: '2', seats: 3, min: 1, priority: 7, shape: 'rect', at: [232, 450], w: 0.6, d: 0.55, zone: 'courtyard' },
+  { id: 't1', label: 'Peacock', seats: 2, min: 1, priority: 6, shape: 'round', at: [140, 618], w: 0.45, zone: 'courtyard' },
+  { id: 'td4', label: 'Deck 5', seats: 2, min: 1, priority: 2, shape: 'diamond', at: [597, 611], w: 0.55, zone: 'courtyard' },
+  { id: 'tl1', label: 'Lawn', seats: 2, min: 1, priority: 5, shape: 'diamond', at: [716, 620], w: 0.55, zone: 'courtyard' },
+  // Six chairs drawn, and Resos seats it 1–6.
+  { id: 'td1', label: 'Deck 1', seats: 6, min: 1, priority: 4, shape: 'rect', at: [463, 762], w: 1.82, d: 0.8, zone: 'courtyard' },
+  { id: 'td3', label: 'Deck 3', seats: 4, min: 1, priority: 7, shape: 'rect', at: [662, 780], w: 1.3, d: 0.5, rot: 90, zone: 'courtyard' },
 
   // --- Main ------------------------------------------------------------
-  { label: '26', seats: 2, shape: 'diamond', at: [765, 510], w: 0.55, zone: 'main' },
-  { label: '25', seats: 2, shape: 'diamond', at: [825, 588], w: 0.55, zone: 'main' },
-  { label: '28', seats: 2, shape: 'rect', at: [1097, 566], w: 0.55, d: 0.5, zone: 'main' },
-  { label: '29', seats: 2, shape: 'rect', at: [1177, 610], w: 0.55, d: 0.5, zone: 'main' },
-  { label: '30', seats: 2, shape: 'rect', at: [1272, 610], w: 0.55, d: 0.5, zone: 'main' },
-  { label: '24', seats: 2, shape: 'rect', at: [955, 788], w: 0.5, d: 0.5, zone: 'main' },
-  { label: '23', seats: 2, shape: 'rect', at: [1032, 788], w: 0.5, d: 0.5, zone: 'main' },
-  { label: '22', seats: 2, shape: 'rect', at: [1110, 788], w: 0.5, d: 0.5, zone: 'main' },
-  { label: '21', seats: 2, shape: 'rect', at: [1187, 788], w: 0.5, d: 0.5, zone: 'main' },
-  { label: '20', seats: 4, shape: 'rect', at: [1307, 787], w: 1.0, d: 0.5, zone: 'main' },
+  { id: 't26', label: '26', seats: 3, min: 1, priority: 9, shape: 'diamond', at: [765, 510], w: 0.55, zone: 'main' },
+  { id: 't25', label: '25', seats: 3, min: 1, priority: 10, shape: 'diamond', at: [825, 588], w: 0.55, zone: 'main' },
+  { id: 't28', label: '28', seats: 4, min: 1, priority: 2, shape: 'rect', at: [1097, 566], w: 0.55, d: 0.5, zone: 'main' },
+  { id: 't29', label: '29', seats: 2, min: 1, priority: 2, shape: 'rect', at: [1177, 610], w: 0.55, d: 0.5, zone: 'main' },
+  { id: 't30', label: '30', seats: 2, min: 1, priority: 2, shape: 'rect', at: [1272, 610], w: 0.55, d: 0.5, zone: 'main' },
+  { id: 't24', label: '24', seats: 2, min: 1, priority: 7, shape: 'rect', at: [955, 788], w: 0.5, d: 0.5, zone: 'main' },
+  { id: 't23', label: '23', seats: 2, min: 1, priority: 7, shape: 'rect', at: [1032, 788], w: 0.5, d: 0.5, zone: 'main' },
+  { id: 't22', label: '22', seats: 2, min: 1, priority: 7, shape: 'rect', at: [1110, 788], w: 0.5, d: 0.5, zone: 'main' },
+  { id: 't21', label: '21', seats: 2, min: 1, priority: 7, shape: 'rect', at: [1187, 788], w: 0.5, d: 0.5, zone: 'main' },
+  { id: 't20', label: '20', seats: 4, min: 1, priority: 7, shape: 'rect', at: [1307, 787], w: 1.0, d: 0.5, zone: 'main' },
 
   // --- Peacock ---------------------------------------------------------
-  { label: '6', seats: 4, shape: 'rect', at: [1392, 245], w: 1.5, d: 0.5, rot: 90, zone: 'peacock' },
-  { label: '5', seats: 4, shape: 'round', at: [1587, 250], w: 1.0, zone: 'peacock' },
+  { id: 't6', label: '6', seats: 3, min: 1, priority: 8, shape: 'rect', at: [1392, 245], w: 1.5, d: 0.5, rot: 90, zone: 'peacock' },
+  { id: 't5', label: '5', seats: 6, min: 1, priority: 8, shape: 'round', at: [1587, 250], w: 1.0, zone: 'peacock' },
 
   // --- Deck --------------------------------------------------------------
-  { label: '53', seats: 4, shape: 'rect', at: [1912, 150], w: 1.05, d: 0.5, zone: 'deck' },
-  { label: '32', seats: 2, shape: 'rect', at: [1748, 235], w: 0.9, d: 0.42, rot: 90, zone: 'deck' },
-  { label: '52', seats: 2, shape: 'rect', at: [1935, 300], w: 0.5, d: 0.5, zone: 'deck' },
-  { label: '31', seats: 2, shape: 'rect', at: [1748, 335], w: 0.9, d: 0.42, rot: 90, zone: 'deck' },
-  { label: '42', seats: 2, shape: 'rect', at: [1815, 335], w: 0.5, d: 0.5, zone: 'deck' },
-  { label: '41', seats: 4, shape: 'rect', at: [1830, 610], w: 1.05, d: 0.5, zone: 'deck' },
-  { label: '51', seats: 2, shape: 'diamond', at: [1875, 765], w: 0.5, zone: 'deck' },
+  { id: 't53', label: '53', seats: 4, min: 1, priority: 5, shape: 'rect', at: [1912, 150], w: 1.05, d: 0.5, zone: 'deck' },
+  { id: 't32', label: '32', seats: 2, min: 1, priority: 5, shape: 'rect', at: [1748, 235], w: 0.9, d: 0.42, rot: 90, zone: 'deck' },
+  { id: 't52', label: '52', seats: 2, min: 1, priority: 5, shape: 'rect', at: [1935, 300], w: 0.5, d: 0.5, zone: 'deck' },
+  { id: 't31', label: '31', seats: 2, min: 1, priority: 5, shape: 'rect', at: [1748, 335], w: 0.9, d: 0.42, rot: 90, zone: 'deck' },
+  { id: 't42', label: '42', seats: 4, min: 1, priority: 5, shape: 'rect', at: [1815, 335], w: 0.5, d: 0.5, zone: 'deck' },
+  { id: 't41', label: '41', seats: 2, min: 1, priority: 5, shape: 'rect', at: [1830, 610], w: 1.05, d: 0.5, zone: 'deck' },
+  { id: 't51', label: '51', seats: 5, min: 1, priority: 5, shape: 'diamond', at: [1875, 765], w: 0.5, zone: 'deck' },
 ]
 
 /** Every bookable table, numbered as Jenny's team numbers them. */
 export const tables: Table[] = spec.map((t) => ({
-  id: `t${t.label.toLowerCase()}`,
+  id: t.id,
   label: t.label,
   seats: t.seats,
+  min: t.min,
+  priority: t.priority,
   shape: t.shape,
   x: planX(t.at[0]),
   y: planY(t.at[1]),
@@ -282,6 +296,74 @@ export const tables: Table[] = spec.map((t) => ({
   w: t.w,
   d: t.shape === 'rect' ? (t.d ?? t.w) : t.w,
 }))
+
+/**
+ * What a guest chooses instead of a table: one of three areas, in Jenny's
+ * words and her order. Inside is the Main room and the Peacock room together;
+ * which of the two a party gets is the allocation's call, as it was in Resos.
+ */
+export type Area = { id: AreaId; name: string; blurb: string; zones: string[] }
+
+export const areas: Area[] = [
+  {
+    id: 'deck',
+    name: 'Front Deck',
+    blurb: 'Outdoors and undercover, with lush greenery. Lovely rain or shine; not heated.',
+    zones: ['deck'],
+  },
+  {
+    id: 'inside',
+    name: 'Inside',
+    blurb: 'Indoor plants, wooden accents and warm natural light, across the Main and Peacock rooms.',
+    zones: ['main', 'peacock'],
+  },
+  {
+    id: 'courtyard',
+    name: 'Courtyard',
+    blurb: 'Plant-filled and open-air, with a covered, heated space in the cooler months.',
+    zones: ['courtyard'],
+  },
+]
+
+export const areaOfZone = (zone: string): AreaId | undefined => areas.find((a) => a.zones.includes(zone))?.id
+
+/**
+ * Tables Jenny pushes together for bigger groups, from her Resos setup. A
+ * combination is offered when its party range fits and every table in it is
+ * free for the whole sitting.
+ */
+export type Combination = { tables: string[]; min: number; max: number; priority: number }
+
+const combo = (labels: string[], min: number, max: number): Combination => ({
+  tables: labels.map((l) => {
+    const t = tables.find((x) => x.label === l)
+    if (!t) throw new Error(`combination names a table that is not on the plan: ${l}`)
+    return t.id
+  }),
+  min,
+  max,
+  priority: 5,
+})
+
+export const combinations: Combination[] = [
+  // Front Deck
+  combo(['41', '51'], 2, 7),
+  combo(['42', '52'], 2, 6),
+  combo(['42', '52', '53'], 3, 10),
+  // Courtyard
+  combo(['13', '14'], 2, 6),
+  combo(['2', '3'], 1, 5),
+  combo(['3', '4'], 2, 7),
+  combo(['2', '3', '4'], 3, 12),
+  // Inside (Resos lists 23 + 24 twice, as 2–5 and 2–4; the wider one stands)
+  combo(['20', '21'], 2, 6),
+  combo(['20', '21', '22'], 3, 8),
+  combo(['20', '21', '22', '23'], 4, 10),
+  combo(['20', '21', '22', '23', '24'], 5, 14),
+  combo(['23', '24'], 2, 5),
+  combo(['23', '24', '25'], 3, 7),
+  combo(['25', '26'], 2, 8),
+]
 
 /** Footprint of a table as it stands, in metres: `rot` applied, diamonds at 45°. */
 export function sizeOf(t: Pick<Table, 'w' | 'd' | 'rot' | 'shape'>): { w: number; d: number } {

@@ -144,7 +144,9 @@ export class StoreConflict extends Error {
 type BookingRow = {
   id: string
   venue_id: string
-  table_id: string
+  table_id: string | null
+  /** Every table held, when there is more than one. Older rows don't carry it. */
+  table_ids?: string[]
   starts_at: string
   ends_at: string
   duration_min: number
@@ -183,6 +185,9 @@ export function supabaseStore(url: string, serviceKey: string, venueId: string, 
     id: b.id,
     venue_id: venueId,
     table_id: b.tableId,
+    // Sent only for a joined set, so a single-table write stays exactly what
+    // it was before the database learned about table_ids.
+    ...(b.tableIds && b.tableIds.length > 1 ? { table_ids: b.tableIds } : {}),
     starts_at: b.startsAt,
     // The window the table is out of circulation, turnaround included — the
     // same span `bookingSpan()` checks, so the database and the rules agree.
@@ -200,6 +205,7 @@ export function supabaseStore(url: string, serviceKey: string, venueId: string, 
   const fromRow = (r: BookingRow): Booking => ({
     id: r.id,
     tableId: r.table_id,
+    ...(r.table_ids && r.table_ids.length > 1 ? { tableIds: r.table_ids } : {}),
     startsAt: new Date(r.starts_at).toISOString(),
     durationMin: r.duration_min,
     partySize: r.party_size,

@@ -1,7 +1,7 @@
 import type { Booking, NewBooking, Table } from './types.ts'
-import { bookingSpan, bookingsFor, holdsTable } from './availability.ts'
+import { bookingSpan, bookingsFor, heldTables, holdsTable } from './availability.ts'
 import { minutesOf, occupancyMinutes, venueDateKey, venueMinutes } from './time.ts'
-import { openingOn, tables } from './venue.ts'
+import { combinations, openingOn, tables } from './venue.ts'
 
 /**
  * The rules a booking has to satisfy, in one place and independent of where
@@ -15,7 +15,7 @@ import { openingOn, tables } from './venue.ts'
  */
 
 export type Violation = {
-  code: 'unknown-table' | 'too-small' | 'double-booked' | 'closed' | 'bad-field'
+  code: 'unknown-table' | 'too-small' | 'double-booked' | 'closed' | 'bad-field' | 'area-full'
   message: string
 }
 
@@ -27,6 +27,8 @@ export const LIMITS = {
   notes: 400,
   partySize: 12,
 } as const
+
+const sameTables = (a: string[], b: string[]) => a.length === b.length && a.every((x) => b.includes(x))
 
 function tableOf(id: string): Table | undefined {
   return tables.find((t) => t.id === id)
@@ -53,14 +55,22 @@ export function sanitise<T extends Partial<NewBooking>>(input: T): T {
  * `ignoreId` excludes the booking being edited from its own overlap check.
  */
 export function checkBooking(
-  candidate: Pick<Booking, 'tableId' | 'startsAt' | 'durationMin' | 'partySize'>,
+  candidate: Pick<Booking, 'tableId' | 'tableIds' | 'startsAt' | 'durationMin' | 'partySize'>,
   existing: Booking[],
   ignoreId?: string,
 ): Violation | null {
-  const table = tableOf(candidate.tableId)
-  if (!table) {
-    return { code: 'unknown-table', message: `There is no table ${candidate.tableId}.` }
+  const ids = heldTables(candidate)
+  if (!ids.length) return { code: 'unknown-table', message: 'A booking needs a table.' }
+  const held = ids.map(tableOf)
+  const missing = ids.find((_, i) => !held[i])
+  if (missing) {
+    return { code: 'unknown-table', message: `There is no table ${missing}.` }
   }
+  const set = held as Table[]
+  // A joined set seats what Jenny says it seats; tables merely listed together seat their sum.
+  const joined = set.length > 1 ? combinations.find((c) => sameTables(c.tables, ids)) : undefined
+  const seats = set.length === 1 ? set[0].seats : (joined?.max ?? set.reduce((n, t) => n + t.seats, 0))
+  const table = { label: set.map((t) => t.label).join(' + '), seats }
 
   const size = Number(candidate.partySize)
   if (!Number.isFinite(size) || size < 1 || size > LIMITS.partySize) {
@@ -103,18 +113,19 @@ export function checkBooking(
     start.getTime() + occupancyMinutes(size) * 60_000,
   ]
 
-  const clash = bookingsFor(candidate.tableId, existing)
-    .filter(holdsTable)
-    .filter((b) => b.id !== ignoreId)
-    .find((b) => {
-      const [s, e] = bookingSpan(b)
-      return want[0] < e && s < want[1]
-    })
-
-  if (clash) {
-    return {
-      code: 'double-booked',
-      message: `${table.label} is already held from ${new Date(clash.startsAt).toTimeString().slice(0, 5)}.`,
+  for (const t of set) {
+    const clash = bookingsFor(t.id, existing)
+      .filter(holdsTable)
+      .filter((b) => b.id !== ignoreId)
+      .find((b) => {
+        const [s, e] = bookingSpan(b)
+        return want[0] < e && s < want[1]
+      })
+    if (clash) {
+      return {
+        code: 'double-booked',
+        message: `${t.label} is already held from ${new Date(clash.startsAt).toTimeString().slice(0, 5)}.`,
+      }
     }
   }
 

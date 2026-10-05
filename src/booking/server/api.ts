@@ -1,5 +1,11 @@
 import type { Booking, NewBooking } from '@/booking/data/types'
 import { checkBooking, sanitise } from '@/booking/data/rules'
+import { allocate } from '@/booking/data/allocate'
+import { VENUE_TZ, areas } from '@/booking/data/venue'
+import { sittingFor } from '@/booking/data/time'
+
+/** 11:30 am in Melbourne, whatever the server's clock thinks. */
+const melbourneTime = new Intl.DateTimeFormat('en-AU', { timeZone: VENUE_TZ, hour: 'numeric', minute: '2-digit' })
 import { venueDateKey } from '@/booking/data/time'
 import type { Config } from './config'
 import { notify } from './email'
@@ -42,13 +48,14 @@ const json = (status: number, body?: unknown, headers?: Record<string, string>):
 /** What a guest is allowed to see: enough to compute availability, and no more. */
 type PublicBooking = Pick<
   Booking,
-  'id' | 'tableId' | 'startsAt' | 'durationMin' | 'partySize' | 'status'
+  'id' | 'tableId' | 'tableIds' | 'startsAt' | 'durationMin' | 'partySize' | 'status'
 >
 
 function redact(b: Booking): PublicBooking {
   return {
     id: b.id,
     tableId: b.tableId,
+    ...(b.tableIds ? { tableIds: b.tableIds } : {}),
     startsAt: b.startsAt,
     durationMin: b.durationMin,
     partySize: b.partySize,
@@ -89,14 +96,38 @@ export async function handle(req: ApiRequest, config: Config): Promise<ApiRespon
     }
 
     if (req.method === 'POST') {
-      const input = sanitise((req.body ?? {}) as NewBooking)
-      if (!input.guestName || !input.phone || !input.email) {
+      // Guests choose an area; the venue chooses the table. Whatever table a
+      // client sends is ignored, and the sitting length is ours to set.
+      const { tableId: _t, tableIds: _ts, ...fields } = sanitise((req.body ?? {}) as NewBooking)
+      const area = areas.find((a) => a.id === fields.area)
+      if (!area) return json(400, { error: 'Choose where you would like to sit.' })
+      if (!fields.guestName || !fields.phone || !fields.email) {
         return json(400, { error: 'A name, a phone number and an email are required.' })
       }
+      const party = Number(fields.partySize)
+      const start = new Date(fields.startsAt)
+      if (!Number.isInteger(party) || party < 1 || Number.isNaN(start.getTime())) {
+        return json(400, { error: 'A party size and a start time are required.' })
+      }
 
-      // Check and write under the lock, or two guests can both take one table.
+      // Allocate and write under the lock, or two guests can both take one table.
       const out = await store.exclusive(async () => {
         const all = await store.all()
+        const seat = allocate(area.id, start, party, all)
+        if (!seat) {
+          return json(409, {
+            error: `${area.name} is full at ${melbourneTime.format(start)}. Try another area or time.`,
+            code: 'area-full',
+          })
+        }
+        const input = {
+          ...fields,
+          area: area.id,
+          partySize: party,
+          durationMin: sittingFor(party),
+          tableId: seat.tableIds[0],
+          ...(seat.tableIds.length > 1 ? { tableIds: seat.tableIds } : {}),
+        }
         const violation = checkBooking(input, all)
         if (violation) return json(409, { error: violation.message, code: violation.code })
 

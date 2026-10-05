@@ -46,7 +46,7 @@ function close(actual, expected, what) {
   );
 }
 
-// D1 is the long table in the Court Yard, the only eight-top: big enough that
+// D1 ("Deck 1") is the long table in the Court Yard, a six-top: big enough that
 // these tests are about the rule under test and never incidentally about seats.
 function booking(fields) {
   return {
@@ -188,15 +188,15 @@ test("the room is Jenny's four sections: Court Yard, Main, Peacock, Deck", () =>
   );
 });
 
-test("every table on Jenny's plan is here, once, by her numbers", () => {
+test("every table on Jenny's plan is here, once, by her Resos names", () => {
   const labels = tables.map((t) => t.label);
   assert.equal(new Set(labels).size, labels.length, "a table number is used twice");
   assert.deepEqual(
     [...labels].sort(),
     [
-      "1", "13", "14", "16", "2", "20", "21", "22", "23", "24", "25", "26",
+      "Peacock", "13", "14", "16", "2", "20", "21", "22", "23", "24", "25", "26",
       "28", "29", "3", "30", "31", "32", "4", "41", "42", "5", "51", "52",
-      "53", "6", "D1", "D3", "D4", "L1", "T1",
+      "53", "6", "Deck 1", "Deck 3", "Deck 5", "Lawn", "Tree 2",
     ].sort(),
   );
 });

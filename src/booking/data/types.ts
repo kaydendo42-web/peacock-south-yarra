@@ -6,7 +6,12 @@ export type TableShape = 'round' | 'rect' | 'diamond'
 export type Table = {
   id: string
   label: string
+  /** Most it seats. */
   seats: number
+  /** Fewest it is offered for. */
+  min: number
+  /** Jenny's booking priority, 1–10: higher is offered first. */
+  priority: number
   shape: TableShape
   x: number // metres from origin
   y: number // metres from origin
@@ -17,11 +22,18 @@ export type Table = {
   d: number
 }
 
+export type AreaId = 'deck' | 'inside' | 'courtyard'
+
 export type BookingStatus = 'confirmed' | 'seated' | 'cancelled' | 'no_show'
 
 export type Booking = {
   id: string
-  tableId: string
+  /** The table, or the first of a joined set. Null until the venue places it. */
+  tableId: string | null
+  /** Every table the booking holds, when it is more than one (joined tables). */
+  tableIds?: string[]
+  /** The area the guest chose, when they booked by area. */
+  area?: AreaId
   startsAt: string // ISO
   durationMin: number
   partySize: number

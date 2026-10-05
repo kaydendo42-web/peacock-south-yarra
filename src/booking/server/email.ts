@@ -1,6 +1,7 @@
 import { site } from '../../lib/site.ts'
 import type { Booking } from '../data/types.ts'
-import { VENUE_TZ, tables } from '../data/venue.ts'
+import { VENUE_TZ, areaOfZone, areas, tables } from '../data/venue.ts'
+import { heldTables } from '../data/availability.ts'
 import { fromEnv } from './store.ts'
 
 /**
@@ -112,6 +113,16 @@ export const whenLabel = (startsAt: string) => {
 
 const tableLabel = (id: string) => tables.find((t) => t.id === id)?.label ?? id
 
+/** "2 + 3 + 4" for a joined set, "Not yet placed" for a booking without one. */
+const tablesLabel = (b: Booking) => heldTables(b).map(tableLabel).join(' + ') || 'Not yet placed'
+
+/** The area a booking is in: what the guest chose, else where its table stands. */
+const areaLabel = (b: Booking) => {
+  const zone = tables.find((t) => t.id === heldTables(b)[0])?.zone
+  const id = b.area ?? (zone ? areaOfZone(zone) : undefined)
+  return areas.find((a) => a.id === id)?.name
+}
+
 /** YYYY-MM-DD in Melbourne, for the console's ?date= link. */
 const dateKey = (startsAt: string) =>
   new Intl.DateTimeFormat('en-CA', { timeZone: VENUE_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(
@@ -166,8 +177,10 @@ export function guestConfirmation(b: Booking, inbox: string): Message {
     ['Reference', b.id],
     ['When', whenLabel(b.startsAt)],
     ['Table for', people(b.partySize)],
-    ['Table', tableLabel(b.tableId)],
   ]
+  // The guest hears the area they chose, not a table number Jenny may move them from.
+  const area = areaLabel(b)
+  if (area) rows.push(['Where', area])
   if (b.notes) rows.push(['Your note', b.notes])
 
   return {
@@ -187,7 +200,8 @@ export function venueAlert(b: Booking, console: string, inbox: string): Message 
   const rows: [string, string][] = [
     ['When', whenLabel(b.startsAt)],
     ['Party', people(b.partySize)],
-    ['Table', tableLabel(b.tableId)],
+    ['Area', areaLabel(b) ?? '—'],
+    ['Table', tablesLabel(b)],
     ['Name', b.guestName],
     ['Phone', b.phone],
     ['Email', b.email],

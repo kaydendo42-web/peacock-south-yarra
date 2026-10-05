@@ -42,9 +42,15 @@ export function isSlotFree(
   return !tableBookings.filter(holdsTable).some((b) => overlaps(want, bookingSpan(b)))
 }
 
+/** Every table a booking keeps out of circulation: one, several (joined), or none yet. */
+export function heldTables(b: Pick<Booking, 'tableId' | 'tableIds'>): string[] {
+  if (b.tableIds?.length) return b.tableIds
+  return b.tableId ? [b.tableId] : []
+}
+
 export function bookingsFor(tableId: string, bookings: Booking[]): Booking[] {
   return bookings
-    .filter((b) => b.tableId === tableId)
+    .filter((b) => heldTables(b).includes(tableId))
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
 }
 

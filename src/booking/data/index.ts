@@ -29,6 +29,7 @@ function bind(a: DataAdapter) {
 export * from './types.ts'
 export * from './availability.ts'
 export * from './rules.ts'
+export * from './allocate.ts'
 export * from './time.ts'
 export {
   MIDDAY,
