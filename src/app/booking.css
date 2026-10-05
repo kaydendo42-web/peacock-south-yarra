@@ -574,70 +574,6 @@
   font-size: 11px;
 }
 
-.pt-root .app__bar--owner {
-  gap: 24px;
-}
-
-.pt-root .owner-nav {
-  display: flex;
-  gap: 16px;
-}
-
-.pt-root .owner-nav__link {
-  font-family: var(--font-jost), sans-serif;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.13em;
-  font-size: 11px;
-  color: color-mix(in srgb, var(--mv-ink) 45%, transparent);
-  text-decoration: none;
-  padding-bottom: 2px;
-  border-bottom: 1px solid transparent;
-  transition: color 160ms var(--mv-ease);
-}
-
-.pt-root .owner-nav__link:hover {
-  color: var(--mv-ink);
-}
-
-.pt-root .owner-nav__link.is-current {
-  color: var(--mv-ink);
-  border-bottom-color: var(--mv-ink);
-}
-
-.pt-root .owner-bar__out {
-  margin-left: auto;
-}
-
-.pt-root .login {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  max-width: 360px;
-}
-
-.pt-root .datebar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  background: var(--mv-stone-top);
-  border-bottom: 1px solid var(--mv-hairline);
-  flex: 0 0 auto;
-}
-
-.pt-root .datebar__label {
-  min-width: 200px;
-}
-
-.pt-root .datebar__date {
-  width: 168px;
-}
-
-.pt-root .datebar__spacer {
-  flex: 1 1 auto;
-}
-
 .pt-root .summary-row {
   display: flex;
   align-items: stretch;
@@ -659,26 +595,6 @@
 .pt-root .summary-row__exit {
   margin: 8px 24px 8px 0;
   align-self: center;
-}
-
-/* Run sheet */
-
-.pt-root .app__body--sheet {
-  display: block;
-  padding: 24px;
-  background: var(--mv-stone-light);
-}
-
-.pt-root .sheet__empty {
-  margin: 0;
-}
-
-.pt-root .sheet__service {
-  margin-bottom: 32px;
-}
-
-.pt-root .sheet__heading {
-  margin: 0 0 8px;
 }
 
 .pt-root .sheet {
@@ -708,100 +624,11 @@
   border-bottom: 0;
 }
 
-.pt-root .sheet__row.is-released td {
-  color: color-mix(in srgb, var(--mv-ink) 45%, transparent);
-}
-
-.pt-root .sheet__notes {
-  max-width: 220px;
-  color: color-mix(in srgb, var(--mv-ink) 60%, transparent);
-}
-
-.pt-root .sheet__actions-head {
-  text-align: right;
-}
-
-.pt-root .sheet__actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.pt-root .sheet__edit-row td {
-  background: var(--mv-stone-light);
-  padding: 16px;
-}
-
 .pt-root .edit {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
   align-items: flex-end;
-}
-
-.pt-root .edit__field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1 1 160px;
-}
-
-.pt-root .edit__field--narrow {
-  flex: 0 0 104px;
-}
-
-.pt-root .edit__field--wide {
-  flex: 2 1 280px;
-}
-
-.pt-root .edit__actions {
-  display: flex;
-  gap: 8px;
-  margin-left: auto;
-}
-
-/* Owner floor: table pins and the per-table day list */
-
-.pt-root .pin {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
-  background: var(--mv-stone-top);
-  border: 1px solid var(--mv-hairline);
-  border-radius: var(--mv-radius);
-  font-family: var(--font-jost), sans-serif;
-  font-size: 11px;
-  color: var(--mv-ink);
-  white-space: nowrap;
-  user-select: none;
-  pointer-events: none;
-}
-
-.pt-root .pin__party {
-  color: color-mix(in srgb, var(--mv-ink) 45%, transparent);
-}
-
-.pt-root .day-row {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--mv-hairline);
-}
-
-.pt-root .day-row:last-child {
-  border-bottom: 0;
-}
-
-.pt-root .day-row.is-released {
-  color: color-mix(in srgb, var(--mv-ink) 45%, transparent);
-}
-
-.pt-root .day-row__time {
-  font-family: var(--font-jost), sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.06em;
 }
 
 /* ====================================================================== */
@@ -994,40 +821,6 @@
     margin: 0 16px 12px;
   }
 
-  /* --- owner chrome ---------------------------------------------------- */
-
-  .pt-root .app__bar--owner {
-    gap: 12px;
-  }
-
-  .pt-root .owner-bar__out {
-    margin-left: auto;
-  }
-
-  .pt-root .datebar {
-    flex-wrap: wrap;
-    padding: 12px 16px;
-  }
-
-  .pt-root .datebar__label {
-    min-width: 0;
-    flex: 1 1 auto;
-  }
-
-  .pt-root .datebar__date {
-    width: 100%;
-  }
-
-  .pt-root .datebar__spacer {
-    display: none;
-  }
-
-  /* --- run sheet becomes cards ----------------------------------------- */
-
-  .pt-root .app__body--sheet {
-    padding: 16px;
-  }
-
   .pt-root .sheet,
 .pt-root .sheet tbody,
 .pt-root .sheet tr,
@@ -1043,14 +836,6 @@
   .pt-root .sheet {
     border: 0;
     background: none;
-  }
-
-  .pt-root .sheet__row {
-    background: var(--mv-stone-top);
-    border: 1px solid var(--mv-hairline);
-    border-radius: var(--mv-radius);
-    margin-bottom: 8px;
-    padding: 4px 0;
   }
 
   .pt-root .sheet td {
@@ -1074,51 +859,8 @@
     color: color-mix(in srgb, var(--mv-ink) 45%, transparent);
   }
 
-  /* An empty notes cell would otherwise leave a stray label behind. */
-
-  .pt-root .sheet td.sheet__notes:empty {
-    display: none;
-  }
-
-  .pt-root .sheet__notes {
-    max-width: none;
-  }
-
-  .pt-root .sheet__actions {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    gap: 8px;
-    padding: 12px 16px 8px;
-    border-top: 1px solid var(--mv-hairline);
-    margin-top: 4px;
-  }
-
-  .pt-root .sheet__edit-row {
-    display: block;
-  }
-
-  .pt-root .sheet__edit-row td {
-    display: block;
-    padding: 12px;
-  }
-
   .pt-root .edit {
     gap: 12px;
-  }
-
-  .pt-root .edit__field,
-.pt-root .edit__field--narrow,
-.pt-root .edit__field--wide {
-    flex: 1 1 100%;
-  }
-
-  .pt-root .edit__actions {
-    margin-left: 0;
-    width: 100%;
-  }
-
-  .pt-root .edit__actions .btn {
-    flex: 1 1 auto;
   }
 
   /* --- gestures -------------------------------------------------------- */
@@ -1128,22 +870,6 @@
   .pt-root .scene.is-pinching canvas {
     touch-action: none;
   }
-
-  /* --- table pins ------------------------------------------------------ */
-  /* Party counts crowd at this width; the time is the part that matters. */
-
-  .pt-root .pin__party {
-    display: none;
-  }
-}
-
-.pt-root .sheet__problem {
-  margin: 0 0 16px;
-  padding: 12px 16px;
-  background: var(--mv-stone-top);
-  border: 1px solid color-mix(in srgb, var(--mv-alert) 35%, transparent);
-  border-radius: var(--mv-radius);
-  color: var(--mv-alert);
 }
 
 /* --- Frames -------------------------------------------------------
@@ -1165,26 +891,6 @@
   height: clamp(620px, calc(100dvh - 190px), 900px);
 }
 
-.pt-console {
-  height: auto;
-}
-
-.pt-console .app {
-  height: auto;
-}
-
-/* Bounded scrolling is the frame's job; with no frame the page does it. */
-.pt-console .app__body--sheet {
-  overflow: visible;
-}
-
-/* Except when the console is running the guest flow to take a booking over the
-   phone. The room is framed by whichever axis is tighter, so without a height
-   here it collapses to whatever the panel beside it happens to be. */
-.pt-console .app--flow {
-  height: clamp(620px, calc(100dvh - 190px), 900px);
-}
-
 /* The room arrives with its own JavaScript, so the placeholder holds the sky
    gradient at the frame's full height and the layout never jumps. */
 .pt-root .scene__loading {
@@ -1195,37 +901,15 @@
   margin: 0;
 }
 
-/* Sign-in is a panel on the sky with nothing else on the page, so it sizes
-   itself rather than filling a frame it does not need. */
-.pt-frame--login {
-  height: auto;
-}
-
-.pt-root .gate-wrap--standalone {
-  display: flex;
-  min-height: min(480px, calc(100dvh - 260px));
-}
-
-/* The console and the sign-in are pages in their own right rather than a
-   section of one, so they take the site's gutter and its vertical rhythm. */
-.pt-page {
-  padding-block: 32px 72px;
-}
-
 /* On a phone every frame gives its height back: details, then the room, then
    the rest of the page, in one scroll. This has to come after the frames it
    undoes — a media query adds no specificity, only order. */
 @media (max-width: 767px) {
   .pt-root,
-  .pt-frame,
-  .pt-frame--tall,
-  .pt-root .app,
-  .pt-console .app--flow {
+.pt-frame,
+.pt-frame--tall,
+.pt-root .app {
     height: auto;
-  }
-
-  .pt-page {
-    padding-block: 20px 48px;
   }
 }
 
@@ -1250,22 +934,6 @@
 
 .booking-section {
   padding-block: 40px var(--section-space);
-}
-
-/* The discreet way in, at the very bottom of every page. Sized and coloured to
-   sit below the notice line rather than beside it: the venue knows it is there
-   and nobody else has any reason to look for it. */
-.footer-owners {
-  margin-top: 14px;
-  font-size: 11px;
-  color: var(--muted);
-  opacity: 0.55;
-  transition: opacity 0.2s;
-}
-
-.footer-owners:hover,
-.footer-owners:focus-visible {
-  opacity: 1;
 }
 
 /* --- The booking screen ----------------------------------------------

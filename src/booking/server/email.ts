@@ -1,6 +1,7 @@
 import { site } from '../../lib/site.ts'
 import type { Booking } from '../data/types.ts'
 import { VENUE_TZ, tables } from '../data/venue.ts'
+import { fromEnv } from './store.ts'
 
 /**
  * Booking emails: a confirmation to the guest and an alert to the venue when a
@@ -51,13 +52,41 @@ export function venueInbox(env: NodeJS.ProcessEnv): string {
 }
 
 /**
- * The address links in emails point at. Vercel sets the production URL on
- * every deployment, which follows the custom domain once it is attached;
- * before then `site.url` would send Jenny to the old Wix site.
+ * Jenny's diary: the Peregrine console. The venue alert links straight to the
+ * day the guest booked.
  */
-export function siteOrigin(env: NodeJS.ProcessEnv): string {
-  const host = env.VERCEL_PROJECT_PRODUCTION_URL
-  return host ? `https://${host}` : site.url
+export function consoleUrl(env: NodeJS.ProcessEnv): string {
+  return (env.PEREGRINE_CONSOLE_URL || 'https://www.peregrinepartners.space/console/the-peacock').replace(/\/$/, '')
+}
+
+export type AlertSettings = { on: boolean; to: string }
+
+/**
+ * Whether the venue wants an email for each online booking, and where, as set
+ * in the console's Settings. Read with the service key at send time, so a
+ * change there applies to the very next booking.
+ *
+ * Fails open to the configured inbox: if the setting can't be read, an alert
+ * Jenny didn't want is a smaller harm than a booking she never hears about.
+ */
+export async function alertSettings(env: NodeJS.ProcessEnv, fetcher: typeof fetch = fetch): Promise<AlertSettings> {
+  const fallback = { on: true, to: venueInbox(env) }
+  const url = fromEnv(env, 'SUPABASE_URL')
+  const key = fromEnv(env, 'SUPABASE_SERVICE_ROLE_KEY')
+  const venue = env.PEREGRINE_VENUE_ID
+  if (!url || !key || !venue) return fallback
+  try {
+    const res = await fetcher(
+      `${url}/rest/v1/venues?id=eq.${encodeURIComponent(venue)}&select=notify_bookings,notify_email`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+    )
+    if (!res.ok) return fallback
+    const [row] = (await res.json()) as { notify_bookings?: boolean; notify_email?: string | null }[]
+    if (!row) return fallback
+    return { on: row.notify_bookings !== false, to: row.notify_email?.trim() || fallback.to }
+  } catch {
+    return fallback
+  }
 }
 
 // --- formatting -----------------------------------------------------------
@@ -82,6 +111,12 @@ export const whenLabel = (startsAt: string) => {
 }
 
 const tableLabel = (id: string) => tables.find((t) => t.id === id)?.label ?? id
+
+/** YYYY-MM-DD in Melbourne, for the console's ?date= link. */
+const dateKey = (startsAt: string) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: VENUE_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(
+    new Date(startsAt),
+  )
 
 const people = (n: number) => `${n} ${n === 1 ? 'person' : 'people'}`
 
@@ -148,7 +183,7 @@ export function guestConfirmation(b: Booking, inbox: string): Message {
   }
 }
 
-export function venueAlert(b: Booking, origin: string, inbox: string): Message {
+export function venueAlert(b: Booking, console: string, inbox: string): Message {
   const rows: [string, string][] = [
     ['When', whenLabel(b.startsAt)],
     ['Party', people(b.partySize)],
@@ -168,7 +203,7 @@ export function venueAlert(b: Booking, origin: string, inbox: string): Message {
       'New booking',
       'A guest just booked online.',
       rows,
-      `Run sheet: ${origin}/owners/bookings`,
+      `See the day in your console: ${console}/list?date=${dateKey(b.startsAt)}`,
     ),
   }
 }
@@ -190,9 +225,18 @@ export function guestCancellation(b: Booking, inbox: string): Message {
   }
 }
 
-export function messagesFor(event: BookingEvent, b: Booking, env: NodeJS.ProcessEnv): Message[] {
+export function messagesFor(
+  event: BookingEvent,
+  b: Booking,
+  env: NodeJS.ProcessEnv,
+  alerts: AlertSettings = { on: true, to: venueInbox(env) },
+): Message[] {
   const inbox = venueInbox(env)
-  if (event === 'created') return [guestConfirmation(b, inbox), venueAlert(b, siteOrigin(env), inbox)]
+  if (event === 'created') {
+    // The guest's confirmation always goes; the venue's alert only if she wants it.
+    const guest = guestConfirmation(b, inbox)
+    return alerts.on ? [guest, venueAlert(b, consoleUrl(env), alerts.to)] : [guest]
+  }
   return [guestCancellation(b, inbox)]
 }
 
@@ -202,7 +246,8 @@ export function messagesFor(event: BookingEvent, b: Booking, env: NodeJS.Process
  */
 export async function notify(mailer: Mailer | null, event: BookingEvent, b: Booking, env: NodeJS.ProcessEnv) {
   if (!mailer) return
-  const results = await Promise.allSettled(messagesFor(event, b, env).map((m) => mailer.send(m)))
+  const alerts = event === 'created' ? await alertSettings(env) : undefined
+  const results = await Promise.allSettled(messagesFor(event, b, env, alerts).map((m) => mailer.send(m)))
   for (const r of results) {
     if (r.status === 'rejected') console.error(`Booking email (${event}, ${b.id}) failed:`, r.reason)
   }

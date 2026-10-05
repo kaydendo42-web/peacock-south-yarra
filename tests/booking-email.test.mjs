@@ -6,7 +6,8 @@ import {
   messagesFor,
   notify,
   resendMailer,
-  siteOrigin,
+  alertSettings,
+  consoleUrl,
   venueAlert,
   whenLabel,
 } from "../src/booking/server/email.ts";
@@ -39,12 +40,12 @@ test("the guest gets their reference, time, party and table, with replies going 
   }
 });
 
-test("the venue alert carries the guest's contact details and a run sheet link", () => {
-  const m = venueAlert(booking, "https://peacock-south-yarra.vercel.app", "hello@thepeacock.com.au");
+test("the venue alert carries the guest's contact details and a link to that day in the console", () => {
+  const m = venueAlert(booking, "https://www.peregrinepartners.space/console/the-peacock", "hello@thepeacock.com.au");
   assert.equal(m.to, "hello@thepeacock.com.au");
   assert.equal(m.replyTo, "sarah@example.com", "Jenny can reply straight to the guest");
   assert.match(m.subject, /^New booking: Sarah Nguyen, 4 people, Thursday 1 October at 9:00 am$/);
-  for (const s of ["0400 000 001", "sarah@example.com", "https://peacock-south-yarra.vercel.app/owners/bookings"]) {
+  for (const s of ["0400 000 001", "sarah@example.com", "https://www.peregrinepartners.space/console/the-peacock/list?date=2026-10-01"]) {
     assert.ok(m.text.includes(s), `text mentions ${s}`);
   }
 });
@@ -69,9 +70,28 @@ test("a new booking sends two emails; a cancellation sends one, to the guest", (
   );
 });
 
-test("links follow the Vercel production URL, falling back to the site's own", () => {
-  assert.equal(siteOrigin({ VERCEL_PROJECT_PRODUCTION_URL: "peacock-south-yarra.vercel.app" }), "https://peacock-south-yarra.vercel.app");
-  assert.equal(siteOrigin({}), "https://www.thepeacock.com.au");
+test("the console link defaults to The Peacock's console and can be overridden", () => {
+  assert.equal(consoleUrl({}), "https://www.peregrinepartners.space/console/the-peacock");
+  assert.equal(consoleUrl({ PEREGRINE_CONSOLE_URL: "https://x.test/console/v/" }), "https://x.test/console/v");
+});
+
+test("the venue can switch its alert off, or send it elsewhere; the guest's email always goes", () => {
+  const env = { CONTACT_TO_EMAIL: "hello@x.au" };
+  assert.deepEqual(messagesFor("created", booking, env, { on: false, to: "hello@x.au" }).map((m) => m.to), ["sarah@example.com"]);
+  assert.deepEqual(
+    messagesFor("created", booking, env, { on: true, to: "jenny@gmail.test" }).map((m) => m.to),
+    ["sarah@example.com", "jenny@gmail.test"],
+  );
+});
+
+test("alert settings come from the venue row, and fail open to the inbox", async () => {
+  const env = { SUPABASE_URL: "https://db.test", SUPABASE_SERVICE_ROLE_KEY: "k", PEREGRINE_VENUE_ID: "v1", BOOKING_NOTIFY_EMAIL: "hello@x.au" };
+  const row = (body, status = 200) => async () => new Response(JSON.stringify(body), { status });
+  assert.deepEqual(await alertSettings(env, row([{ notify_bookings: false, notify_email: null }])), { on: false, to: "hello@x.au" });
+  assert.deepEqual(await alertSettings(env, row([{ notify_bookings: true, notify_email: "j@g.test" }])), { on: true, to: "j@g.test" });
+  assert.deepEqual(await alertSettings(env, row({ message: "no column" }, 400)), { on: true, to: "hello@x.au" });
+  assert.deepEqual(await alertSettings(env, async () => { throw new Error("offline"); }), { on: true, to: "hello@x.au" });
+  assert.deepEqual(await alertSettings({ BOOKING_NOTIFY_EMAIL: "hello@x.au" }), { on: true, to: "hello@x.au" });
 });
 
 test("no key or no from-address means no mailer, not a crash", () => {

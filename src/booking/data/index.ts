@@ -1,4 +1,4 @@
-import { apiAdapter, refreshUser } from './apiAdapter.ts'
+import { apiAdapter } from './apiAdapter.ts'
 import type { DataAdapter } from './types.ts'
 
 /**
@@ -7,29 +7,15 @@ import type { DataAdapter } from './types.ts'
  *
  * The standalone build shipped a localStorage adapter beside this one for its
  * demo. It is gone: on the live site the rules are enforced in
- * `src/booking/server`, guest contact details never sit in a browser, and the
- * owner password exists only as a hash in the environment. A second adapter
+ * `src/booking/server` and guest contact details never sit in a browser. A second adapter
  * would just be a second answer to the same question.
  */
 export const data: DataAdapter = apiAdapter
-
-/**
- * Restore the session on boot. Only the server can answer this, because the
- * cookie carrying it is deliberately unreadable from script.
- */
-export async function restoreSession(): Promise<void> {
-  await refreshUser()
-}
 
 export const {
   listTables,
   listBookings,
   createBooking,
-  updateBooking,
-  cancelBooking,
-  signIn,
-  signOut,
-  currentUser,
 } = bind(data)
 
 function bind(a: DataAdapter) {
@@ -37,11 +23,6 @@ function bind(a: DataAdapter) {
     listTables: a.listTables.bind(a),
     listBookings: a.listBookings.bind(a),
     createBooking: a.createBooking.bind(a),
-    updateBooking: a.updateBooking.bind(a),
-    cancelBooking: a.cancelBooking.bind(a),
-    signIn: a.signIn.bind(a),
-    signOut: a.signOut.bind(a),
-    currentUser: a.currentUser.bind(a),
   }
 }
 

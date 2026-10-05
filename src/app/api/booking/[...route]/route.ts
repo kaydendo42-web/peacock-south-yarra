@@ -19,7 +19,7 @@ async function serve(
   const { route } = await ctx.params;
 
   let body: unknown;
-  if (request.method !== "GET" && request.method !== "DELETE") {
+  if (request.method !== "GET") {
     const raw = await request.text();
     if (raw) {
       try {
@@ -35,7 +35,7 @@ async function serve(
     method: request.method,
     path: `/${(route ?? []).join("/")}`,
     query: Object.fromEntries(request.nextUrl.searchParams),
-    headers: { cookie: request.headers.get("cookie") ?? undefined },
+    headers: {},
     body,
     ip: forwarded?.split(",")[0]?.trim() ?? "unknown",
   };
@@ -51,5 +51,3 @@ async function serve(
 
 export const GET = serve;
 export const POST = serve;
-export const PATCH = serve;
-export const DELETE = serve;

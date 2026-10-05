@@ -37,21 +37,10 @@ export type NewBooking = Omit<Booking, 'id' | 'status'> & {
   status?: BookingStatus
 }
 
-/** Placeholder owner session. Replaced wholesale when a real backend lands. */
-export type Session = {
-  role: 'owner'
-  since: string // ISO
-}
-
 export type DateKey = string // 'YYYY-MM-DD', venue-local
 
 export interface DataAdapter {
   listTables(): Promise<Table[]>
   listBookings(date: DateKey): Promise<Booking[]>
   createBooking(input: NewBooking): Promise<Booking>
-  updateBooking(id: string, patch: Partial<Booking>): Promise<Booking>
-  cancelBooking(id: string): Promise<Booking>
-  signIn(username: string, password: string): Promise<Session | null>
-  signOut(): Promise<void>
-  currentUser(): Session | null
 }

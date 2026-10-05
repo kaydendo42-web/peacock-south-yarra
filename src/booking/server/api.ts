@@ -1,18 +1,6 @@
 import type { Booking, NewBooking } from '@/booking/data/types'
 import { checkBooking, sanitise } from '@/booking/data/rules'
 import { venueDateKey } from '@/booking/data/time'
-import {
-  COOKIE,
-  clearAttempts,
-  clearedCookie,
-  issueSession,
-  readCookie,
-  readSession,
-  recordAttempt,
-  sessionCookie,
-  tooManyAttempts,
-  verifyPassword,
-} from './auth'
 import type { Config } from './config'
 import { notify } from './email'
 import { StoreConflict } from './store'
@@ -22,10 +10,12 @@ import { StoreConflict } from './store'
  * Next's own — the route handler adapts a request into one of these and back,
  * and every rule below is testable without a server.
  *
- * Every rule that matters is applied here rather than in the browser: who may
- * read contact details, whether a booking may stand, and how long a session
- * lasts. The client is free to check the same things for a better experience,
- * but nothing depends on it doing so.
+ * Every rule that matters is applied here rather than in the browser: what a
+ * guest may read, and whether a booking may stand. The client is free to check
+ * the same things for a better experience, but nothing depends on it doing so.
+ *
+ * Guests only: the venue runs its diary from the Peregrine console, which reads
+ * the database under its own sign-in. Nothing here hands out contact details.
  */
 
 export type ApiRequest = {
@@ -79,47 +69,8 @@ function newReference(existing: Set<string>): string {
   throw new Error('could not allocate a reference')
 }
 
-export function isOwner(req: ApiRequest, config: Config): boolean {
-  const token = readCookie(req.headers.cookie, COOKIE)
-  return readSession(token, config.sessionSecret) !== null
-}
-
 export async function handle(req: ApiRequest, config: Config): Promise<ApiResponse> {
   const { store } = config
-
-  // --- session ---------------------------------------------------------
-  if (req.path === '/session') {
-    if (req.method === 'GET') {
-      return isOwner(req, config) ? json(200, { role: 'owner' }) : json(401, { error: 'Not signed in.' })
-    }
-
-    if (req.method === 'DELETE') {
-      return json(204, undefined, { 'Set-Cookie': clearedCookie(config.secureCookies) })
-    }
-
-    if (req.method === 'POST') {
-      if (tooManyAttempts(req.ip)) {
-        return json(429, { error: 'Too many attempts. Try again later.' })
-      }
-
-      const { username, password } = (req.body ?? {}) as Record<string, unknown>
-      const okUser = typeof username === 'string' && username.trim() === config.username
-      const okPass = typeof password === 'string' && verifyPassword(password, config.passwordHash)
-
-      if (!okUser || !okPass) {
-        recordAttempt(req.ip)
-        // One message for both, so this can't be used to enumerate usernames.
-        return json(401, { error: 'Those details did not match.' })
-      }
-
-      clearAttempts(req.ip)
-      return json(200, { role: 'owner' }, {
-        'Set-Cookie': sessionCookie(issueSession(config.sessionSecret), config.secureCookies),
-      })
-    }
-
-    return json(405, { error: 'Method not allowed.' })
-  }
 
   // --- bookings --------------------------------------------------------
   if (req.path === '/bookings') {
@@ -134,7 +85,7 @@ export async function handle(req: ApiRequest, config: Config): Promise<ApiRespon
         .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
 
       // Contact details are for the venue, not for whoever loads the page.
-      return json(200, isOwner(req, config) ? onDay : onDay.map(redact))
+      return json(200, onDay.map(redact))
     }
 
     if (req.method === 'POST') {
@@ -172,45 +123,6 @@ export async function handle(req: ApiRequest, config: Config): Promise<ApiRespon
     }
 
     return json(405, { error: 'Method not allowed.' })
-  }
-
-  const match = req.path.match(/^\/bookings\/([A-Za-z0-9-]+)$/)
-  if (match) {
-    if (!isOwner(req, config)) return json(401, { error: 'Not signed in.' })
-    if (req.method !== 'PATCH') return json(405, { error: 'Method not allowed.' })
-
-    const id = match[1]
-    const patch = sanitise((req.body ?? {}) as Partial<Booking>)
-
-    let wasCancelled = false
-    const out = await store.exclusive(async () => {
-      const all = await store.all()
-      const current = all.find((b) => b.id === id)
-      if (!current) return json(404, { error: 'No such booking.' })
-
-      const next: Booking = { ...current, ...patch, id: current.id }
-      wasCancelled = current.status === 'cancelled'
-
-      if (next.status === 'confirmed' || next.status === 'seated') {
-        const violation = checkBooking(next, all, id)
-        if (violation) return json(409, { error: violation.message, code: violation.code })
-      }
-
-      try {
-        await store.put(next)
-      } catch (e) {
-        if (e instanceof StoreConflict) return json(409, { error: e.message, code: 'taken' })
-        throw e
-      }
-      return json(200, next)
-    })
-
-    // Tell the guest when the venue cancels; not on seated or no-show.
-    const saved = out.body as Booking
-    if (out.status === 200 && saved.status === 'cancelled' && !wasCancelled) {
-      await notify(config.mailer, 'cancelled', saved, process.env)
-    }
-    return out
   }
 
   return json(404, { error: 'No such endpoint.' })

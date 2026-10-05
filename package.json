@@ -8,8 +8,6 @@
     "start": "next start",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "square:check": "node --experimental-strip-types scripts/check-square.mjs",
-    "hash-password": "node scripts/hash-password.mjs",
-    "set-owner-password": "bash scripts/set-owner-password.sh",
     "store:check": "node --experimental-strip-types scripts/check-store.mjs",
     "peregrine:seed": "node --experimental-strip-types scripts/peregrine-seed.mjs",
     "peregrine:import": "node --experimental-strip-types scripts/import-bookings.mjs"

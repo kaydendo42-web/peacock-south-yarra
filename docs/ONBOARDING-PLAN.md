@@ -56,7 +56,13 @@ so each step ends with the exact values for Kayden to paste.
 5. **Google sign-in** on the console. Sign-ups stay off: Google only works for
    an email already added to a venue.
 6. **Remove `/owners`** from the Peacock site. One shared password, and the
-   console replaces it.
+   console replaces it. **Done 6 Oct.** After it deploys, delete
+   `PEACOCK_SESSION_SECRET`, `PEACOCK_OWNER_PASSWORD_HASH` and
+   `PEACOCK_OWNER_USERNAME` from Vercel; nothing reads them now.
+8. **Booking alert switch.** Console → Settings → Notifications (branch
+   `console/polish`, migration `20261006000000_venue_notifications.sql`).
+   The website checks it on every booking. Jenny starts **off**, as she had
+   Resos; guests' confirmations always send.
 7. **Supabase backups.** Free has no automatic backups. A nightly `pg_dump` to
    a private place (GitHub Action) until a second client justifies Pro.
 
