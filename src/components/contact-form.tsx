@@ -47,6 +47,13 @@ export function ContactForm() {
         </p>
       ) : null}
 
+      <p className="mt-6 font-ui text-[13px] text-ink-soft">
+        We only use your details to reply.{" "}
+        <a href="/privacy-policy" className="underline underline-offset-2">
+          Privacy policy
+        </a>
+      </p>
+
       <div className="mt-8 flex justify-center">
         <SubmitButton />
       </div>

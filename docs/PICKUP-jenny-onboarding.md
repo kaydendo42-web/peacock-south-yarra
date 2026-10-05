@@ -3,6 +3,9 @@
 Written 30 Sep 2026, at the end of the session that built it. Read this first;
 it is the state of play and the list of what's left, in order.
 
+> **5 Oct 2026:** superseded for next steps by `ONBOARDING-PLAN.md` (walkthrough
+> approved; keys, security, cutover and the current questions for Jenny).
+
 ## Where everything is
 
 | What | Where | State |

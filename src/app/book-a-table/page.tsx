@@ -34,9 +34,9 @@ export default function BookingPage() {
           <p className="book-screen__note">
             Open weekdays {hours.weekdays.display}, weekends{" "}
             {hours.weekend.display}. More than eight?{" "}
-            <a href={site.phoneHref}>Call {site.phone}</a>
+            <a href={site.bookingPhoneHref}>Call {site.bookingPhone}</a>
           </p>
-          <a className="book-screen__call" href={site.phoneHref}>
+          <a className="book-screen__call" href={site.bookingPhoneHref}>
             Call us
           </a>
           <Link href="/" className="book-screen__home">

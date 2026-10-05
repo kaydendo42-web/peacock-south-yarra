@@ -111,6 +111,18 @@ export default function BookingForm({
         />
       </label>
 
+      <p className="t-13 ink-60">
+        By booking you agree to our{' '}
+        <a href="/booking-policy" target="_blank" rel="noreferrer">
+          booking policy
+        </a>{' '}
+        and{' '}
+        <a href="/privacy-policy" target="_blank" rel="noreferrer">
+          privacy policy
+        </a>
+        .
+      </p>
+
       {error ? <p className="t-13 dock__error">{error}</p> : null}
 
       <div className="dock__actions">

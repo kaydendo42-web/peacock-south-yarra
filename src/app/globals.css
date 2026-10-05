@@ -1154,3 +1154,38 @@ address {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Policy pages: one readable column of plain text. */
+.policy {
+  max-width: 720px;
+  padding-bottom: var(--section-space);
+  color: var(--body);
+  font-size: 17px;
+  line-height: 1.65;
+}
+.policy h2 {
+  margin: 48px 0 12px;
+  color: var(--forest);
+  font: 900 28px/1.1 var(--font-display);
+  text-transform: uppercase;
+}
+.policy p + p,
+.policy ul {
+  margin-top: 14px;
+}
+.policy ul {
+  padding-left: 1.2em;
+  list-style: disc;
+}
+.policy li + li {
+  margin-top: 6px;
+}
+.policy a {
+  color: var(--forest);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.footer-legal {
+  display: inline-flex;
+  gap: 18px;
+}

@@ -69,6 +69,10 @@ export function SiteFooter() {
           <span>
             © {new Date().getFullYear()} {site.name}
           </span>
+          <span className="footer-legal">
+            <Link href="/booking-policy">Booking policy</Link>
+            <Link href="/privacy-policy">Privacy policy</Link>
+          </span>
           <span>
             Made with care by{" "}
             <a
