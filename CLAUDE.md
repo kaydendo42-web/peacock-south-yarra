@@ -7,8 +7,8 @@ Client site migrated off Wix. Peregrine Partners is the agency; the venue is the
 - `src/lib/site.ts` holds the NAP, hours and nav. Never hardcode an address,
   phone number or opening hours anywhere else — NAP consistency is load-bearing
   for local SEO.
-- `src/lib/menu.ts` is the menu. Editing prices means editing that file; the
-  `Menu` JSON-LD and the rendered page both derive from it.
+- `src/lib/menu.ts` feeds the `Menu` JSON-LD; the page itself shows Jenny's
+  menu images. A reprint means new images and the matching prices here.
 - Layout values came from measuring the live site (`docs/research/`). If you
   change a spacing or type value, check it against `DESIGN_TOKENS.md` first —
   the odd-looking numbers are deliberate.
@@ -43,8 +43,11 @@ Client site migrated off Wix. Peregrine Partners is the agency; the venue is the
   `booking_tables_no_double_booking` constraint (one row per table a live
   booking holds, kept by trigger) is the final word on double booking. A
   booking's `table_ids` is sent only for joined sets.
-- The menu page shows Jenny's printed menus from `src/lib/menu.ts`, not the
-  Square catalogue. `docs/menu-price-check.md` lists where Square disagrees.
+- The menu page shows Jenny's printed menus as images
+  (`public/images/menu-food.jpg`, `menu-drinks.jpg`, opened full size), plus
+  food photos. `src/lib/menu.ts` is the typed copy behind the Menu schema; keep
+  its prices in step when she reprints. `docs/menu-price-check.md` lists where
+  Square disagrees.
 - Compass words under `src/booking/` mean the isometric view, not a survey:
   screen-right is world (+x, −z), so west is the left corner of the diamond and
   the south-east wall is the lower-right face.
