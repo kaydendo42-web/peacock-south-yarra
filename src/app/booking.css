@@ -1116,3 +1116,74 @@ html:has(.book-screen) {
   white-space: nowrap;
   user-select: none;
 }
+
+/* --- area booking ----------------------------------------------------------
+   Guests pick an area, not a table. The list mirrors the room: same choice,
+   same state, so a phone user never has to aim at the scene. */
+
+.pt-root .area-btn {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  padding: 14px 16px;
+  text-align: left;
+  white-space: normal;
+}
+
+.pt-root .area-btn__name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.pt-root .area-btn__state {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+}
+
+.pt-root .area-btn__blurb {
+  grid-column: 1 / -1;
+}
+
+.pt-root .area-btn.is-selected {
+  border-color: var(--mv-accent);
+  background: var(--mv-accent);
+  color: var(--mv-accent-ink);
+}
+
+.pt-root .area-btn.is-selected .area-btn__blurb,
+.pt-root .area-btn.is-selected .area-btn__state {
+  color: var(--mv-accent-ink);
+}
+
+.pt-root .area-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* The area names floating in the room, with this party's state under them. */
+.pt-root .area-tag {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.pt-root .area-tag small {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: none;
+}
+
+.pt-root .area-tag.is-selected {
+  background: var(--mv-accent);
+  border-color: var(--mv-accent);
+  color: var(--mv-accent-ink);
+}
+
+.pt-root .area-tag.is-out {
+  opacity: 0.6;
+}

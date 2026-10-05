@@ -1,6 +1,6 @@
 import type { Booking, NewBooking } from '@/booking/data/types'
 import { checkBooking, sanitise } from '@/booking/data/rules'
-import { allocate } from '@/booking/data/allocate'
+import { allocate, optionsFor } from '@/booking/data/allocate'
 import { VENUE_TZ, areas } from '@/booking/data/venue'
 import { sittingFor } from '@/booking/data/time'
 
@@ -113,6 +113,12 @@ export async function handle(req: ApiRequest, config: Config): Promise<ApiRespon
       // Allocate and write under the lock, or two guests can both take one table.
       const out = await store.exclusive(async () => {
         const all = await store.all()
+        if (!optionsFor(area.id, party).length) {
+          return json(409, {
+            error: `${area.name} can't seat ${party} online. Call us and we'll sort something out.`,
+            code: 'area-full',
+          })
+        }
         const seat = allocate(area.id, start, party, all)
         if (!seat) {
           return json(409, {

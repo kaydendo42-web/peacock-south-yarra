@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { LIMITS, dateLabel, timeLabel, zones, type Table } from '../data'
+import { LIMITS, dateLabel, timeLabel } from '../data'
 import type { GateValue } from './Gate'
 
 export type GuestDetails = {
@@ -10,10 +10,8 @@ export type GuestDetails = {
   notes: string
 }
 
-const zoneName = (id: string) => zones.find((z) => z.id === id)?.name ?? id
-
 export default function BookingForm({
-  table,
+  place,
   gate,
   slot,
   busy,
@@ -21,7 +19,8 @@ export default function BookingForm({
   onBack,
   onConfirm,
 }: {
-  table: Table
+  /** Where they'll sit, as the guest chose it: "Courtyard". */
+  place: string
   gate: GateValue
   slot: Date
   busy: boolean
@@ -53,9 +52,9 @@ export default function BookingForm({
       }}
     >
       <header className="dock__head">
-        <span className="display t-22">{table.label}</span>
+        <span className="display t-22">{place}</span>
         <span className="t-13 ink-60">
-          {zoneName(table.zone)} · {dateLabel(gate.date)} · {timeLabel(slot)} · {gate.partySize}{' '}
+          {dateLabel(gate.date)} · {timeLabel(slot)} · {gate.partySize}{' '}
           {gate.partySize === 1 ? 'guest' : 'guests'}
         </span>
       </header>

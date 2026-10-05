@@ -1,40 +1,36 @@
 'use client'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
+  areaOfZone,
+  areaStateAt,
+  areas,
   at,
   createBooking,
   dateLabel,
+  heldTables,
   listBookings,
   sittingFor,
-  tableStateAt,
   tables,
   timeLabel,
-  zones,
+  venueDateKey,
+  type AreaId,
   type Booking,
-  type SlotState,
-  type Table,
-  type TableState,
   BookingRejected,
 } from '../data'
 import FloorPlan from '../scene/FloorPlanLazy'
 import Gate, { type GateValue } from './Gate'
-import TablePanel from './TablePanel'
+import AreaPanel from './AreaPanel'
 import BookingForm, { type GuestDetails } from './BookingForm'
 import Dock, { useDockScroll } from './Dock'
 
 type Stage = 'browse' | 'details' | 'done'
 
-/** Floor-plan state is the render vocabulary; this flow uses three of the four. */
-function toTableState(state: SlotState): TableState {
-  return state === 'booked' ? 'full' : state
-}
-
-const zoneName = (id: string) => zones.find((z) => z.id === id)?.name ?? id
+const areaName = (id: AreaId | null | undefined) => areas.find((a) => a.id === id)?.name ?? ''
 
 /**
- * Pick where, then when. The whole guest journey — gate, floor plan, table
- * panel, details, confirmation — as one component, so the owner console's
- * "New booking" runs the identical flow rather than a second copy of it.
+ * When, then where. The guest gives party, date and time, then picks an area
+ * of the room (Front Deck, Inside, Courtyard), not a table: Jenny moves people
+ * between tables, so the table is hers to set. The server allocates it.
  */
 export default function BookingFlow({
   onComplete,
@@ -48,8 +44,7 @@ export default function BookingFlow({
   const [gate, setGate] = useState<GateValue | null>(null)
   const [gateOpen, setGateOpen] = useState(true)
   const [bookings, setBookings] = useState<Booking[]>([])
-  const [selected, setSelected] = useState<Table | null>(null)
-  const [pickedSlot, setPickedSlot] = useState<Date | null>(null)
+  const [area, setArea] = useState<AreaId | null>(null)
   const [stage, setStage] = useState<Stage>('browse')
   const [confirmed, setConfirmed] = useState<Booking | null>(null)
   const [busy, setBusy] = useState(false)
@@ -67,48 +62,41 @@ export default function BookingFlow({
     if (gate) void refresh(gate.date)
   }, [gate, refresh])
 
-  const stateOf = useCallback(
-    (table: Table): TableState => {
-      if (!gate || !chosenAt) return 'available'
-      return toTableState(tableStateAt(table, chosenAt, gate.partySize, bookings))
-    },
+  const areaState = useCallback(
+    (id: AreaId) => (gate && chosenAt ? areaStateAt(id, chosenAt, gate.partySize, bookings) : 'available'),
     [gate, chosenAt, bookings],
   )
 
-  const selectTable = useCallback(
-    (table: Table) => {
-      setSelected(table)
+  const selectArea = useCallback(
+    (id: AreaId) => {
+      if (areaState(id) !== 'available') return
+      setArea(id)
       setStage('browse')
       setError(null)
       setDockOpen(true)
       revealDock()
-      // Offer the time they asked for when this table can actually take it.
-      if (gate && chosenAt) {
-        const free = tableStateAt(table, chosenAt, gate.partySize, bookings) === 'available'
-        setPickedSlot(free ? chosenAt : null)
-      }
     },
-    [gate, chosenAt, bookings, revealDock],
+    [areaState, revealDock],
   )
 
   const applyGate = (value: GateValue) => {
     setGate(value)
     setGateOpen(false)
-    setSelected(null)
-    setPickedSlot(null)
+    setArea(null)
     setStage('browse')
     setConfirmed(null)
     setDockOpen(false)
   }
 
   const confirm = async (details: GuestDetails) => {
-    if (!selected || !pickedSlot || !gate) return
+    if (!area || !chosenAt || !gate) return
     setBusy(true)
     setError(null)
     try {
       const booking = await createBooking({
-        tableId: selected.id,
-        startsAt: pickedSlot.toISOString(),
+        area,
+        tableId: null,
+        startsAt: chosenAt.toISOString(),
         durationMin: sittingFor(gate.partySize),
         partySize: gate.partySize,
         guestName: details.guestName.trim(),
@@ -123,7 +111,7 @@ export default function BookingFlow({
       onComplete?.(booking)
     } catch (e) {
       // The adapter rejects with the reason; a guest deserves to see it rather
-      // than a shrug — most often the table was taken while they were typing.
+      // than a shrug — most often the area filled while they were typing.
       setError(e instanceof BookingRejected ? e.message : 'Something went wrong. Please try again.')
       await refresh(gate.date)
     } finally {
@@ -135,16 +123,15 @@ export default function BookingFlow({
   const dockSummary =
     stage === 'done'
       ? 'Booking confirmed'
-      : stage === 'details' && selected
-        ? `${selected.label} — your details`
-        : selected
-          ? `${selected.label} · ${zoneName(selected.zone)} · seats ${selected.seats}`
-          : 'Pick a table'
+      : stage === 'details' && area
+        ? `${areaName(area)} — your details`
+        : area
+          ? `${areaName(area)} · ${gate?.time ?? ''}`
+          : 'Choose where to sit'
 
   const startAgain = () => {
     setConfirmed(null)
-    setSelected(null)
-    setPickedSlot(null)
+    setArea(null)
     setStage('browse')
     setGateOpen(true)
     setDockOpen(false)
@@ -185,9 +172,7 @@ export default function BookingFlow({
           <div className="guest__scene" ref={scene}>
             <FloorPlan
               tables={tables}
-              stateOf={stateOf}
-              selectedId={selected?.id ?? null}
-              onSelect={selectTable}
+              area={{ stateOf: areaState, selected: area, onSelect: selectArea }}
             />
           </div>
 
@@ -201,40 +186,24 @@ export default function BookingFlow({
           >
             {stage === 'done' && confirmed ? (
               <Confirmation booking={confirmed} onDone={startAgain} />
-            ) : stage === 'details' && selected && pickedSlot ? (
+            ) : stage === 'details' && area ? (
               <BookingForm
-                table={selected}
+                place={areaName(area)}
                 gate={gate}
-                slot={pickedSlot}
+                slot={chosenAt!}
                 busy={busy}
                 error={error}
                 onBack={() => setStage('browse')}
                 onConfirm={confirm}
               />
-            ) : selected && chosenAt ? (
-              <TablePanel
-                table={selected}
-                state={tableStateAt(selected, chosenAt, gate.partySize, bookings)}
+            ) : (
+              <AreaPanel
                 gate={gate}
-                chosenAt={chosenAt}
-                bookings={bookings}
-                tables={tables}
-                pickedSlot={pickedSlot}
-                onPickSlot={setPickedSlot}
-                onPickTable={selectTable}
+                stateOf={areaState}
+                selected={area}
+                onSelect={selectArea}
                 onContinue={() => setStage('details')}
               />
-            ) : (
-              <div className="dock__body">
-                <header className="dock__head">
-                  <span className="display t-16">Pick a table</span>
-                  {/* No legend: the desaturation does the explaining (§4). */}
-                  <span className="t-13 ink-60">
-                    Showing tables for {gate.partySize}{' '}
-                    {gate.partySize === 1 ? 'guest' : 'guests'} at {gate.time}.
-                  </span>
-                </header>
-              </div>
             )}
           </Dock>
         </main>
@@ -244,7 +213,8 @@ export default function BookingFlow({
 }
 
 function Confirmation({ booking, onDone }: { booking: Booking; onDone: () => void }) {
-  const table = tables.find((t) => t.id === booking.tableId)
+  const zone = tables.find((t) => t.id === heldTables(booking)[0])?.zone
+  const where = areaName(booking.area ?? (zone ? areaOfZone(zone) : null))
   const start = new Date(booking.startsAt)
   return (
     <div className="dock__body enter">
@@ -261,13 +231,11 @@ function Confirmation({ booking, onDone }: { booking: Booking; onDone: () => voi
       <hr className="rule" />
 
       <dl className="summary-list">
-        <dt className="t-11 display ink-45">Table</dt>
-        <dd className="t-13">
-          {table?.label} · {table ? zoneName(table.zone) : ''}
-        </dd>
+        <dt className="t-11 display ink-45">Where</dt>
+        <dd className="t-13">{where}</dd>
         <dt className="t-11 display ink-45">When</dt>
         <dd className="t-13">
-          {dateLabel(booking.startsAt.slice(0, 10))} at {timeLabel(start)}
+          {dateLabel(venueDateKey(start))} at {timeLabel(start)}
         </dd>
         <dt className="t-11 display ink-45">Party</dt>
         <dd className="t-13">

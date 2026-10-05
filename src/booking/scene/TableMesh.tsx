@@ -37,9 +37,11 @@ type Props = {
   onSelect?: (table: Table) => void
   onHover?: (table: Table | null) => void
   label?: ReactNode
+  /** Lifted by its area rather than by its own hover (area booking). */
+  lifted?: boolean
 }
 
-export default function TableMesh({ table, state, selected, onSelect, onHover, label }: Props) {
+export default function TableMesh({ table, state, selected, onSelect, onHover, label, lifted }: Props) {
   const group = useRef<Group>(null)
   const [hovered, setHovered] = useState(false)
   const lift = useRef(0)
@@ -76,7 +78,7 @@ export default function TableMesh({ table, state, selected, onSelect, onHover, l
   useFrame(() => {
     const g = group.current
     if (!g) return
-    const target = floorY + (hovered ? HOVER_LIFT : 0)
+    const target = floorY + ((lifted ?? hovered) ? HOVER_LIFT : 0)
     if (lift.current !== target && startedAt.current < 0) {
       from.current = g.position.y
       startedAt.current = performance.now()

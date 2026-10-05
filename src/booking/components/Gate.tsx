@@ -26,7 +26,7 @@ const PARTY_SIZES = [1, 2, 3, 4, 5, 6, 7, 8]
  * Only the time slot takes `--mv-accent` (§8) — forest, the site's ink, which
  * is the strongest value in the palette and so still the scarcest thing on the
  * panel. Party size and date take the pink primary fill instead, matching the
- * available tables in the room they are about to open.
+ * areas open in the room they are about to see.
  */
 export default function Gate({
   value,
@@ -67,7 +67,7 @@ export default function Gate({
     >
       <h1 className="display t-22 gate__title">Your booking</h1>
       <p className="t-13 ink-60 gate__lede">
-        Choose how many people, the day and a time. Then pick your table.
+        Choose how many people, the day and a time. Then pick where you’d like to sit.
       </p>
 
       <hr className="rule" />
@@ -171,7 +171,7 @@ export default function Gate({
           <span />
         )}
         <button type="submit" className="btn btn--primary" disabled={!ready}>
-          Show tables
+          Choose where to sit
         </button>
       </div>
     </form>

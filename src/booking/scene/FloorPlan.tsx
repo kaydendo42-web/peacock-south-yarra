@@ -13,7 +13,8 @@ import {
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrthographicCamera } from '@react-three/drei'
 import { Fog, Group, OrthographicCamera as Ortho } from 'three'
-import type { Table, TableState } from '../data'
+import { areaOfZone, type AreaId, type AreaState, type Table, type TableState } from '../data'
+import AreaHits from './AreaHits'
 import Case from './Case'
 import Room from './Room'
 import Shadows from './Shadows'
@@ -268,13 +269,26 @@ function useCanvasMeasureFix(ref: RefObject<HTMLDivElement | null>) {
   }, [ref])
 }
 
+/**
+ * Booking by area: the room's sections are what a guest picks. Tables stop
+ * being targets of their own and take their area's state, and a tap on any
+ * table or any patch of floor chooses that table's area.
+ */
+export type AreaMode = {
+  stateOf: (area: AreaId) => AreaState
+  selected: AreaId | null
+  onSelect: (area: AreaId) => void
+}
+
 export type FloorPlanProps = {
   tables: Table[]
-  stateOf: (table: Table) => TableState
+  /** Per-table state; unused in area mode, where the area decides. */
+  stateOf?: (table: Table) => TableState
   selectedId?: string | null
   onSelect?: (table: Table) => void
   onHover?: (table: Table | null) => void
   labelFor?: (table: Table) => ReactNode
+  area?: AreaMode
 }
 
 export default function FloorPlan({
@@ -284,7 +298,9 @@ export default function FloorPlan({
   onSelect,
   onHover,
   labelFor,
+  area,
 }: FloorPlanProps) {
+  const [hoverArea, setHoverArea] = useState<AreaId | null>(null)
   const [quarter, setQuarter] = useState(0)
   const [shadeQuarter, setShadeQuarter] = useState(0)
   const [zoomMul, setZoomMul] = useState(1)
@@ -411,10 +427,25 @@ export default function FloorPlan({
   const select = useCallback(
     (table: Table) => {
       if (dragged.current) return
+      if (area) {
+        const a = areaOfZone(table.zone)
+        if (a) area.onSelect(a)
+        return
+      }
       onSelect?.(table)
     },
-    [onSelect],
+    [onSelect, area],
   )
+  const isDrag = useCallback(() => dragged.current, [])
+
+  /** In area mode a table reads as its area does: chosen, open, or out. */
+  const tableLook = (t: Table): { state: TableState; selected: boolean; lifted?: boolean } => {
+    if (!area) return { state: stateOf?.(t) ?? 'available', selected: selectedId === t.id }
+    const a = areaOfZone(t.zone)
+    if (!a) return { state: 'full', selected: false }
+    const open = area.stateOf(a) === 'available'
+    return { state: open ? 'available' : 'full', selected: open && area.selected === a, lifted: hoverArea === a }
+  }
 
   // A portrait phone frames the long plan by its width and leaves the room a
   // strip across the middle. Start closer there; the pan reaches the ends.
@@ -446,19 +477,33 @@ export default function FloorPlan({
         <IsoCamera zoomMul={zoomMul} pan={pan} />
         <Turntable quarter={quarter} onShadeQuarter={setShadeQuarter} reduced={reduced}>
           <Case quarter={shadeQuarter} />
-          <Room quarter={shadeQuarter} />
+          <Room quarter={shadeQuarter} tags={!area} />
           <Shadows tables={tables} quarter={shadeQuarter} />
-          {tables.map((t) => (
-            <TableMesh
-              key={t.id}
-              table={t}
-              state={stateOf(t)}
-              selected={selectedId === t.id}
-              onSelect={select}
-              onHover={onHover}
-              label={labelFor?.(t)}
+          {area ? (
+            <AreaHits
+              stateOf={area.stateOf}
+              selected={area.selected}
+              hovered={hoverArea}
+              onHover={setHoverArea}
+              onSelect={area.onSelect}
+              isDrag={isDrag}
             />
-          ))}
+          ) : null}
+          {tables.map((t) => {
+            const look = tableLook(t)
+            return (
+              <TableMesh
+                key={t.id}
+                table={t}
+                state={look.state}
+                selected={look.selected}
+                lifted={look.lifted}
+                onSelect={select}
+                onHover={area ? (h) => setHoverArea(h ? (areaOfZone(h.zone) ?? null) : null) : onHover}
+                label={labelFor?.(t)}
+              />
+            )
+          })}
         </Turntable>
       </Canvas>
 

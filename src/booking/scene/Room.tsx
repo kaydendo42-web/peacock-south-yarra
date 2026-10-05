@@ -89,7 +89,7 @@ function toRun(wall: Wall): Run {
   }
 }
 
-export default function Room({ quarter }: { quarter: number }) {
+export default function Room({ quarter, tags = true }: { quarter: number; tags?: boolean }) {
   const platform = useMemo(() => boxGeo(platformW, PLATFORM_THICK, platformD), [])
   const runs = useMemo(() => walls.map(toRun), [])
   const floorOrnament = useMemo(() => ornamentOf(stone.top), [])
@@ -150,7 +150,7 @@ export default function Room({ quarter }: { quarter: number }) {
 
       {/* The section names, where Jenny wrote them on her plan. A caption, not a
           target: the wrapper must never take a click meant for a table. */}
-      {zones.map((z) => {
+      {tags && zones.map((z) => {
         const [sx, sz] = toScene(...z.labelAt)
         return (
           <Html
