@@ -25,8 +25,13 @@ Client site migrated off Wix. Peregrine Partners is the agency; the venue is the
   including what is still owed before it holds real bookings.
 - The booking system's service hours derive from `hours` in `site.ts` through
   `openingOn()`. Never give it its own opening times.
+- Guests book by **area** (Front Deck, Inside, Courtyard), never by table:
+  `allocate()` in `src/booking/data/allocate.ts` picks the table or joined set
+  server-side. Table names, seat ranges, priorities and combinations are
+  Jenny's Resos setup (`docs/resos-tables.md`); table ids are the original
+  plan labels and never change.
 - The floor plan is traced from Jenny's drawing (Court Yard, Main, Peacock,
-  Deck; 31 tables by her numbers). `src/booking/data/venue.ts` writes every
+  Deck; 31 tables). `src/booking/data/venue.ts` writes every
   position in the drawing's pixels through `planX`/`planY` (11 mm a pixel), so
   a table can be checked against the drawing by eye. Moving, adding or
   renumbering a table means re-running `npm test` (`auditVenue()`: no overlaps,
@@ -35,7 +40,9 @@ Client site migrated off Wix. Peregrine Partners is the agency; the venue is the
 - Bookings live in Peregrine's Supabase when `SUPABASE_URL`,
   `SUPABASE_SERVICE_ROLE_KEY` and `PEREGRINE_VENUE_ID` are set (Upstash, then a
   JSON file, otherwise). The service key is server-only. The database's
-  `bookings_no_double_booking` constraint is the final word on double booking.
+  `booking_tables_no_double_booking` constraint (one row per table a live
+  booking holds, kept by trigger) is the final word on double booking. A
+  booking's `table_ids` is sent only for joined sets.
 - The menu page shows Jenny's printed menus from `src/lib/menu.ts`, not the
   Square catalogue. `docs/menu-price-check.md` lists where Square disagrees.
 - Compass words under `src/booking/` mean the isometric view, not a survey:

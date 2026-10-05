@@ -49,7 +49,15 @@ Seeded from `docs/resos-tables.md`.
   combinations (built on `console/assign-table`).
 - Moving someone is the same picker. Unassigned bookings stay flagged.
 
-## Needed from Jenny
+## Status (7 Oct)
+
+Built. Website: commits `ecbfedf`, `62e0da5` (allocation, area picker).
+Console: branch `console/joined-tables` (migration
+`20261007000000_joined_tables.sql`, regenerated seed). Photos dropped (the
+highlighted 3D area is the picture); courtyard names resolved by elimination
+(Lawn = L1, Tree 2 = T1, Deck 1/3/5 = D1/D3/D4, Peacock = round table 1).
+
+## Originally needed from Jenny (resolved)
 
 1. **Photos (or a short video) of each area**: Front Deck, Inside,
    Courtyard (ideally both the covered and open parts). We have usable shots
