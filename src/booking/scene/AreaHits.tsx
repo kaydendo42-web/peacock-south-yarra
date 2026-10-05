@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Html } from '@react-three/drei'
 import { DoubleSide, MeshBasicMaterial, Shape, ShapeGeometry } from 'three'
 import { PLATFORM_RISE, areas, zones, type AreaId, type AreaState } from '../data'
@@ -76,10 +76,12 @@ export default function AreaHits({
   )
   // One material per area so each can carry its own opacity.
   const [mats] = useState(() => new Map(areas.map((a) => [a.id, material.clone()])))
-  for (const a of areas) {
-    const m = mats.get(a.id)!
-    m.opacity = selected === a.id ? WASH.selected : hovered === a.id ? WASH.hover : 0
-  }
+  // Three.js materials live outside React, so their opacity is set after render.
+  useEffect(() => {
+    for (const a of areas) {
+      mats.get(a.id)!.opacity = selected === a.id ? WASH.selected : hovered === a.id ? WASH.hover : 0
+    }
+  }, [mats, selected, hovered])
 
   // A tap fires pointerover without a pointerout; only a real pointer hovers.
   const enter = (area: AreaId, pointerType: string) => {
