@@ -24,13 +24,18 @@
   isolation: isolate;
   overflow: clip;
 }
+/* Jenny: the menu "feels a bit AI" and the type is too big. Quieter heading. */
 .menu-masthead {
   position: relative;
-  padding-top: 60px;
-  padding-bottom: 86px;
+  padding-top: 48px;
+  padding-bottom: 36px;
 }
 .menu-masthead h1 {
-  font-size: clamp(55px, 7.8vw, 106px);
+  font-size: clamp(44px, 5.2vw, 72px);
+}
+.menu-masthead > p {
+  margin: 18px auto 0;
+  font-size: 18px;
 }
 .place-intro {
   display: grid;
@@ -149,11 +154,11 @@
 }
 @media (max-width: 700px) {
   .menu-masthead {
-    padding-top: 30px;
-    padding-bottom: 180px;
+    padding-top: 28px;
+    padding-bottom: 24px;
   }
   .menu-masthead h1 {
-    font-size: clamp(40px, 8.9vw, 65px);
+    font-size: clamp(38px, 10vw, 52px);
   }
   .menu-masthead > p:not(.eyebrow) {
     font-size: 16px;
@@ -234,4 +239,94 @@
 }
 .values-grid p {
   margin-top: 10px;
+}
+
+/* --- menu: photos, then the printed menus ---------------------------------- */
+/* One strip of food, so the menus themselves sit near the top. */
+.menu-photos {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+.menu-photo {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+}
+.menu-photo .photo {
+  object-fit: cover;
+}
+.menu-sheets {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  padding-block: 56px 48px;
+}
+.menu-sheet {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 14px 18px;
+  color: var(--forest);
+  text-decoration: none;
+}
+.menu-sheet__thumb {
+  position: relative;
+  grid-column: 1 / -1;
+  aspect-ratio: 1547 / 1089;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  transition: transform 0.3s ease;
+}
+.menu-sheet__thumb img {
+  object-fit: cover;
+}
+.menu-sheet:hover .menu-sheet__thumb,
+.menu-sheet:focus-visible .menu-sheet__thumb {
+  transform: translateY(-3px);
+}
+.menu-sheet__label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.menu-sheet__title {
+  font-size: 20px;
+  font-weight: 600;
+}
+.menu-sheet__sub {
+  font-size: 14px;
+  color: var(--muted);
+}
+.menu-sheet__open {
+  padding: 8px 14px;
+  border: 1px solid var(--forest);
+  border-radius: 999px;
+  font-size: 14px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.menu-sheet:hover .menu-sheet__open {
+  background: var(--forest);
+  color: var(--paper);
+}
+.menu-after {
+  display: grid;
+  gap: 28px;
+  padding-bottom: var(--section-space);
+}
+@media (max-width: 700px) {
+  .menu-photos {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .menu-sheets {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding-block: 36px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-sheet__thumb {
+    transition: none;
+  }
 }

@@ -4,5 +4,5 @@
  */
 export const policyUpdated = {
   privacy: "5 October 2026",
-  booking: "5 October 2026",
+  booking: "6 October 2026",
 } as const;

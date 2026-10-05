@@ -58,6 +58,12 @@ export default function BookingPolicyPage() {
         when you book, and remind our team when you arrive.
       </p>
 
+      <h2>Paying on the day</h2>
+      <ul>
+        <li>A 15% surcharge applies on weekends, and 20% on public holidays.</li>
+        <li>Sorry, we can’t split bills on weekends or during busy periods.</li>
+      </ul>
+
       <h2>Your details</h2>
       <p>
         We use the details you give us to manage your booking and contact you
