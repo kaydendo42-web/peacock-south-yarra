@@ -1,130 +1,123 @@
 # Onboarding Jenny: the full plan
 
-Written 5 Oct 2026. Jenny approved the walkthrough. This is everything between
-here and The Peacock running on thepeacock.com.au with Resos and Wix switched
-off, in order. `PICKUP-jenny-onboarding.md` has the build history.
+Started 5 Oct 2026, updated end of Tue 6 Oct. Everything between here and The
+Peacock running on thepeacock.com.au with Resos and Wix switched off, in order.
+`PICKUP-jenny-onboarding.md` has the earlier build history.
 
 Legend: **K** = Kayden does it, **C** = Claude does it, **J** = needs Jenny.
 
-## Facts this plan rests on (checked 5 Oct)
+## Start here on Wednesday
+
+Where it stands: both sites are live and green. Peacock `main` at `f44c768`
+(peacock-south-yarra.vercel.app), Peregrine console `main` at `cec3118`
+(www.peregrinepartners.space). The joined-tables SQL and seed have run.
+
+1. **K** In the console List, give Monika (Sat 10 Oct, party of 9) **2 + 3 + 4**
+   and Briony (Fri 9 Oct) **Peacock** (Courtyard). Both are amber until placed.
+2. **K** Text Jenny: guests now choose an area, she can move anyone (joined
+   tables too), the menu page shows her real menus. Ask the open questions
+   below, especially **Resos priority direction**.
+3. **K** Confirm: the test booking confirmation reached Gmail, and the
+   **notifications SQL** (`20261006000000_venue_notifications.sql`) ran (the
+   Settings → Notifications switch saves).
+4. **K** Delete `PEACOCK_SESSION_SECRET`, `PEACOCK_OWNER_PASSWORD_HASH`,
+   `PEACOCK_OWNER_USERNAME` from Vercel; remove the `KV_*` lines from the
+   Peacock `.env.local` (local dev still writes test bookings to old Upstash).
+5. When Jenny says yes: **Phase 4, cutover**.
+
+## Facts this plan rests on (checked 5–6 Oct)
 
 - `thepeacock.com.au` is registered at Crazy Domains, but its **nameservers are
   Cloudflare** (`ursula`/`vick.ns.cloudflare.com`), in Kayden's Cloudflare
-  account. Every DNS change happens in Cloudflare, not Crazy Domains.
-- Apex A records point at Wix (`185.230.63.x`). Mail (MX) is Google Workspace,
-  so `hello@thepeacock.com.au` is a real inbox. No SPF record; DMARC `p=none`.
-- Bookings phone is `0419 448 953` (from Resos); the café line `03 8596 2342`
-  stays everywhere else.
+  account, zone `d6c7eeb392258bd849222ba4f1f19e89`. Every DNS change happens in
+  Cloudflare. A DNS-edit token for that zone is in the Peacock `.env.local` as
+  `CLOUDFLARE_API_TOKEN`.
+- Apex A records still point at Wix (`185.230.63.x`); `www` CNAME
+  `cdn3.wixdns.net`. Mail (MX) is Google Workspace (`hello@` is a real inbox).
+  Resend records (`send.`, `rsend.`, `resend._domainkey`) and the Google
+  verification CNAME are in Cloudflare. Wix's `s1/s2._domainkey` and `_dmarc`
+  CNAME remain until Wix is cancelled.
+- Bookings phone `0419 448 953` (from Resos); café line `03 8596 2342` elsewhere.
+- Resos has **no CSV export**. Future bookings were read from app.resos.com
+  (logged in as Jenny) through its Meteor subscription
+  `bookings.byDateTimeRange('57XdF2SeTHC9db4PW', Date, Date)` (real `Date`s,
+  not strings), then imported with `npm run peregrine:import`.
+- Claude is blocked by auto-mode from `vercel env pull` and from writing
+  Vercel/Supabase settings; Kayden pastes secrets and runs SQL.
 
-## Phase 1: accounts and keys (K)
+## Done
 
-Each of these is set up once for Peregrine and reused for every future client.
+- Privacy policy + booking policy pages (Resos wording, Australian Privacy
+  Principles, payment terms from her printed menu).
+- Booking emails via Resend (`bookings@thepeacock.com.au`, alerts to `hello@`,
+  switchable in console Settings → Notifications; Jenny starts **off**).
+- Two-step sign-in (authenticator app) on the console, enforced by RLS; new
+  sign-in loading states and setup screen.
+- `/owners` removed from the Peacock site; alerts link to the console.
+- 4 future Resos bookings imported (`RS-` ids).
+- **Jenny's feedback (6 Oct):** guests book by **area** (Front Deck / Inside /
+  Courtyard) in the 3D room; the server allocates a table or joined set from
+  her Resos setup (`docs/resos-tables.md`, `docs/area-booking-plan.md`). Console
+  picker offers joined tables. Menu page = food photos + her printed menus.
 
-| # | What | How | Where it goes |
-| --- | --- | --- | --- |
-| 1 | Cloudflare API token | Cloudflare → My Profile → API Tokens → Create → "Edit zone DNS", zone = `thepeacock.com.au` only | `~/.config/peregrine/cloudflare.env` as `CLOUDFLARE_API_TOKEN=...`, `chmod 600`. Never in chat or git. |
-| 2 | Resend account | resend.com, Peregrine's own account (free: 3,000/month, 100/day) | API key → Vercel env (step 2.1) |
-| 3 | Turnstile widget | Cloudflare → Turnstile → Add widget, hostnames: `thepeacock.com.au`, `www.thepeacock.com.au`, `peacock-south-yarra.vercel.app`, `www.peregrinepartners.space`, `localhost` | Site key + secret → Vercel env + Supabase |
-| 4 | Google OAuth client | Google Cloud → new project "Peregrine Console" → OAuth consent screen (External, app name Peregrine) → Credentials → OAuth client (Web). Redirect URI: `https://pzljcmcnthzklaurzxpa.supabase.co/auth/v1/callback` | Client ID + secret → Supabase → Auth → Providers → Google |
-| 5 | Vercel Pro | Upgrade team `kaydendo42-webs-projects` (Hobby is non-commercial only) | One seat covers every client project |
+## Still to build (C, keys from K)
 
-## Phase 2: build and wire (C, with K pasting secrets)
-
-Claude can't write Vercel env vars or Supabase settings (auto-mode blocks it),
-so each step ends with the exact values for Kayden to paste.
-
-1. **Booking emails.** Add `thepeacock.com.au` in Resend; C adds its DNS
-   records in Cloudflare via the API (on the `send.` subdomain, so Google mail
-   is untouched). K sets on `peacock-south-yarra`:
-   `RESEND_API_KEY`, `BOOKING_FROM_EMAIL=The Peacock <bookings@thepeacock.com.au>`,
-   `BOOKING_NOTIFY_EMAIL=hello@thepeacock.com.au`,
-   `CONTACT_FROM_EMAIL` (same as booking), which also switches on the contact
-   form. Test: book on a preview, both emails arrive.
-2. **Auth emails through Resend.** Supabase's built-in mailer sends ~2/hour.
-   Supabase → Auth → SMTP: Resend's SMTP, from `no-reply@peregrinepartners.space`
-   (needs that domain verified in Resend too).
-3. **Two-step sign-in (MFA)**, required for owners and managers: authenticator
-   app enrolment on first sign-in, challenge on every new session. Console repo.
-   **Built 5 Oct** on branch `console/two-step` (`d3306eb`): `/sign-in/verify`,
-   proxy check, and migration `20261005000000_require_two_step.sql` (K runs it
-   in the SQL editor *after* the branch is live, or members are locked out of
-   the data until they verify). Lost phone: Supabase → Authentication → the
-   user → remove the MFA factor; they set up again on next sign-in.
-4. **Turnstile** on console sign-in and magic-link (Supabase Auth → Bot
-   protection → Turnstile + secret) and on the public booking form (verified in
-   `/api/booking` before a row is written).
-5. **Google sign-in** on the console. Sign-ups stay off: Google only works for
-   an email already added to a venue.
-6. **Remove `/owners`** from the Peacock site. One shared password, and the
-   console replaces it. **Done 6 Oct.** After it deploys, delete
-   `PEACOCK_SESSION_SECRET`, `PEACOCK_OWNER_PASSWORD_HASH` and
-   `PEACOCK_OWNER_USERNAME` from Vercel; nothing reads them now.
-8. **Booking alert switch.** Console → Settings → Notifications (branch
-   `console/polish`, migration `20261006000000_venue_notifications.sql`).
-   The website checks it on every booking. Jenny starts **off**, as she had
-   Resos; guests' confirmations always send.
-7. **Supabase backups.** Free has no automatic backups. A nightly `pg_dump` to
-   a private place (GitHub Action) until a second client justifies Pro.
-
-## Phase 3: Jenny's setup (J, ~15 min with K)
-
-- Sign in on her phone, enrol the authenticator app (Google Authenticator or
-  1Password), try Google sign-in.
-- Answers to the questions below.
+1. **Turnstile** on console sign-in and the booking form. Needs K: Cloudflare →
+   Turnstile → Add widget, hostnames `thepeacock.com.au`,
+   `www.thepeacock.com.au`, `peacock-south-yarra.vercel.app`,
+   `www.peregrinepartners.space`, `localhost`.
+2. **Google sign-in** on the console. Needs K: Google Cloud OAuth client (Web),
+   redirect `https://pzljcmcnthzklaurzxpa.supabase.co/auth/v1/callback`.
+3. **Auth emails through Resend** (Supabase's mailer sends ~2/hour). Needs
+   `peregrinepartners.space` verified in Resend.
+4. **Cancellation email from the console.** Cancelling in the console doesn't
+   email the guest yet (only website bookings send emails).
+5. **Supabase backups.** Free has none; nightly `pg_dump` to a private place.
+6. Vercel Pro before or right after cutover (Hobby is non-commercial only).
 
 ## Phase 4: cutover day (quiet weekday morning)
 
-1. **K** Resos → export future bookings (CSV). **C** `npm run peregrine:import
-   -- export.csv` (dry run, fix flags), then `--commit`.
-2. **K** Vercel → `peacock-south-yarra` → Domains: add `thepeacock.com.au` and
-   `www.thepeacock.com.au`.
-3. **C** Cloudflare DNS via API: replace the Wix A records with Vercel's
-   (`A 76.76.21.21` at the apex, `CNAME www → cname.vercel-dns.com`), **DNS
-   only (grey cloud)**. Leave MX and the Resend records alone.
-4. **C** Check: site loads on the domain with HTTPS, `/book-a-table` books end
-   to end, emails link to the right domain, old Wix URLs redirect.
-5. **K** Google Business Profile: website → `https://thepeacock.com.au`,
-   booking link → `https://thepeacock.com.au/book-a-table`. Instagram bio too.
-6. **K** Resos: turn off new online bookings. Keep it paid until the last
-   imported booking has passed so old confirmation links still work; check it
-   for cancellations in that window.
+1. **K** Vercel → `peacock-south-yarra` → Domains: add `www.thepeacock.com.au`
+   (primary) and `thepeacock.com.au` (redirect to www). Send C the records
+   Vercel shows.
+2. **K** Resos: turn off online booking. **C** pull any Resos bookings made
+   since 6 Oct (same Meteor method) and import them.
+3. **C** Cloudflare DNS via API: replace the Wix A records and `www` CNAME with
+   Vercel's, **DNS only (grey cloud)**. Leave MX, Resend and Google records.
+4. **C** Check: HTTPS on the domain, an area booking end to end, email links,
+   old Wix URLs redirect.
+5. **K** Google Business Profile: website → `https://www.thepeacock.com.au`,
+   booking link → `https://www.thepeacock.com.au/book-a-table`. Instagram bio.
+6. **K** Keep Resos paid until the last imported booking (1 Nov) has passed;
+   check it for cancellations in that window.
 
 ## Phase 5: tidy
 
-- **K** Cancel the Wix plan (after DNS has moved; mail is on Google, not Wix).
-- **K** Cancel Resos after the last imported booking date (saves $70/month).
-- **K** Crazy Domains: confirm auto-renew is on and the registrant is Jenny.
-- **C** Disconnect Upstash from the Vercel project.
+- **K** Cancel Wix after DNS moves. **C** swap Wix's `_dmarc` for our own
+  DMARC record and drop `s1/s2._domainkey`.
+- **K** Cancel Resos after 1 Nov (saves $70/month).
+- **K** Crazy Domains: auto-renew on, registrant is Jenny.
+- **K** Delete the old Upstash store.
 
-## Not needed yet
+## Questions for Jenny
 
-- **Xero**: out of scope for the website.
-- **Square**: menu already reads from it. Pre-order for pickup (phase 2 of the
-  project) needs a production access token with Orders + Checkout scopes later.
+- **Resos priority:** does a higher number mean "fill this table first"? The
+  allocation assumes yes (one-line change if not).
+- **Booking alerts:** they're off, as in Resos. Want them on, and to which
+  address (hello@ or her Gmail)?
+- How long should we keep guests' booking details? Policy says "only as long
+  as needed"; a fixed period is a one-line change.
+- Resos lists table 41 as 1–2 seats and 51 as 1–5, the reverse of how they're
+  drawn on her plan. Right?
+- Square prices lag the printed menu (`docs/menu-price-check.md`); fix before
+  online ordering.
+- New text for "what we're about → Good food".
 
 ## Running costs
 
 | Item | Cost | Notes |
 | --- | --- | --- |
 | Vercel Pro | US$20/month | One seat, shared by every client site and the console |
-| Supabase | Free | No backups (see 2.7); Pro US$25/month when it holds several clients |
-| Resend, Turnstile, Google OAuth, Cloudflare DNS | Free | |
-| Resos, Wix | Cancelled | Jenny saves Resos's $70/month plus Wix |
-
-## Questions for Jenny
-
-- **Booking alerts** go to `hello@thepeacock.com.au` for now. Does she check
-  that inbox, or should alerts also go to her Gmail?
-- Bookings phone on the site and emails is `0419 448 953`. Right number?
-- Weekend surcharge (10% via Kpay): going ahead? If so it goes in the booking
-  policy.
-- How long should we keep guests' booking details? The policy says "only as
-  long as needed"; a fixed period (e.g. 2 years) is a one-line change.
-- **D1** has 6 chairs drawn; it's set to seat 8 (ends). Right?
-- **L1** is in the Court Yard, **26** and **25** in Main. Right?
-- Where do people step between levels (Deck side door, which Court Yard doors)?
-  Raised platform in the yard under D1/D3? Photos would settle it.
-- Guests pick an exact table, or a section and she places them?
-- Square prices lag the printed menu (`docs/menu-price-check.md`); fix before
-  online ordering.
-- New text for "what we're about → Good food".
+| Supabase | Free | No backups (see above); Pro US$25/month when it holds several clients |
+| Resend, Turnstile, Google OAuth, Cloudflare DNS | Free | Resend free covers one domain |
+| Resos, Wix | Cancelled at cutover | Jenny saves Resos's $70/month plus Wix |
