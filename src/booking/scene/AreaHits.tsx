@@ -27,6 +27,11 @@ function washGeo(outline: [number, number][]): ShapeGeometry {
   return g
 }
 
+/** The pointer cursor over a pickable area. Event-time only, never during render. */
+const setCursor = (cursor: string) => {
+  document.body.style.cursor = cursor
+}
+
 const areaOf = (zone: string) => areas.find((a) => a.zones.includes(zone))!
 
 const STATE_WORDS: Record<AreaState, string> = {
@@ -87,11 +92,11 @@ export default function AreaHits({
   const enter = (area: AreaId, pointerType: string) => {
     if (pointerType !== 'mouse' && pointerType !== 'pen') return
     onHover(area)
-    document.body.style.cursor = 'pointer'
+    setCursor('pointer')
   }
   const leave = () => {
     onHover(null)
-    document.body.style.cursor = ''
+    setCursor('')
   }
 
   return (
