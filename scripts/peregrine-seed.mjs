@@ -4,13 +4,13 @@
  * priorities) and her joined-table combinations, straight from
  * `src/booking/data/venue.ts`. Needs the 20261007 joined-tables migration.
  *
- *   npm run peregrine:seed > ../../../../peregrine-console/supabase/seed/peacock.sql
+ *   npm run peregrine:seed > <PeregrinePartners repo>/supabase/seed/peacock.sql
  *
  * venue.ts is the one place the floor plan is written. Re-run this after moving
  * or renumbering a table so the console's plan and the website's agree; the
  * statements upsert, so running them twice is harmless.
  */
-import { combinations, tables, zones } from "../src/booking/data/venue.ts";
+import { combinations, fixtures, plants, room, stairs, tables, walls, zones } from "../src/booking/data/venue.ts";
 import { site } from "../src/lib/site.ts";
 
 /** Fixed, so the website's PEREGRINE_VENUE_ID never changes under it. */
@@ -24,6 +24,20 @@ out.push(
   `insert into public.venues (id, slug, name, timezone, website_url, booking_url, phone) values (${q(PEACOCK_VENUE_ID)}, 'the-peacock', ${q(site.name)}, 'Australia/Melbourne', 'https://thepeacock.com.au', 'https://thepeacock.com.au/book-a-table', ${q(site.bookingPhone)})`,
   "  on conflict (id) do update set name = excluded.name, website_url = excluded.website_url, booking_url = excluded.booking_url, phone = excluded.phone;",
 );
+// The room around the tables, so the console's floor plan reads like Jenny's
+// drawing: section outlines, walls, back of house, counters, stairs, trees.
+// Venue metres, the same axes as the tables. Needs the 20261008 plan migration.
+const r3 = (n) => +n.toFixed(3);
+const plan = {
+  width: room.width,
+  depth: room.depth,
+  zones: zones.map((z) => ({ id: z.id, name: z.name, open: z.open, outline: z.outline, label: z.labelAt })),
+  walls: walls.map((w) => ({ kind: w.kind, from: w.from, to: w.to })),
+  fixtures: fixtures.map((f) => ({ kind: f.kind, label: f.label, x: f.x, y: f.y, w: f.w, d: f.d })),
+  stairs: { x0: stairs.x0, x1: stairs.x1, y0: stairs.y0, y1: stairs.y1, treads: stairs.treads },
+  trees: plants.filter((p) => p.kind === "tree" || p.kind === "fern").map((p) => ({ x: p.x, y: p.y, r: r3(p.size / 2) })),
+};
+out.push(`update public.venues set plan = ${q(JSON.stringify(plan))}::jsonb where id = ${q(PEACOCK_VENUE_ID)};`);
 zones.forEach((z, i) => {
   out.push(
     `insert into public.sections (venue_id, id, name, sort, indoor) values (${q(PEACOCK_VENUE_ID)}, ${q(z.id)}, ${q(z.name)}, ${i}, ${!z.open})`,
