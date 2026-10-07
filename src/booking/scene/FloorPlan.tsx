@@ -13,8 +13,9 @@ import {
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrthographicCamera } from '@react-three/drei'
 import { Fog, Group, Matrix4, OrthographicCamera as Ortho, Quaternion, Vector3 } from 'three'
-import { areaOfZone, type AreaId, type AreaState, type Table, type TableState } from '../data'
+import { areaOfZone, areas, room, zones, type AreaId, type AreaState, type Table, type TableState } from '../data'
 import AreaHits from './AreaHits'
+import PlanWalls from './PlanWalls'
 import Case from './Case'
 import Room from './Room'
 import Shadows from './Shadows'
@@ -150,6 +151,35 @@ const PLAN_DIST = 14
 /** Zoom that frames the case from above, its length up the screen. */
 function fitPlan(width: number, height: number) {
   return Math.min(width / caseD, height / caseW) * 0.94
+}
+
+/** Where an area runs, top to bottom, in pixels of the scene element, when it is shown as a plan. */
+export type PlanBand = { area: AreaId; top: number; bottom: number }
+
+/**
+ * Each area's run along the room's long side, as the plan lays it on a screen
+ * of this size: world +x is screen-down and x = 0 sits at the middle. Where two
+ * areas share a stretch (the Court Yard's diagonal against Main) the line
+ * between them goes halfway across the overlap.
+ */
+function planBands(width: number, height: number): PlanBand[] {
+  const zoom = fitPlan(width, height)
+  const runs = areas
+    .map((a) => {
+      const xs = zones.filter((z) => a.zones.includes(z.id)).flatMap((z) => z.outline.map(([x]) => x - room.width / 2))
+      return { area: a.id, min: Math.min(...xs), max: Math.max(...xs) }
+    })
+    .sort((a, b) => a.min - b.min)
+  const px = (x: number) => height / 2 + x * zoom
+  return runs.map((r, i) => {
+    const prev = runs[i - 1]
+    const next = runs[i + 1]
+    return {
+      area: r.area,
+      top: px(prev ? (prev.max + r.min) / 2 : r.min),
+      bottom: px(next ? (r.max + next.min) / 2 : r.max),
+    }
+  })
 }
 
 /**
@@ -353,6 +383,8 @@ export type FloorPlanProps = {
   view?: 'iso' | 'plan'
   /** The rotate buttons and the area names floating in the room. */
   chrome?: boolean
+  /** Told where each area lies on the plan, whenever the scene changes size. */
+  onPlanBands?: (bands: PlanBand[]) => void
 }
 
 export default function FloorPlan({
@@ -365,6 +397,7 @@ export default function FloorPlan({
   area,
   view = 'iso',
   chrome = true,
+  onPlanBands,
 }: FloorPlanProps) {
   const plan = view === 'plan'
   const planRef = useRef(plan)
@@ -432,6 +465,19 @@ export default function FloorPlan({
   }, [plan])
 
   useCanvasMeasureFix(wrapper)
+
+  useLayoutEffect(() => {
+    const el = wrapper.current
+    if (!el || !onPlanBands) return
+    const measure = () => {
+      const { width, height } = el.getBoundingClientRect()
+      if (width > 0 && height > 0) onPlanBands(planBands(width, height))
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [onPlanBands])
 
   const onWheel = useCallback(
     (e: React.WheelEvent) => {
@@ -555,6 +601,7 @@ export default function FloorPlan({
           <Case quarter={shadeQuarter} />
           <Room quarter={shadeQuarter} tags={!area} />
           <Shadows tables={tables} quarter={shadeQuarter} />
+          <PlanWalls show={plan} />
           {area ? (
             <AreaHits
               tags={plan ? 'short' : chrome}

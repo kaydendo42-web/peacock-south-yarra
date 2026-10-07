@@ -18,9 +18,10 @@ import {
   BookingRejected,
 } from '../data'
 import FloorPlan from '../scene/FloorPlanLazy'
+import type { PlanBand } from '../scene/FloorPlan'
 import Gate, { type GateValue } from './Gate'
 import AreaPanel from './AreaPanel'
-import AreaRail from './AreaRail'
+import AreaRail, { RailBar } from './AreaRail'
 import BookingForm, { type GuestDetails } from './BookingForm'
 import Dock, { useDockScroll, useIsPhone } from './Dock'
 
@@ -58,6 +59,7 @@ export default function BookingFlow({
   const phone = useIsPhone()
   // A phone opens on the room, then sets it down as a plan to choose from.
   const [planView, setPlanView] = useState(false)
+  const [bands, setBands] = useState<PlanBand[] | null>(null)
 
   const chosenAt = useMemo(() => (gate ? at(gate.date, gate.time) : null), [gate])
 
@@ -216,9 +218,11 @@ export default function BookingFlow({
               area={{ stateOf: areaState, selected: area, onSelect: selectArea }}
               view={planView ? 'plan' : 'iso'}
               chrome={false}
+              onPlanBands={setBands}
             />
           </div>
-          <AreaRail stateOf={areaState} selected={area} onSelect={selectArea} onContinue={() => setStage('details')} />
+          <AreaRail stateOf={areaState} selected={area} onSelect={selectArea} bands={bands} />
+          <RailBar stateOf={areaState} selected={area} onContinue={() => setStage('details')} />
         </main>
       ) : phone ? (
         <main className="app__body">

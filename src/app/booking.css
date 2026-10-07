@@ -1216,6 +1216,7 @@ html:has(.book-screen) {
   .pt-root .pick {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 0;
+    grid-template-rows: minmax(0, 1fr) auto;
     flex: 1 1 auto;
     min-height: 0;
     transition: grid-template-columns 520ms var(--mv-ease);
@@ -1240,11 +1241,12 @@ html:has(.book-screen) {
   }
 
   .pt-root .rail {
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     min-width: 0;
-    padding: 14px 8px 12px;
+    padding: 8px;
     background: var(--mv-stone-top);
     border-left: 1px solid var(--mv-hairline);
     overflow: hidden;
@@ -1252,27 +1254,29 @@ html:has(.book-screen) {
     transition: opacity 320ms var(--mv-ease) 260ms;
   }
 
-  .pt-root .pick.is-plan .rail {
+  /* Placed against the plan: each button is positioned on its area's band. */
+  .pt-root .rail.is-placed {
+    padding: 0;
+  }
+
+  .pt-root .rail.is-placed .rail__btn {
+    left: 8px;
+    right: 8px;
+  }
+
+  .pt-root .pick.is-plan .rail,
+  .pt-root .pick.is-plan .rail-bar {
     opacity: 1;
-  }
-
-  .pt-root .rail__head {
-    padding: 0 4px;
-  }
-
-  .pt-root .rail__list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
   }
 
   .pt-root .rail__btn {
     display: flex;
+    flex: 1 1 0;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 4px;
-    min-height: 64px;
+    min-height: 44px;
     padding: 10px 6px;
     font-weight: 600;
     font-size: 13px;
@@ -1296,15 +1300,21 @@ html:has(.book-screen) {
     cursor: not-allowed;
   }
 
-  .pt-root .rail__note {
-    padding: 0 4px;
+  .pt-root .rail-bar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: var(--mv-stone-top);
+    border-top: 1px solid var(--mv-hairline);
+    opacity: 0;
+    transition: opacity 320ms var(--mv-ease) 260ms;
   }
 
-  .pt-root .rail__go {
-    margin-top: auto;
-    width: 100%;
-    padding-left: 6px;
-    padding-right: 6px;
+  .pt-root .rail-bar__go {
+    margin-left: auto;
+    min-width: 140px;
   }
 
   /* Details on a phone: the panel alone, no disclosure to open, and the whole
@@ -1323,7 +1333,8 @@ html:has(.book-screen) {
 
 @media (max-width: 767px) and (prefers-reduced-motion: reduce) {
   .pt-root .pick,
-  .pt-root .rail {
+  .pt-root .rail,
+  .pt-root .rail-bar {
     transition: none;
   }
 }
