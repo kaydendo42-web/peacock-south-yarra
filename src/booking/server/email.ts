@@ -191,7 +191,7 @@ export function guestConfirmation(b: Booking, inbox: string): Message {
       `See you soon, ${oneLine(b.guestName)}`,
       `Your table at ${site.name} is booked.`,
       rows,
-      `Need to change or cancel? Reply to this email or call us on ${site.bookingPhone} and mention your reference.`,
+      `Need to change or cancel? Reply to this email or call us on ${site.phone} and mention your reference.`,
     ),
   }
 }
@@ -234,7 +234,7 @@ export function guestCancellation(b: Booking, inbox: string): Message {
         ['Reference', b.id],
         ['Was for', whenLabel(b.startsAt)],
       ],
-      `If this is a surprise, reply to this email or call us on ${site.bookingPhone}.`,
+      `If this is a surprise, reply to this email or call us on ${site.phone}.`,
     ),
   }
 }

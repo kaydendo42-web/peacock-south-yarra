@@ -26,7 +26,7 @@ export default function BookingPolicyPage() {
       <ul>
         <li>
           You can book online for groups of up to eight. For more than eight,
-          call us on <a href={site.bookingPhoneHref}>{site.bookingPhone}</a> or email{" "}
+          call us on <a href={site.phoneHref}>{site.phone}</a> or email{" "}
           <a href={`mailto:${site.email}`}>{site.email}</a>.
         </li>
         <li>
@@ -47,7 +47,7 @@ export default function BookingPolicyPage() {
       <p>
         If your group size changes or you can no longer make it, please let us
         know as early as possible so we can offer the table to someone else.
-        Call us on <a href={site.bookingPhoneHref}>{site.bookingPhone}</a> or email{" "}
+        Call us on <a href={site.phoneHref}>{site.phone}</a> or email{" "}
         <a href={`mailto:${site.email}`}>{site.email}</a> and mention your
         booking reference.
       </p>
@@ -74,7 +74,7 @@ export default function BookingPolicyPage() {
       <h2>Questions</h2>
       <p>
         Contact us at <a href={`mailto:${site.email}`}>{site.email}</a> or{" "}
-        <a href={site.bookingPhoneHref}>{site.bookingPhone}</a>.
+        <a href={site.phoneHref}>{site.phone}</a>.
       </p>
     </PolicyPage>
   );

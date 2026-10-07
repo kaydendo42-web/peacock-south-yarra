@@ -12,12 +12,10 @@ export const site = {
   country: "AU",
   /** Display form used in the footer, matching the live site. */
   addressLine: "68 RIVER STREET, SOUTH YARRA, VIC, 3141",
-  phone: "03 8596 2342",
+  /** Written as the Google Business Profile has it; one number for everything, bookings included. */
+  phone: "(03) 8596 2342",
   phoneHref: "tel:+61385962342",
   phoneRaw: "+61385962342",
-  /** Bookings line: the number guests saw on the Resos booking page. */
-  bookingPhone: "0419 448 953",
-  bookingPhoneHref: "tel:+61419448953",
   email: "hello@thepeacock.com.au",
   instagram: "https://www.instagram.com/thepeacock_southyarra/",
   instagramHandle: "thepeacock_southyarra",

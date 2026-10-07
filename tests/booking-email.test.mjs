@@ -30,11 +30,11 @@ test("times read in Melbourne time whatever the server's clock says", () => {
   assert.equal(whenLabel(booking.startsAt), "Thursday 1 October at 9:00 am");
 });
 
-test("the guest gets their reference, time, party and table, with replies going to the venue", () => {
+test("the guest gets their reference, time, party and area, with replies going to the venue", () => {
   const m = guestConfirmation(booking, "hello@thepeacock.com.au");
   assert.equal(m.to, "sarah@example.com");
   assert.equal(m.replyTo, "hello@thepeacock.com.au");
-  for (const s of ["PK-ABC234", "Thursday 1 October at 9:00 am", "4 people", "53", "Birthday", "03 8596 2342"]) {
+  for (const s of ["PK-ABC234", "Thursday 1 October at 9:00 am", "4 people", "Front Deck", "Birthday", "(03) 8596 2342"]) {
     assert.ok(m.text.includes(s), `text mentions ${s}`);
     assert.ok(m.html.includes(s), `html mentions ${s}`);
   }
