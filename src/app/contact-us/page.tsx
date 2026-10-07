@@ -53,7 +53,7 @@ export default function ContactPage() {
             target="_blank"
             rel="noreferrer"
           >
-            Get directions <span aria-hidden="true">↗</span>
+            Get directions <span aria-hidden="true">↗︎</span>
           </a>
           <p className="eyebrow">Opening hours</p>
           <dl className="hours-list">
@@ -84,7 +84,7 @@ export default function ContactPage() {
             <ContactForm />
           ) : (
             <a className="button" href={`mailto:${site.email}`}>
-              Email us <span aria-hidden="true">↗</span>
+              Email us <span aria-hidden="true">↗︎</span>
             </a>
           )}
         </div>

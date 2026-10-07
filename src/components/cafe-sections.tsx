@@ -42,7 +42,7 @@ export function StorySection({ full = false }: { full?: boolean }) {
           </p>
         ) : (
           <Link href="/about" className="text-link">
-            A little more about us <span aria-hidden="true">↗</span>
+            A little more about us <span aria-hidden="true">↗︎</span>
           </Link>
         )}
       </div>
@@ -84,7 +84,7 @@ export function InstagramSection() {
           target="_blank"
           rel="noreferrer"
         >
-          @{site.instagramHandle} ↗
+          @{site.instagramHandle} ↗︎
         </a>
       </div>
       <div className="instagram-grid">
@@ -103,7 +103,7 @@ export function InstagramSection() {
               sizes="(max-width: 700px) 50vw, 25vw"
               className="photo"
             />
-            <span aria-hidden="true">↗</span>
+            <span aria-hidden="true">↗︎</span>
           </a>
         ))}
       </div>
@@ -144,7 +144,7 @@ export function CafeFaq() {
           TO KNOW.
         </h2>
         <Link href="/contact-us" className="text-link">
-          Other questions? Get in touch ↗
+          Other questions? Get in touch ↗︎
         </Link>
       </div>
       <div className="faq-list">

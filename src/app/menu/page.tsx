@@ -69,7 +69,7 @@ export default async function MenuPage() {
               <span className="menu-sheet__sub">{s.sub}</span>
             </span>
             <span className="menu-sheet__open" aria-hidden="true">
-              Open ↗
+              Open ↗︎
             </span>
           </a>
         ))}

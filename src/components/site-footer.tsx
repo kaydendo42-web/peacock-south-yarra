@@ -12,7 +12,7 @@ export function SiteFooter() {
             AT HOME.
           </h2>
           <Link href="/book-a-table" className="button">
-            See you for brunch <span aria-hidden="true">↗</span>
+            See you for brunch <span aria-hidden="true">↗︎</span>
           </Link>
         </div>
         <div className="footer-grid">
@@ -29,7 +29,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noreferrer"
             >
-              Get directions ↗
+              Get directions ↗︎
             </a>
           </div>
           <div>
@@ -49,7 +49,7 @@ export function SiteFooter() {
             <a href={site.phoneHref}>{site.phone}</a>
             <a href={`mailto:${site.email}`}>{site.email}</a>
             <a href={site.instagram} target="_blank" rel="noreferrer">
-              Instagram ↗
+              Instagram ↗︎
             </a>
           </div>
           <nav aria-label="Footer">
@@ -80,7 +80,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noreferrer"
             >
-              Peregrine Partners ↗
+              Peregrine Partners ↗︎
             </a>
           </span>
           <a href="#top">Back to top ↑</a>

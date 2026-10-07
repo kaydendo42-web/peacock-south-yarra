@@ -52,7 +52,7 @@ export function MenuPhotos({ boards }: { boards: MenuBoard[] }) {
                 <h2>{card.name.toUpperCase()}</h2>
                 <p>
                   {card.item.price ? `$${card.item.price}` : "Ask our team"}{" "}
-                  <span aria-hidden="true">↘</span>
+                  <span aria-hidden="true">↘︎</span>
                 </p>
               </div>
             </a>

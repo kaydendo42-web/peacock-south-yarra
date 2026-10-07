@@ -32,7 +32,7 @@ export function CoffeeHero() {
           </div>
           <div className="coffee-hero-intro hero-enter">
             <Link href="/menu" className="button hero-menu-button">
-              See our menu<span aria-hidden="true">↗</span>
+              See our menu<span aria-hidden="true">↗︎</span>
             </Link>
           </div>
           <a className="dog-invite hero-enter" href="#four-legged-regulars">
@@ -47,7 +47,7 @@ export function CoffeeHero() {
             <span>
               Pets welcome!
               <small>
-                Meet our regulars <span aria-hidden="true">↘</span>
+                Meet our regulars <span aria-hidden="true">↘︎</span>
               </small>
             </span>
           </a>

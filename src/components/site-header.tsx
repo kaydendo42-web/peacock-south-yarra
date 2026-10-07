@@ -56,10 +56,10 @@ export function SiteHeader() {
             href="/book-a-table"
             aria-label="Book a table"
           >
-            Book ↗
+            Book ↗︎
           </Link>
           <Link className="button button-small" href="/book-a-table">
-            Book a table <span aria-hidden="true">↗</span>
+            Book a table <span aria-hidden="true">↗︎</span>
           </Link>
           <button
             className="menu-toggle"
@@ -88,11 +88,11 @@ export function SiteHeader() {
             aria-current={pathname === item.href ? "page" : undefined}
           >
             {item.label}
-            <span aria-hidden="true">↗</span>
+            <span aria-hidden="true">↗︎</span>
           </Link>
         ))}
         <Link href="/book-a-table" onClick={() => setOpen(false)}>
-          Book a table <span aria-hidden="true">↗</span>
+          Book a table <span aria-hidden="true">↗︎</span>
         </Link>
       </nav>
     </header>

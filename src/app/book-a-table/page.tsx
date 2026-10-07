@@ -40,7 +40,7 @@ export default function BookingPage() {
             Call us
           </a>
           <Link href="/" className="book-screen__home">
-            <span aria-hidden="true">←</span> Return to home page
+            <span aria-hidden="true">←︎</span> Return to home page
           </Link>
         </header>
         <BookingExperience />

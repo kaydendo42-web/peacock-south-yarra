@@ -84,7 +84,7 @@ export default function PrivacyPolicyPage() {
           target="_blank"
           rel="noreferrer"
         >
-          Google’s privacy policy ↗
+          Google’s privacy policy ↗︎
         </a>
         .
       </p>
@@ -106,7 +106,7 @@ export default function PrivacyPolicyPage() {
           target="_blank"
           rel="noreferrer"
         >
-          Resos privacy policy ↗
+          Resos privacy policy ↗︎
         </a>
         .
       </p>
@@ -122,7 +122,7 @@ export default function PrivacyPolicyPage() {
         If you’re unhappy with how we’ve handled your information, tell us
         first and we’ll try to put it right. You can also contact the{" "}
         <a href="https://www.oaic.gov.au" target="_blank" rel="noreferrer">
-          Office of the Australian Information Commissioner ↗
+          Office of the Australian Information Commissioner ↗︎
         </a>
         .
       </p>

@@ -29,7 +29,7 @@ export default function AboutPage() {
             <span>house.</span>
           </h1>
           <Link className="text-link" href="/menu">
-            See our menu <span aria-hidden="true">↗</span>
+            See our menu <span aria-hidden="true">↗︎</span>
           </Link>
         </header>
         <figure className="place-interior">

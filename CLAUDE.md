@@ -13,6 +13,9 @@ Client site migrated off Wix. Peregrine Partners is the agency; the venue is the
   change a spacing or type value, check it against `DESIGN_TOKENS.md` first —
   the odd-looking numbers are deliberate.
 - The site is light-only, matching the source. Don't add a dark palette.
+- Arrow glyphs in copy (`↗`, `↘`, `←`) are followed by U+FE0E, the text
+  presentation selector. Jost has no arrows, so without it iOS falls back to
+  Apple Color Emoji and draws a blue tile. Keep it on any arrow you add.
 - Wix-licensed fonts cannot ship here. The substitutes are wired through
   `@theme` in `globals.css`.
 - `src/booking/` is the booking system, ported from the standalone build in
