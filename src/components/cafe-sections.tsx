@@ -114,7 +114,7 @@ export function CafeFaq() {
   const faqs = [
     {
       q: "Can I bring my dog?",
-      a: "Yes! Dogs are welcome on our front deck and in the rear courtyard. Ask the team about our homemade peanut butter dog biscuits.",
+      a: "Yes! Dogs are welcome on our front deck and in the rear courtyard. Tag your pooch and receive a free pup cup.",
     },
     {
       q: "What are your opening hours?",
