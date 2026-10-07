@@ -1187,3 +1187,143 @@ html:has(.book-screen) {
 .pt-root .area-tag.is-out {
   opacity: 0.6;
 }
+
+/* --- the date box -----------------------------------------------------------
+   iOS gives a date input its own intrinsic width, wider than a phone's column,
+   so width: 100% alone let it run past the panel's edge. */
+
+.pt-root .gate__date {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 44px;
+}
+
+.pt-root .gate__date::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+/* --- choosing an area on a phone ---------------------------------------------
+   The room fills the screen under the summary row, then the camera sets it
+   down as a plan (FloorPlan view="plan") and the rail of three areas slides in
+   beside it. Computers keep the room and the docked panel. */
+
+@media (max-width: 767px) {
+  /* The booking screen is a fixed frame, so the pick takes what the summary
+     row leaves rather than measuring the screen. */
+  .pt-root .pick {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 0;
+    flex: 1 1 auto;
+    min-height: 0;
+    transition: grid-template-columns 520ms var(--mv-ease);
+  }
+
+  .pt-root .pick.is-plan {
+    grid-template-columns: minmax(0, 1fr) 104px;
+  }
+
+  .pt-root .pick__scene {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .pt-root .pick__scene .scene {
+    height: 100%;
+  }
+
+  /* Nothing to drag on the plan; a finger on it scrolls the page. */
+  .pt-root .pick.is-plan .scene canvas {
+    touch-action: pan-y;
+  }
+
+  .pt-root .rail {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    padding: 14px 8px 12px;
+    background: var(--mv-stone-top);
+    border-left: 1px solid var(--mv-hairline);
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 320ms var(--mv-ease) 260ms;
+  }
+
+  .pt-root .pick.is-plan .rail {
+    opacity: 1;
+  }
+
+  .pt-root .rail__head {
+    padding: 0 4px;
+  }
+
+  .pt-root .rail__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pt-root .rail__btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 64px;
+    padding: 10px 6px;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1.2;
+    white-space: normal;
+  }
+
+  .pt-root .rail__btn small {
+    font-size: 10px;
+    font-weight: 500;
+  }
+
+  .pt-root .rail__btn.is-selected,
+  .pt-root .rail__btn.is-selected:hover:not(:disabled) {
+    background: var(--mv-accent);
+    color: var(--mv-accent-ink);
+  }
+
+  .pt-root .rail__btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .pt-root .rail__note {
+    padding: 0 4px;
+  }
+
+  .pt-root .rail__go {
+    margin-top: auto;
+    width: 100%;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  /* Details on a phone: the panel alone, no disclosure to open, and the whole
+     screen to scroll in rather than the bottom sheet's half. */
+  .book-screen .pt-root .dock--solo {
+    flex: 1 1 auto;
+    max-height: none;
+    border-top: 0;
+  }
+
+  .pt-root .dock--solo .dock__toggle,
+  .pt-root .dock--solo .dock__back {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .pt-root .pick,
+  .pt-root .rail {
+    transition: none;
+  }
+}

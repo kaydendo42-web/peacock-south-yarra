@@ -30,4 +30,6 @@ export function standardEase(x: number): number {
 }
 
 export const ROTATE_MS = 520
+/** Iso to plan on a phone: slower than a turn, it is the room changing what it is. */
+export const PLAN_MS = 1100
 export const HOVER_MS = 160

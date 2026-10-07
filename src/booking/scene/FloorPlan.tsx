@@ -12,7 +12,7 @@ import {
 } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrthographicCamera } from '@react-three/drei'
-import { Fog, Group, OrthographicCamera as Ortho } from 'three'
+import { Fog, Group, Matrix4, OrthographicCamera as Ortho, Quaternion, Vector3 } from 'three'
 import { areaOfZone, type AreaId, type AreaState, type Table, type TableState } from '../data'
 import AreaHits from './AreaHits'
 import Case from './Case'
@@ -20,7 +20,7 @@ import Room from './Room'
 import Shadows from './Shadows'
 import TableMesh from './TableMesh'
 import { applyQuarterToAll } from './geometry'
-import { ROTATE_MS, standardEase } from './ease'
+import { PLAN_MS, ROTATE_MS, standardEase } from './ease'
 import {
   CASE_HEIGHT,
   CASE_SECTION,
@@ -133,34 +133,94 @@ function useContainerSize() {
   return size
 }
 
-/** Screen-right and screen-up, in world space, for a camera at equal XYZ. */
-const RIGHT: [number, number, number] = [1 / SQRT2, 0, -1 / SQRT2]
-const UP: [number, number, number] = [-1 / SQRT6, 2 / SQRT6, -1 / SQRT6]
+/**
+ * The two ways the camera looks at the room. Iso is the camera at equal XYZ.
+ * Plan looks straight down with the room's long side running up the screen,
+ * which is the shape of a portrait phone. The camera is still orthographic and
+ * still never tilts away from one of these two: it only eases between them.
+ */
+const ISO_DIR = new Vector3(1, 1, 1).normalize()
+const ISO_Q = new Quaternion().setFromRotationMatrix(new Matrix4().lookAt(ISO_DIR, new Vector3(), new Vector3(0, 1, 0)))
+const PLAN_UP = new Vector3(-1, 0, 0)
+const PLAN_Q = new Quaternion().setFromRotationMatrix(new Matrix4().lookAt(new Vector3(0, 1, 0), new Vector3(), PLAN_UP))
+/** Distance from the target. Plan sits closer so the fog leaves the floor alone. */
+const ISO_DIST = 20 * Math.sqrt(3)
+const PLAN_DIST = 14
+
+/** Zoom that frames the case from above, its length up the screen. */
+function fitPlan(width: number, height: number) {
+  return Math.min(width / caseD, height / caseW) * 0.94
+}
 
 /**
- * OrthographicCamera at equal XYZ. The ratio is never altered — only zoom,
+ * OrthographicCamera, iso or plan. The ratio is never altered — only zoom,
  * within ZOOM_MIN–ZOOM_MAX of the fitted base (§1), and a pan that slides the
- * camera across the screen plane without ever tilting it.
+ * camera across the screen plane without ever tilting it. Going to plan eases
+ * the orientation, the zoom and the distance together over PLAN_MS.
  */
-function IsoCamera({ zoomMul, pan }: { zoomMul: number; pan: { x: number; y: number } }) {
+function IsoCamera({
+  zoomMul,
+  pan,
+  plan,
+  reduced,
+}: {
+  zoomMul: number
+  pan: { x: number; y: number }
+  plan: boolean
+  reduced: boolean
+}) {
   const size = useContainerSize()
   const cam = useRef<Ortho>(null)
   const { base, targetY } = useMemo(() => fit(size.width, size.height), [size.width, size.height])
+  const planBase = useMemo(() => fitPlan(size.width, size.height), [size.width, size.height])
+  const blend = useRef({ from: 0, to: 0, start: -1, value: 0 })
 
-  useLayoutEffect(() => {
+  useEffect(() => {
+    const b = blend.current
+    const to = plan ? 1 : 0
+    if (reduced) {
+      blend.current = { from: to, to, start: -1, value: to }
+      return
+    }
+    blend.current = { from: b.value, to, start: performance.now(), value: b.value }
+  }, [plan, reduced])
+
+  const q = useMemo(() => new Quaternion(), [])
+  const v = useMemo(() => ({ right: new Vector3(), up: new Vector3(), back: new Vector3() }), [])
+
+  useFrame(() => {
     const c = cam.current
     if (!c) return
-    c.zoom = base * zoomMul
-    // The pan is held in screen pixels; a pixel is 1/zoom world units.
-    const r = pan.x / c.zoom
-    const u = pan.y / c.zoom
-    const ox = RIGHT[0] * r + UP[0] * u
-    const oy = RIGHT[1] * r + UP[1] * u
-    const oz = RIGHT[2] * r + UP[2] * u
-    c.position.set(20 + ox, targetY + 20 + oy, 20 + oz)
-    c.lookAt(ox, targetY + oy, oz)
-    c.updateProjectionMatrix()
-  }, [base, targetY, zoomMul, pan])
+    const b = blend.current
+    if (b.start >= 0) {
+      const t = Math.min(1, (performance.now() - b.start) / PLAN_MS)
+      b.value = b.from + (b.to - b.from) * standardEase(t)
+      if (t >= 1) b.start = -1
+    }
+    const e = b.value
+
+    q.copy(ISO_Q).slerp(PLAN_Q, e)
+    const zoom = base * zoomMul * (1 - e) + planBase * e
+    // The pan is held in screen pixels; a pixel is 1/zoom world units. Plan
+    // fits the room whole, so the pan fades out on the way there.
+    const r = (pan.x * (1 - e)) / zoom
+    const u = (pan.y * (1 - e)) / zoom
+    v.right.set(1, 0, 0).applyQuaternion(q)
+    v.up.set(0, 1, 0).applyQuaternion(q)
+    v.back.set(0, 0, 1).applyQuaternion(q)
+    const dist = ISO_DIST * (1 - e) + PLAN_DIST * e
+    const ty = targetY * (1 - e)
+    c.position.set(
+      v.right.x * r + v.up.x * u + v.back.x * dist,
+      ty + v.right.y * r + v.up.y * u + v.back.y * dist,
+      v.right.z * r + v.up.z * u + v.back.z * dist,
+    )
+    c.quaternion.copy(q)
+    if (c.zoom !== zoom) {
+      c.zoom = zoom
+      c.updateProjectionMatrix()
+    }
+  })
 
   return <OrthographicCamera ref={cam} makeDefault position={[20, 20, 20]} near={-100} far={200} />
 }
@@ -289,6 +349,10 @@ export type FloorPlanProps = {
   onHover?: (table: Table | null) => void
   labelFor?: (table: Table) => ReactNode
   area?: AreaMode
+  /** Iso (the default) or straight down. Plan fits the room whole: no pan, zoom or turning. */
+  view?: 'iso' | 'plan'
+  /** The rotate buttons and the area names floating in the room. */
+  chrome?: boolean
 }
 
 export default function FloorPlan({
@@ -299,7 +363,12 @@ export default function FloorPlan({
   onHover,
   labelFor,
   area,
+  view = 'iso',
+  chrome = true,
 }: FloorPlanProps) {
+  const plan = view === 'plan'
+  const planRef = useRef(plan)
+  planRef.current = plan
   const [hoverArea, setHoverArea] = useState<AreaId | null>(null)
   const [quarter, setQuarter] = useState(0)
   const [shadeQuarter, setShadeQuarter] = useState(0)
@@ -357,10 +426,16 @@ export default function FloorPlan({
     applyQuarterToAll(0)
   }, [])
 
+  // Plan is drawn the one way round, long side up the screen.
+  useEffect(() => {
+    if (plan) setQuarter(0)
+  }, [plan])
+
   useCanvasMeasureFix(wrapper)
 
   const onWheel = useCallback(
     (e: React.WheelEvent) => {
+      if (planRef.current) return
       setZoom(zoomRef.current * (e.deltaY > 0 ? 0.92 : 1.087))
     },
     [setZoom],
@@ -393,6 +468,7 @@ export default function FloorPlan({
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
+      if (planRef.current) return
       const d = drag.current
       if (d && d.id === e.pointerId && zoomRef.current > 1) {
         const dx = e.clientX - d.x
@@ -451,8 +527,8 @@ export default function FloorPlan({
   // strip across the middle. Start closer there; the pan reaches the ends.
   useEffect(() => {
     const el = wrapper.current
-    if (el && el.clientWidth < 600 && el.clientHeight > el.clientWidth) setZoom(1.9)
-  }, [setZoom])
+    if (el && el.clientWidth < 600 && el.clientHeight > el.clientWidth) setZoom(chrome ? 1.9 : 1.3)
+  }, [setZoom, chrome])
 
   return (
     <div
@@ -474,13 +550,14 @@ export default function FloorPlan({
           state.scene.fog = new Fog(hex.fog, FOG_NEAR, FOG_FAR)
         }}
       >
-        <IsoCamera zoomMul={zoomMul} pan={pan} />
+        <IsoCamera zoomMul={zoomMul} pan={pan} plan={plan} reduced={reduced} />
         <Turntable quarter={quarter} onShadeQuarter={setShadeQuarter} reduced={reduced}>
           <Case quarter={shadeQuarter} />
           <Room quarter={shadeQuarter} tags={!area} />
           <Shadows tables={tables} quarter={shadeQuarter} />
           {area ? (
             <AreaHits
+              tags={plan ? 'short' : chrome}
               stateOf={area.stateOf}
               selected={area.selected}
               hovered={hoverArea}
@@ -507,6 +584,7 @@ export default function FloorPlan({
         </Turntable>
       </Canvas>
 
+      {chrome && !plan ? (
       <div className="scene__controls">
         <button
           type="button"
@@ -525,6 +603,7 @@ export default function FloorPlan({
           <Chevron dir="right" />
         </button>
       </div>
+      ) : null}
     </div>
   )
 }

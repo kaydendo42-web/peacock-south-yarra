@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   areaOfZone,
   areaStateAt,
@@ -20,10 +20,14 @@ import {
 import FloorPlan from '../scene/FloorPlanLazy'
 import Gate, { type GateValue } from './Gate'
 import AreaPanel from './AreaPanel'
+import AreaRail from './AreaRail'
 import BookingForm, { type GuestDetails } from './BookingForm'
-import Dock, { useDockScroll } from './Dock'
+import Dock, { useDockScroll, useIsPhone } from './Dock'
 
 type Stage = 'browse' | 'details' | 'done'
+
+/** How long a phone shows the room before it turns into the plan. */
+const ESTABLISH_MS = 1400
 
 const areaName = (id: AreaId | null | undefined) => areas.find((a) => a.id === id)?.name ?? ''
 
@@ -51,6 +55,9 @@ export default function BookingFlow({
   const [error, setError] = useState<string | null>(null)
   const [dockOpen, setDockOpen] = useState(false)
   const { dock, scene, revealDock, revealScene } = useDockScroll()
+  const phone = useIsPhone()
+  // A phone opens on the room, then sets it down as a plan to choose from.
+  const [planView, setPlanView] = useState(false)
 
   const chosenAt = useMemo(() => (gate ? at(gate.date, gate.time) : null), [gate])
 
@@ -79,7 +86,17 @@ export default function BookingFlow({
     [areaState, revealDock],
   )
 
+  const picking = phone && !!gate && !gateOpen && stage === 'browse'
+
+  useEffect(() => {
+    if (!picking || planView) return
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const t = window.setTimeout(() => setPlanView(true), reduced ? 0 : ESTABLISH_MS)
+    return () => window.clearTimeout(t)
+  }, [picking, planView])
+
   const applyGate = (value: GateValue) => {
+    setPlanView(false)
     setGate(value)
     setGateOpen(false)
     setArea(null)
@@ -137,6 +154,29 @@ export default function BookingFlow({
     setDockOpen(false)
   }
 
+  const panel: ReactNode =
+    stage === 'done' && confirmed ? (
+      <Confirmation booking={confirmed} onDone={startAgain} />
+    ) : stage === 'details' && area && gate ? (
+      <BookingForm
+        place={areaName(area)}
+        gate={gate}
+        slot={chosenAt!}
+        busy={busy}
+        error={error}
+        onBack={() => setStage('browse')}
+        onConfirm={confirm}
+      />
+    ) : gate ? (
+      <AreaPanel
+        gate={gate}
+        stateOf={areaState}
+        selected={area}
+        onSelect={selectArea}
+        onContinue={() => setStage('details')}
+      />
+    ) : null
+
   return (
     <>
       {gate && !gateOpen ? (
@@ -167,6 +207,23 @@ export default function BookingFlow({
             onDismiss={gate ? () => setGateOpen(false) : onExit}
           />
         </main>
+      ) : picking ? (
+        <main className={`app__body pick${planView ? ' is-plan' : ''}`}>
+          {/* A tap on the room skips straight to the plan. */}
+          <div className="pick__scene" onPointerDown={() => setPlanView(true)}>
+            <FloorPlan
+              tables={tables}
+              area={{ stateOf: areaState, selected: area, onSelect: selectArea }}
+              view={planView ? 'plan' : 'iso'}
+              chrome={false}
+            />
+          </div>
+          <AreaRail stateOf={areaState} selected={area} onSelect={selectArea} onContinue={() => setStage('details')} />
+        </main>
+      ) : phone ? (
+        <main className="app__body">
+          <aside className="dock is-open dock--solo">{panel}</aside>
+        </main>
       ) : (
         <main className="app__body">
           <div className="guest__scene" ref={scene}>
@@ -184,27 +241,7 @@ export default function BookingFlow({
             onBackToRoom={revealScene}
             innerRef={dock}
           >
-            {stage === 'done' && confirmed ? (
-              <Confirmation booking={confirmed} onDone={startAgain} />
-            ) : stage === 'details' && area ? (
-              <BookingForm
-                place={areaName(area)}
-                gate={gate}
-                slot={chosenAt!}
-                busy={busy}
-                error={error}
-                onBack={() => setStage('browse')}
-                onConfirm={confirm}
-              />
-            ) : (
-              <AreaPanel
-                gate={gate}
-                stateOf={areaState}
-                selected={area}
-                onSelect={selectArea}
-                onContinue={() => setStage('details')}
-              />
-            )}
+            {panel}
           </Dock>
         </main>
       )}

@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useRef, type ReactNode } from 'react'
+import { useCallback, useRef, useSyncExternalStore, type ReactNode } from 'react'
 
 /**
  * The docked panel column.
@@ -16,6 +16,19 @@ const PHONE = '(max-width: 767px)'
 
 export function isPhone() {
   return typeof window !== 'undefined' && window.matchMedia(PHONE).matches
+}
+
+/** The phone breakpoint, kept current as the window changes. False on the server. */
+export function useIsPhone() {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mq = window.matchMedia(PHONE)
+      mq.addEventListener('change', onChange)
+      return () => mq.removeEventListener('change', onChange)
+    },
+    () => window.matchMedia(PHONE).matches,
+    () => false,
+  )
 }
 
 function prefersReducedMotion() {

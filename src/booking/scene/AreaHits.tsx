@@ -41,6 +41,7 @@ const STATE_WORDS: Record<AreaState, string> = {
 }
 
 export default function AreaHits({
+  tags = true,
   stateOf,
   selected,
   hovered,
@@ -48,6 +49,8 @@ export default function AreaHits({
   onSelect,
   isDrag,
 }: {
+  /** The area names over the room. Short is the name alone, for the plan. */
+  tags?: boolean | 'short'
   stateOf: (area: AreaId) => AreaState
   selected: AreaId | null
   hovered: AreaId | null
@@ -122,10 +125,10 @@ export default function AreaHits({
 
       {/* Each area's name where Jenny wrote its section's, with its state for
           this party and time. A caption, not a target. */}
-      {shapes.map((s) => {
+      {tags && shapes.map((s) => {
         const [sx, sz] = toScene(...s.zone.labelAt)
         const state = stateOf(s.area)
-        const name = s.area === 'inside' ? `Inside · ${s.zone.name}` : areaOf(s.zone.id).name
+        const name = s.area === 'inside' && tags !== 'short' ? `Inside · ${s.zone.name}` : areaOf(s.zone.id).name
         return (
           <Html
             key={`tag-${s.zone.id}`}
@@ -138,7 +141,7 @@ export default function AreaHits({
               className={`zone-tag area-tag${selected === s.area ? ' is-selected' : ''}${state !== 'available' ? ' is-out' : ''}`}
             >
               {name}
-              {STATE_WORDS[state] ? <small>{STATE_WORDS[state]}</small> : null}
+              {STATE_WORDS[state] && tags !== 'short' ? <small>{STATE_WORDS[state]}</small> : null}
             </span>
           </Html>
         )
