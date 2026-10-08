@@ -26,8 +26,8 @@ export function venueDateKey(d: Date): DateKey {
   return venueDay.format(d)
 }
 
-export function todayKey(): DateKey {
-  return dateKey(new Date())
+export function todayKey(now = new Date()): DateKey {
+  return venueDateKey(now)
 }
 
 const venueClock = new Intl.DateTimeFormat('en-GB', {
@@ -40,10 +40,8 @@ const venueClock = new Intl.DateTimeFormat('en-GB', {
 /**
  * Minutes past venue-local midnight, wherever this is running.
  *
- * `at()` and everything built on it construct dates in the *runtime's* zone,
- * which is the guest's own clock in a browser and UTC on a server. That is
- * fine for drawing a grid a guest is looking at and useless for deciding
- * whether the doors were open, so anything that enforces a rule asks here.
+ * Used by the service rules and by `at()` to turn a venue-local wall clock
+ * into an instant without relying on the browser's or server's time zone.
  */
 export function venueMinutes(d: Date): number {
   const [h, m] = venueClock.format(d).split(':').map(Number)
@@ -56,11 +54,22 @@ export function minutesOf(hhmm: string): number {
   return h * 60 + m
 }
 
-/** 'YYYY-MM-DD' + 'HH:MM' → a local Date. */
+/** 'YYYY-MM-DD' + 'HH:MM' in Melbourne → an instant, including daylight saving. */
 export function at(key: DateKey, hhmm: string): Date {
   const [y, m, d] = key.split('-').map(Number)
   const [h, min] = hhmm.split(':').map(Number)
-  return new Date(y, m - 1, d, h, min, 0, 0)
+  const wallClock = Date.UTC(y, m - 1, d, h, min)
+  let instant = wallClock
+  // Correct the UTC guess by the difference from Melbourne's clock. A second
+  // pass handles the offset changing between the guess and the actual instant
+  // on a daylight-saving transition day. Service starts after those changes.
+  for (let pass = 0; pass < 2; pass++) {
+    const guess = new Date(instant)
+    const [gy, gm, gd] = venueDateKey(guess).split('-').map(Number)
+    const venueWallClock = Date.UTC(gy, gm - 1, gd, 0, venueMinutes(guess))
+    instant += wallClock - venueWallClock
+  }
+  return new Date(instant)
 }
 
 export function addMinutes(d: Date, min: number): Date {
@@ -69,7 +78,7 @@ export function addMinutes(d: Date, min: number): Date {
 
 export function timeLabel(d: Date | string): string {
   const date = typeof d === 'string' ? new Date(d) : d
-  return `${pad(date.getHours())}:${pad(date.getMinutes())}`
+  return venueClock.format(date)
 }
 
 export function dateLabel(key: DateKey): string {
@@ -112,7 +121,7 @@ export function serviceWindow(key: DateKey): [Date, Date] {
 
 /** Which half of the day a moment sits in, or null if the venue is shut. */
 export function periodOf(when: Date): Period | null {
-  const key = dateKey(when)
+  const key = venueDateKey(when)
   const [open, close] = serviceWindow(key)
   if (when < open || when >= close) return null
   return when < at(key, MIDDAY) ? 'morning' : 'midday'

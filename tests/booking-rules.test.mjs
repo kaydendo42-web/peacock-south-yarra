@@ -1,4 +1,4 @@
-import test from "node:test";
+import test, { beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { checkBooking } from "../src/booking/data/rules.ts";
 import {
@@ -14,7 +14,7 @@ import {
   zones,
 } from "../src/booking/data/venue.ts";
 import { bookableSlots } from "../src/booking/data/availability.ts";
-import { timeLabel, periodOf, sittingFor } from "../src/booking/data/time.ts";
+import { at, timeLabel, periodOf, sittingFor } from "../src/booking/data/time.ts";
 import { hours } from "../src/lib/site.ts";
 
 /**
@@ -22,20 +22,19 @@ import { hours } from "../src/lib/site.ts";
  * against the same module the API route imports, so a rule that passes here is
  * the rule the server actually enforces — not a second copy of it.
  *
- * Dates are written in the venue's own wall clock via `local()`, which is what
- * a guest in Melbourne sees. Two of these assert through venue-local minutes
- * rather than constructed dates, which is the part that has to survive a server
- * whose own clock is UTC.
+ * Dates are written in the venue's own wall clock via `local()`, independent
+ * of the runtime's zone. Freeze the clock before the fixture dates so these
+ * checks exercise opening hours and overlaps without becoming past bookings.
  */
 
 const TUESDAY = "2026-09-22";
 const SATURDAY = "2026-09-26";
 
-/** 'YYYY-MM-DD' + 'HH:MM' in the runtime's own zone, as the guest's browser does. */
+beforeEach((t) => t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-09-21T00:00:00.000Z") }));
+
+/** 'YYYY-MM-DD' + 'HH:MM' in the venue's zone. */
 function local(key, hhmm) {
-  const [y, m, d] = key.split("-").map(Number);
-  const [h, min] = hhmm.split(":").map(Number);
-  return new Date(y, m - 1, d, h, min, 0, 0).toISOString();
+  return at(key, hhmm).toISOString();
 }
 
 /** Metres, compared the way metres have to be compared. */

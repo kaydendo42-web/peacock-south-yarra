@@ -15,7 +15,7 @@ import { combinations, openingOn, tables } from './venue.ts'
  */
 
 export type Violation = {
-  code: 'unknown-table' | 'too-small' | 'double-booked' | 'closed' | 'bad-field' | 'area-full'
+  code: 'unknown-table' | 'too-small' | 'double-booked' | 'closed' | 'bad-field' | 'area-full' | 'past'
   message: string
 }
 
@@ -80,6 +80,11 @@ export function checkBooking(
   const start = new Date(candidate.startsAt)
   if (Number.isNaN(start.getTime())) {
     return { code: 'bad-field', message: 'That is not a valid start time.' }
+  }
+  // Rechecked by the server under the diary lock, including a tab left open
+  // while its chosen start time passes.
+  if (start.getTime() <= Date.now()) {
+    return { code: 'past', message: 'That time has already passed. Please choose a future time.' }
   }
 
   if (table.seats < size) {
