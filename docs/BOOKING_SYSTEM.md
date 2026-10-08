@@ -50,6 +50,14 @@ venue-local minutes so it holds on a server running in UTC. The guest's grid
 never offers such a slot, but a write can arrive from an owner's edit or a stale
 tab.
 
+**Bookings must start in the future.** The guest's date picker starts at today
+in Melbourne, and the time grid omits starts that have already passed. An open
+grid refreshes its clock and clears expired selections. `checkBooking` refuses
+any start at or before the server's current instant under the diary lock, so a
+stale form or a direct API request cannot create a past booking. Later today
+is still bookable. Dates and times are built and displayed in `VENUE_TZ`,
+including daylight-saving changes, regardless of the guest's own time zone.
+
 **The owner console is gated on the server.** The standalone build redirected
 in the browser after rendering, and trusted a value script could write. Here
 `ownerSignedIn()` reads the signed HttpOnly cookie in a server component, and an
@@ -153,12 +161,6 @@ Three things, in order of how badly they matter.
 - **A narrow-viewport pass.** The phone layout is the standalone build's,
   verbatim, plus the frame giving up its height below 768px. It has not been
   looked at in a real narrow window since the port.
-- **The availability grid assumes the guest's clock is Melbourne's.**
-  `bookableSlots` builds its times in the runtime's own zone, which is right for
-  a guest standing in South Yarra and wrong for one booking from overseas — they
-  would see the grid shifted, and the server would refuse the booking with "The
-  Peacock is open 07:00–15:00 that day". Safe, but confusing. The fix is to
-  build the grid in `VENUE_TZ` the way `checkBooking` already does.
 - **Public holidays.** `hours.publicHolidays` carries a display string and no
   open/close pair, so a holiday books as its weekday would. The owner can cancel
   from the run sheet in the meantime.

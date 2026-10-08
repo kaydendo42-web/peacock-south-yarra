@@ -68,10 +68,12 @@ export function availableSlots(
   return bookableSlots(date, partySize).filter((slot) => isSlotFree(slot, partySize, mine))
 }
 
-/** Slots on this date whose sitting finishes before the doors shut. */
-export function bookableSlots(date: DateKey, partySize: number): Date[] {
+/** Future slots on this date whose sitting finishes before the doors shut. */
+export function bookableSlots(date: DateKey, partySize: number, now = new Date()): Date[] {
   const sitting = sittingFor(partySize)
-  return allSlots(date).filter((slot) => withinService(slot, addMinutes(slot, sitting), date))
+  return allSlots(date).filter(
+    (slot) => slot > now && withinService(slot, addMinutes(slot, sitting), date),
+  )
 }
 
 function withinService(start: Date, end: Date, date: DateKey): boolean {

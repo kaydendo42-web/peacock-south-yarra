@@ -37,32 +37,50 @@ export default function Gate({
   onSubmit: (value: GateValue) => void
   onDismiss?: () => void
 }) {
-  const today = todayKey()
+  const [now, setNow] = useState(() => new Date())
+  const today = todayKey(now)
   const [partySize, setPartySize] = useState(value?.partySize ?? 0)
   const [date, setDate] = useState<DateKey>(value?.date ?? today)
   const [time, setTime] = useState(value?.time ?? '')
 
   const slots = useMemo(
-    () => (partySize ? bookableSlots(date, partySize) : []),
-    [date, partySize],
+    () => (partySize ? bookableSlots(date, partySize, now) : []),
+    [date, partySize, now],
   )
 
-  // A longer sitting can put the last slots of a service out of reach, so a
-  // time chosen for two may not survive a change to a party of seven.
+  // Keep an open tab's grid current, and refresh as soon as the guest returns.
+  useEffect(() => {
+    const refresh = () => setNow(new Date())
+    const timer = window.setInterval(refresh, 30_000)
+    window.addEventListener('focus', refresh)
+    return () => {
+      window.clearInterval(timer)
+      window.removeEventListener('focus', refresh)
+    }
+  }, [])
+
+  // Clear a selection when its start passes or a larger party no longer fits.
   useEffect(() => {
     if (time && !slots.some((s) => timeLabel(s) === time)) setTime('')
   }, [slots, time])
 
   const morning = slots.filter((s) => periodOf(s) === 'morning')
   const midday = slots.filter((s) => periodOf(s) === 'midday')
-  const ready = partySize > 0 && !!date && !!time
+  const ready = partySize > 0 && date >= today && slots.some((s) => timeLabel(s) === time)
 
   return (
     <form
       className="panel gate enter"
       onSubmit={(e) => {
         e.preventDefault()
-        if (ready) onSubmit({ partySize, date, time })
+        if (!ready) return
+        // Check the actual clock again: a slot can expire between grid updates.
+        if (!bookableSlots(date, partySize).some((s) => timeLabel(s) === time)) {
+          setNow(new Date())
+          setTime('')
+          return
+        }
+        onSubmit({ partySize, date, time })
       }}
     >
       <h1 className="display t-22 gate__title">Your booking</h1>

@@ -1,4 +1,4 @@
-import test from "node:test";
+import test, { beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { allocate, areaStateAt, optionsFor } from "../src/booking/data/allocate.ts";
 import { checkBooking } from "../src/booking/data/rules.ts";
@@ -7,6 +7,7 @@ import { areas, combinations, tables } from "../src/booking/data/venue.ts";
 
 // Tuesday 22 September 2026, 10:00 in Melbourne (AEST, UTC+10).
 const TEN_AM = new Date("2026-09-22T00:00:00.000Z");
+beforeEach((t) => t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-09-21T00:00:00.000Z") }));
 const label = (ids) => ids.map((id) => tables.find((t) => t.id === id).label);
 const held = (tableId, extra = {}) => ({
   id: `PK-${tableId}`,
