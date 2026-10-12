@@ -20,8 +20,8 @@ The approved [third pass](docs/research/THIRD_PASS.md) adds Henry to the review
 board, replaces menu photo features with pausable café sketches, and gives Our
 Place a distinct editorial layout with the supplied hanging-plant interior photo.
 
-Pages: home, our place, searchable menu, bookings, and find us/contact, plus
-the owner console at /owners.
+Pages: home, our place, searchable menu, bookings, and find us/contact. The
+venue manages bookings in the Peregrine console, not on this site.
 The old /cafe-menu route permanently redirects to /menu.
 
 ## Run locally
@@ -45,8 +45,8 @@ npm test
 ```
 
 With the local server running, `TEST_BASE_URL=http://127.0.0.1:3000 npm test`
-also runs the three page-level regressions (26 tests total, including the
-booking rules).
+also runs the page-level regressions. Without it, `npm test` runs the booking
+rules, venue audit and store tests.
 
 [Square setup](docs/SQUARE_SETUP.md) explains location selection, category
 filtering, caching and permissions. Without a token the original transcribed
@@ -71,47 +71,51 @@ and route generation with Next.js's alternate compiler.
 - src/lib/square-catalog.ts: read-only API and catalog transformation.
 - src/components/structured-data.tsx: schema from the same site/menu sources.
 - public/images: optimised client imagery.
-- src/booking: the booking system — data and rules, the isometric scene, the
-  guest flow and the owner console.
-- src/booking/data/venue.ts: the floor plan, in metres, and the sitting lengths.
+- src/booking: the booking system — data and rules, the isometric scene and
+  the guest flow.
+- src/booking/data/venue.ts: the floor plan, the slot interval (15 minutes),
+  sitting lengths and turnaround.
 - src/app/booking.css: the booking system's stylesheet, scoped to `.pt-root`.
 - docs/research: old measurements, redesign direction and asset provenance.
 
 ## Bookings and contact
-`/book-a-table` runs PeregrineTable, the table-first booking system ported from
-the standalone build in `peregrinetable/` — a guest picks a table on an
-isometric floor plan, then a time. See
-[booking system](docs/BOOKING_SYSTEM.md) for the architecture, the owner
-console and what has to be configured before it holds real bookings.
+`/book-a-table` runs PeregrineTable. A guest picks a party size, day and time
+(every 15 minutes), then an **area** (Front Deck, Inside, Courtyard);
+`allocate()` picks the table or joined set server-side. See
+[booking system](docs/BOOKING_SYSTEM.md) and
+[area booking](docs/area-booking-plan.md).
 
 Service hours are derived from `hours` in `src/lib/site.ts`; the booking grid
 and the footer cannot disagree about when the doors are open.
 
-The owner console is at `/owners`, reached from a deliberately quiet link at the
-bottom of every page. It signs in against a scrypt hash in the environment and
-issues an HttpOnly session cookie; the run sheet and the floor view are gated in
-a server component, so an unsigned browser never receives them. **The handover
-credential is `owner` / `password12345` and must be replaced before launch** —
-see the booking system doc.
+Bookings live in Peregrine's Supabase when `SUPABASE_URL`,
+`SUPABASE_SERVICE_ROLE_KEY` and `PEREGRINE_VENUE_ID` are set (Upstash, then a
+local JSON file, otherwise). The database's no-double-booking constraint is the
+final word. The booking API is guests-only and never returns contact details.
+
+The venue runs the day from the Peregrine console
+(https://www.peregrinepartners.space/console/the-peacock), which requires a
+password and an authenticator code. Booking alerts link to that day in the
+console and are sent only when the venue has them switched on there. The old
+`/owners` run sheet has been removed.
 
 With no email provider configured, the contact page offers a direct email link.
 Set the existing RESEND_API_KEY and CONTACT_FROM_EMAIL settings to enable
 the enquiry form; verify sender-domain delivery before launch.
 
-## Domain and launch
-The existing production website remains unchanged. See
-[Cloudflare preparation](docs/CLOUDFLARE_SETUP.md). Recommended: keep Jenny's
-registration and billing at Crazy Domains, use Cloudflare for DNS, and
-connect the approved production deployment afterwards.
+## Domain and hosting
+Live at https://www.thepeacock.com.au since 7 October 2026 (moved off Wix).
+DNS is in Cloudflare (DNS only), pointing at the Vercel project
+`peacock-south-yarra`; the apex redirects to www. Registration stays with Jenny
+at Crazy Domains. See [Cloudflare setup](docs/CLOUDFLARE_SETUP.md).
 
-Square is connected to the user-selected The Peacock South Yarra location.
-The Vercel project is `peacock-south-yarra`, with server-only production Square
-variables and GitHub integration. The existing custom domain is not switched by
-this deployment; keep DNS changes separate from publishing to Vercel.
-Before launch: review the POS duplicates/internal entries noted in the Square guide,
-confirm café hours/prices and
-image permissions with Jenny, check bookings/contact, then deploy and update
-DNS. Nothing in the local build changes domain registration or billing.
+Merging to `main` deploys to production through the GitHub integration.
+Square variables are server-only on Vercel.
+
+## What's next
+The console as an installable app for the venue's phone and tablet, Square QR
+table ordering (plus ordering by table number from the website), an
+order-online link, and drafted posts to Google, Instagram and Facebook.
 
 Permanent legacy redirects remain: /general-1 → /menu,
 /book-online → /book-a-table, /cafe-menu → /menu.
