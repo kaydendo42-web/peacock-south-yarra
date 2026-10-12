@@ -653,7 +653,7 @@ export function openingOn(key: DateKey): [string, string] {
 export const MIDDAY = '11:00'
 
 export const service = {
-  slotMinutes: 30,
+  slotMinutes: 15,
   // A café turn, not a restaurant's. large = party of 5+.
   sittingMinutes: { small: 75, large: 90 },
   bufferMinutes: 15,

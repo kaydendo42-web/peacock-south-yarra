@@ -34,13 +34,13 @@ test("a previously valid selection is refused once its start time arrives", (t) 
 test("the guest grid offers only future times today, and none on earlier days", (t) => {
   freeze(t);
   assert.deepEqual(bookableSlots("2026-10-07", 2), []);
-  assert.deepEqual(bookableSlots("2026-10-08", 2).map(timeLabel), ["12:30", "13:00", "13:30"]);
+  assert.deepEqual(bookableSlots("2026-10-08", 2).map(timeLabel), ["12:15", "12:30", "12:45", "13:00", "13:15", "13:30", "13:45"]);
   assert.equal(timeLabel(bookableSlots("2026-10-09", 2)[0]), "07:00");
 });
 
 test("the grid has no starts left after the last fitting sitting begins", (t) => {
   freeze(t);
-  t.mock.timers.setTime(new Date("2026-10-08T02:30:00.000Z").getTime());
+  t.mock.timers.setTime(new Date("2026-10-08T02:45:00.000Z").getTime());
   assert.deepEqual(bookableSlots("2026-10-08", 2), []);
   assert.ok(bookableSlots("2026-10-09", 2).length > 0);
 });

@@ -118,7 +118,7 @@ test("the offered grid never contains a slot the rules would refuse", () => {
 test("the grid runs from opening to the last sitting that fits", () => {
   const slots = bookableSlots(TUESDAY, 2).map(timeLabel);
   assert.equal(slots[0], hours.weekdays.open);
-  assert.equal(slots.at(-1), "13:30");
+  assert.equal(slots.at(-1), "13:45");
   // One continuous service, so there is no gap in the middle of the day.
   assert.equal(slots.length, new Set(slots).size);
 });
