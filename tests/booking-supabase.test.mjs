@@ -26,6 +26,10 @@ function fakeFetch(respond) {
   const fn = async (url, init = {}) => {
     const call = { url: String(url), method: init.method ?? "GET", body: init.body ? JSON.parse(init.body) : undefined };
     calls.push(call);
+    // Every call must name The Peacock's schema; PostgREST would otherwise read public.
+    if (init.headers?.["Accept-Profile"] !== "thepeacock" || init.headers?.["Content-Profile"] !== "thepeacock") {
+      return new Response(JSON.stringify({ code: "PGRST106", message: "wrong schema" }), { status: 406 });
+    }
     const { status = 200, json = [] } = respond(call);
     return new Response(JSON.stringify(json), { status });
   };

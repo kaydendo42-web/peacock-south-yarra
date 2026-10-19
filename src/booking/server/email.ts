@@ -2,7 +2,7 @@ import { site } from '../../lib/site.ts'
 import type { Booking } from '../data/types.ts'
 import { VENUE_TZ, areaOfZone, areas, tables } from '../data/venue.ts'
 import { heldTables } from '../data/availability.ts'
-import { fromEnv } from './store.ts'
+import { fromEnv, profileHeaders } from './store.ts'
 
 /**
  * Booking emails: a confirmation to the guest and an alert to the venue when a
@@ -79,7 +79,7 @@ export async function alertSettings(env: NodeJS.ProcessEnv, fetcher: typeof fetc
   try {
     const res = await fetcher(
       `${url}/rest/v1/venues?id=eq.${encodeURIComponent(venue)}&select=notify_bookings,notify_email`,
-      { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+      { headers: { apikey: key, Authorization: `Bearer ${key}`, ...profileHeaders } },
     )
     if (!res.ok) return fallback
     const [row] = (await res.json()) as { notify_bookings?: boolean; notify_email?: string | null }[]
