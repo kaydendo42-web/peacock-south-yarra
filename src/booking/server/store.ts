@@ -173,12 +173,20 @@ type BookingRow = {
  * the write came through. `exclusive` is a plain call-through, and a refused
  * write surfaces as `StoreConflict`.
  */
+/**
+ * The Postgres schema The Peacock's tables live in. Peregrine's shared project
+ * keeps each client in its own schema, so every PostgREST call names it.
+ */
+export const SCHEMA = 'thepeacock'
+export const profileHeaders = { 'Accept-Profile': SCHEMA, 'Content-Profile': SCHEMA }
+
 export function supabaseStore(url: string, serviceKey: string, venueId: string, bufferMinutes: number): Store {
   const rest = `${url.replace(/\/$/, '')}/rest/v1/bookings`
   const headers = {
     apikey: serviceKey,
     Authorization: `Bearer ${serviceKey}`,
     'Content-Type': 'application/json',
+    ...profileHeaders,
   }
 
   const toRow = (b: Booking): BookingRow => ({

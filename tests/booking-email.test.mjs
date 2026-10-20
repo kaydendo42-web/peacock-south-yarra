@@ -90,6 +90,9 @@ test("alert settings come from the venue row, and fail open to the inbox", async
   assert.deepEqual(await alertSettings(env, row([{ notify_bookings: false, notify_email: null }])), { on: false, to: "hello@x.au" });
   assert.deepEqual(await alertSettings(env, row([{ notify_bookings: true, notify_email: "j@g.test" }])), { on: true, to: "j@g.test" });
   assert.deepEqual(await alertSettings(env, row({ message: "no column" }, 400)), { on: true, to: "hello@x.au" });
+  let sent;
+  await alertSettings(env, async (_url, init) => ((sent = init.headers), new Response("[]")));
+  assert.equal(sent["Accept-Profile"], "thepeacock");
   assert.deepEqual(await alertSettings(env, async () => { throw new Error("offline"); }), { on: true, to: "hello@x.au" });
   assert.deepEqual(await alertSettings({ BOOKING_NOTIFY_EMAIL: "hello@x.au" }), { on: true, to: "hello@x.au" });
 });

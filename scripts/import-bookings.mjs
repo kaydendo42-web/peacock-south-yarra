@@ -150,6 +150,8 @@ for (const b of ready) {
     method: "POST",
     headers: {
       apikey: SUPABASE_SERVICE_ROLE_KEY,
+      "Accept-Profile": "thepeacock",
+      "Content-Profile": "thepeacock",
       Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
       "Content-Type": "application/json",
       Prefer: "resolution=ignore-duplicates,return=minimal",
