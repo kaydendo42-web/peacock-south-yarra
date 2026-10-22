@@ -36,5 +36,6 @@ export const hours = {
 export const nav = [
   { href: "/about", label: "Our place" },
   { href: "/menu", label: "The menu" },
+  { href: "/dinners", label: "$5 dinners" },
   { href: "/contact-us", label: "Find us" },
 ] as const;
