@@ -8,6 +8,7 @@ import "./globals.css";
 import "./redesign.css";
 import "./third-pass.css";
 import "./booking.css";
+import "./dinners.css";
 
 const display = Fira_Sans_Extra_Condensed({
   variable: "--font-fira",

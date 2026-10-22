@@ -193,9 +193,10 @@ export function supabaseStore(url: string, serviceKey: string, venueId: string, 
     id: b.id,
     venue_id: venueId,
     table_id: b.tableId,
-    // Sent only for a joined set, so a single-table write stays exactly what
-    // it was before the database learned about table_ids.
-    ...(b.tableIds && b.tableIds.length > 1 ? { table_ids: b.tableIds } : {}),
+    // Sent when the writer gives the list: always for a joined set, and for a
+    // guest's change, so moving off a joined set shrinks the list too (the
+    // trigger only follows table_id when the list is left alone).
+    ...(b.tableIds && b.tableIds.length ? { table_ids: b.tableIds } : {}),
     starts_at: b.startsAt,
     // The window the table is out of circulation, turnaround included — the
     // same span `bookingSpan()` checks, so the database and the rules agree.

@@ -3,6 +3,7 @@ import type { Booking } from '../data/types.ts'
 import { VENUE_TZ, areaOfZone, areas, tables } from '../data/venue.ts'
 import { heldTables } from '../data/availability.ts'
 import { fromEnv, profileHeaders } from './store.ts'
+import { CHANGE_CUTOFF_LABEL, manageUrl } from './manage.ts'
 
 /**
  * Booking emails: a confirmation to the guest and an alert to the venue when a
@@ -24,7 +25,8 @@ export interface Mailer {
   send(message: Message): Promise<void>
 }
 
-export type BookingEvent = 'created' | 'cancelled'
+/** `cancelled` is the venue cancelling; `guest-cancelled` the guest, from their link. */
+export type BookingEvent = 'created' | 'changed' | 'cancelled' | 'guest-cancelled'
 
 /**
  * Resend over its REST API. Null when unconfigured, so a missing key means
@@ -135,10 +137,10 @@ const escape = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
 
 /** Guest-supplied text never reaches a subject line with a newline in it. */
-const oneLine = (s: string) => s.replace(/[\r\n]+/g, ' ').trim()
+export const oneLine = (s: string) => s.replace(/[\r\n]+/g, ' ').trim()
 
-/** One plain layout for all three emails: a heading, label/value rows, a footer. */
-function render(heading: string, intro: string, rows: [string, string][], outro: string) {
+/** One plain layout for every email: a heading, label/value rows, a footer. Dinner orders use it too. */
+export function render(heading: string, intro: string, rows: [string, string][], outro: string) {
   const text = [
     heading,
     '',
@@ -172,7 +174,12 @@ ${rows
 
 // --- the three emails ------------------------------------------------------
 
-export function guestConfirmation(b: Booking, inbox: string): Message {
+const changeNote = (manage: string | undefined) =>
+  manage
+    ? `Need to change or cancel? Use this link up to ${CHANGE_CUTOFF_LABEL}: ${manage} (or call us on ${site.phone}).`
+    : `Need to change or cancel? Reply to this email or call us on ${site.phone} and mention your reference.`
+
+export function guestConfirmation(b: Booking, inbox: string, manage?: string, changed = false): Message {
   const rows: [string, string][] = [
     ['Reference', b.id],
     ['When', whenLabel(b.startsAt)],
@@ -186,12 +193,12 @@ export function guestConfirmation(b: Booking, inbox: string): Message {
   return {
     to: b.email,
     replyTo: inbox,
-    subject: `Your table at ${site.shortName}: ${whenLabel(b.startsAt)}`,
+    subject: `${changed ? 'Booking updated' : 'Your table at ' + site.shortName}: ${whenLabel(b.startsAt)}`,
     ...render(
-      `See you soon, ${oneLine(b.guestName)}`,
-      `Your table at ${site.name} is booked.`,
+      changed ? 'Booking updated' : `See you soon, ${oneLine(b.guestName)}`,
+      changed ? `Your booking at ${site.name} now reads as below.` : `Your table at ${site.name} is booked.`,
       rows,
-      `Need to change or cancel? Reply to this email or call us on ${site.phone} and mention your reference.`,
+      changeNote(manage),
     ),
   }
 }
@@ -222,7 +229,49 @@ export function venueAlert(b: Booking, console: string, inbox: string): Message 
   }
 }
 
-export function guestCancellation(b: Booking, inbox: string): Message {
+/** The venue hears when a guest changes or cancels online, as it does for a new booking. */
+export function venueChange(b: Booking, previous: Booking | undefined, console: string, inbox: string): Message {
+  const cancelled = b.status === 'cancelled'
+  const rows: [string, string][] = [
+    ['When', whenLabel(b.startsAt)],
+    ...(previous && previous.startsAt !== b.startsAt ? [['Was', whenLabel(previous.startsAt)] as [string, string]] : []),
+    ['Party', people(b.partySize) + (previous && previous.partySize !== b.partySize ? ` (was ${previous.partySize})` : '')],
+    ['Area', areaLabel(b) ?? '—'],
+    ['Table', tablesLabel(b)],
+    ['Name', b.guestName],
+    ['Phone', b.phone],
+    ['Reference', b.id],
+  ]
+  return {
+    to: inbox,
+    replyTo: b.email,
+    subject: `${cancelled ? 'Booking cancelled' : 'Booking changed'}: ${oneLine(b.guestName)}, ${whenLabel(b.startsAt)}`,
+    ...render(
+      cancelled ? 'Booking cancelled' : 'Booking changed',
+      cancelled ? 'A guest cancelled their booking online.' : 'A guest changed their booking online.',
+      cancelled ? rows.filter(([k]) => k !== 'Table') : rows,
+      `See the day in your console: ${console}/list?date=${dateKey(b.startsAt)}`,
+    ),
+  }
+}
+
+export function guestCancellation(b: Booking, inbox: string, byGuest = false): Message {
+  if (byGuest) {
+    return {
+      to: b.email,
+      replyTo: inbox,
+      subject: `Your booking at ${site.shortName} is cancelled`,
+      ...render(
+        'Booking cancelled',
+        `Hi ${oneLine(b.guestName)}, you've cancelled your booking at ${site.name}.`,
+        [
+          ['Reference', b.id],
+          ['Was for', whenLabel(b.startsAt)],
+        ],
+        `Thanks for letting us know. Hope to see you another time.`,
+      ),
+    }
+  }
   return {
     to: b.email,
     replyTo: inbox,
@@ -244,12 +293,18 @@ export function messagesFor(
   b: Booking,
   env: NodeJS.ProcessEnv,
   alerts: AlertSettings = { on: true, to: venueInbox(env) },
+  previous?: Booking,
 ): Message[] {
   const inbox = venueInbox(env)
+  // The guest's own email always goes; the venue's alert only if she wants it.
   if (event === 'created') {
-    // The guest's confirmation always goes; the venue's alert only if she wants it.
-    const guest = guestConfirmation(b, inbox)
+    const guest = guestConfirmation(b, inbox, manageUrl(b.id, env))
     return alerts.on ? [guest, venueAlert(b, consoleUrl(env), alerts.to)] : [guest]
+  }
+  if (event === 'changed' || event === 'guest-cancelled') {
+    const guest =
+      event === 'changed' ? guestConfirmation(b, inbox, manageUrl(b.id, env), true) : guestCancellation(b, inbox, true)
+    return alerts.on ? [guest, venueChange(b, previous, consoleUrl(env), alerts.to)] : [guest]
   }
   return [guestCancellation(b, inbox)]
 }
@@ -258,10 +313,16 @@ export function messagesFor(
  * Send and never throw. The booking is already saved by the time this runs;
  * an email outage must not turn a confirmed booking into an error screen.
  */
-export async function notify(mailer: Mailer | null, event: BookingEvent, b: Booking, env: NodeJS.ProcessEnv) {
+export async function notify(
+  mailer: Mailer | null,
+  event: BookingEvent,
+  b: Booking,
+  env: NodeJS.ProcessEnv,
+  previous?: Booking,
+) {
   if (!mailer) return
-  const alerts = event === 'created' ? await alertSettings(env) : undefined
-  const results = await Promise.allSettled(messagesFor(event, b, env, alerts).map((m) => mailer.send(m)))
+  const alerts = event === 'cancelled' ? undefined : await alertSettings(env)
+  const results = await Promise.allSettled(messagesFor(event, b, env, alerts, previous).map((m) => mailer.send(m)))
   for (const r of results) {
     if (r.status === 'rejected') console.error(`Booking email (${event}, ${b.id}) failed:`, r.reason)
   }

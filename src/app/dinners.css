@@ -1,0 +1,447 @@
+/* $5 dinners: the order form on /dinners and the page Square returns to. */
+
+.dinners-order {
+  max-width: 880px;
+  padding-bottom: var(--section-space);
+}
+.dinners-form {
+  display: grid;
+  gap: 48px;
+}
+.dinners-form fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.dinners-form legend {
+  margin-bottom: 18px;
+}
+.dinners-form fieldset:disabled {
+  opacity: 0.45;
+}
+
+.dinners-days {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 10px;
+}
+.dinners-day {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.dinners-day input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.dinners-day:hover {
+  border-color: var(--forest);
+}
+.dinners-day[data-selected] {
+  background: var(--forest);
+  border-color: var(--forest);
+  color: var(--paper);
+}
+.dinners-day:has(input:focus-visible) {
+  outline: 3px solid var(--forest);
+  outline-offset: 3px;
+}
+.dinners-day-name {
+  font-weight: 600;
+  font-size: 16px;
+}
+.dinners-day-meta {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.dinners-dishes {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.dinners-dish {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 22px 18px;
+  background: var(--pale);
+  border-radius: 18px;
+}
+.dinners-dish[data-soldout] {
+  opacity: 0.55;
+}
+.dinners-dish h3 {
+  font: 700 clamp(24px, 3vw, 32px) / 1 var(--font-display);
+  text-transform: uppercase;
+  margin: 4px 0 8px;
+}
+.dinners-dish-price {
+  font: 900 40px / 1 var(--font-display);
+  color: var(--forest);
+}
+.dinners-dish-meta {
+  font-size: 13px;
+  color: var(--muted);
+  min-height: 1.5em;
+}
+.dinners-dish-meta strong {
+  color: var(--forest);
+}
+
+.dinners-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.dinners-stepper button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--forest);
+  background: var(--paper);
+  color: var(--forest);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.dinners-stepper button:hover:not(:disabled) {
+  background: var(--mint);
+}
+.dinners-stepper button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.dinners-stepper output {
+  min-width: 32px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.dinners-details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px 24px;
+}
+.dinners-details legend {
+  grid-column: 1 / -1;
+}
+.dinners-details label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.dinners-details input {
+  border: 0;
+  border-bottom: 1px solid var(--forest);
+  background: transparent;
+  padding: 8px 0;
+  font: inherit;
+  font-size: 16px;
+  color: var(--forest);
+}
+.dinners-details input:focus {
+  outline: none;
+  border-bottom-width: 2px;
+}
+
+.dinners-star {
+  font-size: 0.45em;
+  vertical-align: top;
+  margin-left: 0.04em;
+}
+
+.dinners-star-note {
+  display: block;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.dinners-pay {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  padding-top: 28px;
+  border-top: 1px solid var(--rule);
+}
+.dinners-pay > p:first-child {
+  font-size: 18px;
+}
+.dinners-pay .button {
+  background: var(--forest);
+  color: var(--paper);
+}
+.dinners-pay .button span {
+  background: var(--paper);
+  color: var(--forest);
+}
+.dinners-pay .button:disabled {
+  opacity: 0.4;
+  transform: none;
+  cursor: default;
+}
+
+.dinners-note,
+.dinners-fine {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 14px;
+}
+.dinners-error {
+  padding: 14px 18px;
+  background: var(--pink);
+  color: var(--forest);
+  border-radius: 14px;
+}
+
+.dinners-rotation {
+  padding-block: var(--section-space);
+  border-top: 1px solid var(--rule);
+  max-width: 1100px;
+}
+.dinners-rotation > h2 {
+  font: 900 clamp(36px, 5vw, 64px) / 1 var(--font-display);
+  text-transform: uppercase;
+}
+.dinners-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 16px 0 36px;
+}
+.dinners-key abbr {
+  text-decoration: none;
+  font-weight: 600;
+}
+.dinners-weeks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+}
+.dinners-weeks h3 {
+  margin-bottom: 12px;
+}
+.dinners-weeks dl > div {
+  padding: 14px 0;
+  border-top: 1px solid var(--rule);
+}
+.dinners-weeks dt {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.dinners-weeks dd {
+  margin: 0;
+  font-size: 15px;
+}
+.dinners-price {
+  display: inline-block;
+  min-width: 34px;
+  font-weight: 600;
+}
+.dinners-diet {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.dinners-thanks {
+  padding-block: 80px var(--section-space);
+}
+.dinners-thanks-card {
+  max-width: 560px;
+  margin-inline: auto;
+  text-align: center;
+}
+.dinners-thanks-card h1 {
+  font: 900 clamp(40px, 6vw, 72px) / 1 var(--font-display);
+  text-transform: uppercase;
+  margin: 16px 0 20px;
+}
+.dinners-thanks-card a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.dinners-receipt {
+  margin-top: 28px;
+  text-align: left;
+}
+.dinners-receipt > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid var(--rule);
+}
+.dinners-receipt dd {
+  margin: 0;
+  font-weight: 600;
+}
+.dinners-cancel {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  margin-top: 32px;
+  font-size: 15px;
+  color: var(--muted);
+}
+.dinners-cancel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px 24px;
+}
+.dinners-cancel .button {
+  background: var(--forest);
+  color: var(--paper);
+}
+.dinners-link {
+  font: inherit;
+  color: var(--forest);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  .dinners-form {
+    gap: 36px;
+  }
+  .dinners-dishes,
+  .dinners-details,
+  .dinners-weeks {
+    grid-template-columns: 1fr;
+  }
+  .dinners-days {
+    grid-template-columns: 1fr 1fr;
+  }
+  .dinners-pay .button {
+    width: 100%;
+  }
+}
+
+/* Changing a booking from the link in its confirmation: /book-a-table/manage. */
+
+.manage-booking {
+  padding-block: 64px var(--section-space);
+}
+.manage-card {
+  max-width: 640px;
+  margin-inline: auto;
+}
+.manage-card h1 {
+  font: 900 clamp(40px, 6vw, 72px) / 1 var(--font-display);
+  text-transform: uppercase;
+  margin: 16px 0 16px;
+}
+.manage-card a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.manage-summary {
+  margin: 24px 0 40px;
+}
+.manage-summary > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-top: 1px solid var(--rule);
+}
+.manage-summary dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+.manage-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 24px;
+}
+.manage-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.manage-form input,
+.manage-form select {
+  border: 0;
+  border-bottom: 1px solid var(--forest);
+  background: transparent;
+  padding: 8px 0;
+  font: inherit;
+  font-size: 16px;
+  color: var(--forest);
+}
+.manage-error {
+  grid-column: 1 / -1;
+  padding: 14px 18px;
+  background: var(--pink);
+  border-radius: 14px;
+}
+.manage-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+  margin-top: 12px;
+}
+.manage-actions .button {
+  background: var(--forest);
+  color: var(--paper);
+}
+.manage-actions .button span {
+  background: var(--paper);
+  color: var(--forest);
+}
+.manage-actions .button:disabled {
+  opacity: 0.4;
+  transform: none;
+  cursor: default;
+}
+.manage-cancel,
+.manage-confirm button {
+  background: none;
+  border: 0;
+  padding: 8px 0;
+  font: inherit;
+  font-size: 15px;
+  color: var(--forest);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.manage-confirm {
+  font-size: 15px;
+}
+.manage-fine {
+  margin-top: 28px;
+  font-size: 14px;
+  color: var(--muted);
+}
+@media (max-width: 700px) {
+  .manage-form {
+    grid-template-columns: 1fr;
+  }
+}
