@@ -76,7 +76,7 @@ export function SiteFooter() {
           <span>
             Made with care by{" "}
             <a
-              href="https://www.peregrinepartners.space"
+              href="https://www.peregrineoffice.space"
               target="_blank"
               rel="noreferrer"
             >

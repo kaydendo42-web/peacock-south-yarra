@@ -41,11 +41,11 @@ test("the guest gets their reference, time, party and area, with replies going t
 });
 
 test("the venue alert carries the guest's contact details and a link to that day in the console", () => {
-  const m = venueAlert(booking, "https://www.peregrinepartners.space/console/the-peacock", "hello@thepeacock.com.au");
+  const m = venueAlert(booking, "https://www.peregrineoffice.space/console/the-peacock", "hello@thepeacock.com.au");
   assert.equal(m.to, "hello@thepeacock.com.au");
   assert.equal(m.replyTo, "sarah@example.com", "Jenny can reply straight to the guest");
   assert.match(m.subject, /^New booking: Sarah Nguyen, 4 people, Thursday 1 October at 9:00 am$/);
-  for (const s of ["0400 000 001", "sarah@example.com", "https://www.peregrinepartners.space/console/the-peacock/list?date=2026-10-01"]) {
+  for (const s of ["0400 000 001", "sarah@example.com", "https://www.peregrineoffice.space/console/the-peacock/list?date=2026-10-01"]) {
     assert.ok(m.text.includes(s), `text mentions ${s}`);
   }
 });
@@ -71,7 +71,7 @@ test("a new booking sends two emails; a cancellation sends one, to the guest", (
 });
 
 test("the console link defaults to The Peacock's console and can be overridden", () => {
-  assert.equal(consoleUrl({}), "https://www.peregrinepartners.space/console/the-peacock");
+  assert.equal(consoleUrl({}), "https://www.peregrineoffice.space/console/the-peacock");
   assert.equal(consoleUrl({ PEREGRINE_CONSOLE_URL: "https://x.test/console/v/" }), "https://x.test/console/v");
 });
 
