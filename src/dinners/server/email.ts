@@ -81,7 +81,11 @@ export function pickupList(date: string, orders: DinnerOrder[], inbox: string): 
       `${o.lines.map(lineLabel).join(', ')} · ${o.phone}`,
     ]),
   ]
-  const portions = [...totals.values()].reduce((a, b) => a + b, 0)
+  // Add-on lines (`…+parmesan`) are listed but aren't portions.
+  const portions = orders
+    .flatMap((o) => o.lines)
+    .filter((l) => !l.dishId.includes('+'))
+    .reduce((n, l) => n + l.quantity, 0)
 
   return {
     to: inbox,

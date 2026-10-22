@@ -11,14 +11,14 @@ import { dinnerToken } from "../src/dinners/server/cancel.ts";
 
 /**
  * The $5 dinners API against a JSON-file store and a stand-in Square: the caps
- * (40 of a $5 dish a day, 60 of a $10), the 9pm cutoff, a hold that lapses,
+ * (50 of a $5 dish a day, 100 of a $10), parmesan add-ons, the 9pm cutoff, a hold that lapses,
  * payment confirmed once (and receipted once) however many times Square tells
  * us, the guest cancelling for a refund, and the 9pm pickup list.
  *
  * Guests never see more than 10 left: how many Jenny makes isn't public.
  */
 
-const TUE = "2026-11-04"; // named for the old fixture; week 1 Wednesday: Tuna casserole ($5), Vege chilli ($10)
+const TUE = "2026-11-04"; // named for the old fixture; week 1 Wednesday: Pesto pasta ($5, + parmesan), Vege chilli ($10)
 const MON_NOON = new Date("2026-11-02T12:00:00+11:00");
 
 function setup({ now = MON_NOON, paid = false } = {}) {
@@ -78,14 +78,14 @@ test("availability lists open days, showing at most 10 left of a dish", async ()
   assert.equal(out.body.ordering, true);
   const tue = out.body.days.find((d) => d.date === TUE);
   assert.deepEqual(tue.dishes.map((d) => [d.name, d.priceCents, d.left]), [
-    ["Tuna casserole", 500, 10],
-    ["Vege chilli con carne & rice", 1000, 10],
+    ["Pesto pasta", 500, 10],
+    ["Vege chilli con carne & baked potato", 1000, 10],
   ]);
 });
 
 test("an order holds portions and returns Square's checkout", async () => {
   const { call } = setup();
-  for (let i = 0; i < 3; i++) await call("POST", "/orders", order([{ dishId: "w1-wed-5", quantity: 10 }]));
+  for (let i = 0; i < 4; i++) await call("POST", "/orders", order([{ dishId: "w1-wed-5", quantity: 10 }]));
   const out = await call("POST", "/orders", order([{ dishId: "w1-wed-5", quantity: 3 }, { dishId: "w1-wed-10", quantity: 1 }]));
   assert.equal(out.status, 201);
   assert.match(out.body.id, /^DN-[A-Z2-9]{8}$/);
@@ -95,16 +95,16 @@ test("an order holds portions and returns Square's checkout", async () => {
   assert.deepEqual(tue.dishes.map((d) => d.left), [7, 10]);
 });
 
-test("a $5 dish sells out at 40, and the order that would pass it is refused whole", async () => {
+test("a $5 dish sells out at 50, and the order that would pass it is refused whole", async () => {
   const { call } = setup();
-  for (const quantity of [10, 10, 10, 5]) {
+  for (const quantity of [10, 10, 10, 10, 5]) {
     assert.equal((await call("POST", "/orders", order([{ dishId: "w1-wed-5", quantity }]))).status, 201);
   }
   const refused = await call("POST", "/orders", order([{ dishId: "w1-wed-10", quantity: 1 }, { dishId: "w1-wed-5", quantity: 10 }]));
   assert.equal(refused.status, 409);
   assert.equal(refused.body.code, "sold-out");
   assert.equal(refused.body.left, 5);
-  assert.match(refused.body.error, /Only 5 Tuna casserole left/);
+  assert.match(refused.body.error, /Only 5 Pesto pasta left/);
 
   // nothing of the refused order was held
   const tue = (await call("GET", "/availability")).body.days.find((d) => d.date === TUE);
@@ -112,15 +112,15 @@ test("a $5 dish sells out at 40, and the order that would pass it is refused who
 
   assert.equal((await call("POST", "/orders", order([{ dishId: "w1-wed-5", quantity: 5 }]))).status, 201);
   const gone = await call("POST", "/orders", order([{ dishId: "w1-wed-5", quantity: 1 }]));
-  assert.match(gone.body.error, /Tuna casserole has sold out/);
+  assert.match(gone.body.error, /Pesto pasta has sold out/);
 });
 
 test("concurrent orders can't oversell", async () => {
   const { call } = setup();
   const results = await Promise.all(
-    Array.from({ length: 9 }, () => call("POST", "/orders", order([{ dishId: "w1-wed-10", quantity: 7 }]))),
+    Array.from({ length: 11 }, () => call("POST", "/orders", order([{ dishId: "w1-wed-10", quantity: 10 }]))),
   );
-  assert.equal(results.filter((r) => r.status === 201).length, 8); // 56 of 60
+  assert.equal(results.filter((r) => r.status === 201).length, 10); // 100 of 100
 });
 
 test("orders close at 9pm the night before", async () => {
@@ -128,6 +128,27 @@ test("orders close at 9pm the night before", async () => {
   const out = await call("POST", "/orders", order([{ dishId: "w1-wed-5", quantity: 1 }]));
   assert.equal(out.status, 409);
   assert.equal(out.body.code, "closed");
+});
+
+test("parmesan rides on its dish: at most one per portion, never capped", async () => {
+  const { call, store } = setup();
+  const out = await call(
+    "POST",
+    "/orders",
+    order([
+      { dishId: "w1-wed-5", quantity: 2 },
+      { dishId: "w1-wed-5+parmesan", quantity: 1 },
+    ]),
+  );
+  assert.equal(out.status, 201);
+  const saved = await store.get(out.body.id);
+  assert.equal(saved.totalCents, 1100);
+  assert.deepEqual(saved.lines[1], { dishId: "w1-wed-5+parmesan", dishName: "Parmesan on Pesto pasta", priceCents: 100, quantity: 1 });
+
+  const tooMany = order([{ dishId: "w1-wed-5", quantity: 1 }, { dishId: "w1-wed-5+parmesan", quantity: 2 }]);
+  assert.equal((await call("POST", "/orders", tooMany)).status, 400);
+  // the vege chilli has no parmesan
+  assert.equal((await call("POST", "/orders", order([{ dishId: "w1-wed-10", quantity: 1 }, { dishId: "w1-wed-10+parmesan", quantity: 1 }]))).status, 400);
 });
 
 test("bad orders are refused", async () => {
@@ -170,7 +191,7 @@ test("returning from Square confirms payment and sends one receipt", async () =>
 
   assert.equal(sent.length, 1);
   assert.equal(sent[0].to, "pat@example.com");
-  assert.match(sent[0].text, /2 × Tuna casserole/);
+  assert.match(sent[0].text, /2 × Pesto pasta/);
   assert.match(sent[0].text, new RegExp(`/dinners/thanks\\?order=${body.id}&t=`));
 });
 

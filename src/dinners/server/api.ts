@@ -1,7 +1,7 @@
 import type { ApiRequest, ApiResponse } from '../../booking/server/api.ts'
 import type { Mailer } from '../../booking/server/email.ts'
 import { shiftDays, todayKey, venueMinutes } from '../../booking/data/time.ts'
-import { cancelCutoffFor, cutoffFor, dinners, dishesOn, findDish, orderableDates, pickupLabel, portionsOf } from '../menu.ts'
+import { addOnLineId, cancelCutoffFor, cutoffFor, dinners, dishesOn, findDish, orderableDates, pickupLabel, portionsOf } from '../menu.ts'
 import { canCancel, checkDinnerToken, orderQuery } from './cancel.ts'
 import { cancelledNote, dinnersInbox, guestReceipt, pickupList } from './email.ts'
 import type { Payments } from './square.ts'
@@ -173,6 +173,24 @@ export async function handleDinners(req: DinnersRequest, config: DinnersConfig):
     const lines: DinnerLine[] = []
     for (const [dishId, quantity] of quantities) {
       if (quantity === 0) continue
+      const extra = dishId.match(/^(.+)\+([a-z]+)$/)
+      if (extra) {
+        // An add-on (parmesan): at most one per portion of its dish.
+        const base = findDish(date, extra[1])
+        if (!base?.addOn || base.addOn.id !== extra[2]) {
+          return json(400, { error: 'That extra is not on for that day. Refresh and try again.' })
+        }
+        if (quantity > (quantities.get(base.id) ?? 0)) {
+          return json(400, { error: `Add ${base.addOn.name.toLowerCase()} to at most one per ${base.name}.` })
+        }
+        lines.push({
+          dishId,
+          dishName: `${base.addOn.name} on ${base.name}`,
+          priceCents: base.addOn.priceCents,
+          quantity,
+        })
+        continue
+      }
       const dish = findDish(date, dishId)
       if (!dish) return json(400, { error: 'That dish is not on for that day. Refresh and try again.' })
       if (quantity > dinners.maxPerDish) {
@@ -205,7 +223,13 @@ export async function handleDinners(req: DinnersRequest, config: DinnersConfig):
       lines,
     }
 
-    const caps = Object.fromEntries(dishesOn(date).map((d) => [d.id, portionsOf(d)]))
+    // Add-ons aren't counted against anything: their dish's cap already limits them.
+    const caps = Object.fromEntries(
+      dishesOn(date).flatMap((d) => [
+        [d.id, portionsOf(d)],
+        ...(d.addOn ? [[addOnLineId(d), 1_000_000]] : []),
+      ]),
+    )
     const held = await store.reserve(order, caps, now)
     if (!held.ok) {
       const name = findDish(date, held.dishId)?.name ?? 'That dish'

@@ -11,13 +11,20 @@ import { cancelCutoffFor, cutoffFor, dinners, dishesOn, isOrderable, orderableDa
 
 const melbourne = (iso) => new Date(iso); // ISO strings below carry their own offset
 
-test("week 1 starts on the first Monday and week 2 follows", () => {
+test("four weeks from Monday 2 November, matching Jenny's menu", () => {
   assert.equal(dinners.firstMonday, "2026-11-02");
-  assert.deepEqual(dishesOn("2026-11-02").map((d) => d.name), ["Mac & cheese", "Beef stew & mash"]);
+  assert.deepEqual(dishesOn("2026-11-02").map((d) => d.name), ["Mac & cheese", "Beef stew & mash potato"]);
   assert.deepEqual(dishesOn("2026-11-09").map((d) => d.name), ["Sweet chilli mushroom pasta", "Teriyaki tofu & fried rice"]);
-  // and back to week 1
-  assert.deepEqual(dishesOn("2026-11-16").map((d) => d.id), ["w1-mon-5", "w1-mon-10"]);
+  assert.deepEqual(dishesOn("2026-11-18").map((d) => d.name), ["Mac & cheese", "Lemon rice pilaf & garlic chicken"]);
+  assert.deepEqual(dishesOn("2026-11-27").map((d) => d.name), ["Vodka pasta", "Beef stroganoff"]);
   assert.equal(dishesOn("2026-11-06")[1].name, "Cottage pie");
+});
+
+test("parmesan is offered on the dishes Jenny marked", () => {
+  assert.equal(dishesOn("2026-11-04")[0].addOn?.priceCents, 100); // pesto pasta
+  assert.equal(dishesOn("2026-11-04")[1].addOn, undefined); // vege chilli (df)
+  assert.equal(dishesOn("2026-11-25")[1].addOn?.id, "parmesan"); // marry me chicken
+  assert.equal(dishesOn("2026-11-02")[0].addOn, undefined); // mac & cheese
 });
 
 test("no dinners at weekends, on Melbourne Cup day, or outside November", () => {
@@ -29,8 +36,8 @@ test("no dinners at weekends, on Melbourne Cup day, or outside November", () => 
   assert.deepEqual(dishesOn("2026-11-30"), []);
 });
 
-test("$5 dishes sell 40 a day and $10 dishes 60", () => {
-  assert.deepEqual(dishesOn("2026-11-02").map(portionsOf), [40, 60]);
+test("$5 dishes sell 50 a day and $10 dishes 100", () => {
+  assert.deepEqual(dishesOn("2026-11-02").map(portionsOf), [50, 100]);
 });
 
 test("guests can cancel until 7am the day before pickup", () => {
@@ -40,7 +47,7 @@ test("guests can cancel until 7am the day before pickup", () => {
 test("every day has a $5 and a $10 dish", () => {
   for (const week of dinners.weeks) {
     for (const day of Object.values(week)) {
-      assert.deepEqual(day.map((d) => d.priceCents), [500, 1000]);
+      if (day.length) assert.deepEqual(day.map((d) => d.priceCents), [500, 1000]);
     }
   }
 });
