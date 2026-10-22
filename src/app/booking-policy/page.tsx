@@ -47,7 +47,9 @@ export default function BookingPolicyPage() {
       <p>
         If your group size changes or you can no longer make it, please let us
         know as early as possible so we can offer the table to someone else.
-        Call us on <a href={site.phoneHref}>{site.phone}</a> or email{" "}
+        Your confirmation email has a link to change or cancel your booking
+        yourself, up to two hours before. After that, call us on{" "}
+        <a href={site.phoneHref}>{site.phone}</a> or email{" "}
         <a href={`mailto:${site.email}`}>{site.email}</a> and mention your
         booking reference.
       </p>

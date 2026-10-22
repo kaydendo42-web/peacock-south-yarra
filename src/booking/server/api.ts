@@ -1,15 +1,16 @@
-import type { Booking, NewBooking } from '@/booking/data/types'
-import { checkBooking, sanitise } from '@/booking/data/rules'
-import { allocate, optionsFor } from '@/booking/data/allocate'
-import { VENUE_TZ, areas } from '@/booking/data/venue'
-import { sittingFor } from '@/booking/data/time'
+import type { Booking, NewBooking } from '../data/types.ts'
+import { checkBooking, sanitise } from '../data/rules.ts'
+import { allocate, optionsFor } from '../data/allocate.ts'
+import { VENUE_TZ, areas } from '../data/venue.ts'
+import { sittingFor } from '../data/time.ts'
 
 /** 11:30 am in Melbourne, whatever the server's clock thinks. */
 const melbourneTime = new Intl.DateTimeFormat('en-AU', { timeZone: VENUE_TZ, hour: 'numeric', minute: '2-digit' })
-import { venueDateKey } from '@/booking/data/time'
-import type { Config } from './config'
-import { notify } from './email'
-import { StoreConflict } from './store'
+import { venueDateKey } from '../data/time.ts'
+import type { Config } from './config.ts'
+import { notify } from './email.ts'
+import { StoreConflict } from './store.ts'
+import { canChange, changeableUntil, checkToken, manageSecret } from './manage.ts'
 
 /**
  * The API, written against plain request/response shapes rather than against
@@ -162,5 +163,109 @@ export async function handle(req: ApiRequest, config: Config): Promise<ApiRespon
     return json(405, { error: 'Method not allowed.' })
   }
 
+  // --- a guest's own booking, from the link in their email ----------------
+  const own = req.path.match(/^\/bookings\/([A-Za-z0-9-]{3,64})(?:\/(change|cancel))?$/)
+  if (own) return manage(req, config, own[1], own[2] as 'change' | 'cancel' | undefined)
+
   return json(404, { error: 'No such endpoint.' })
+}
+
+const notFound = () => json(404, { error: 'That booking link is not valid. Call us and we can help.' })
+const tooLate = () =>
+  json(409, {
+    error: 'This booking can no longer be changed online. Call us and we will sort it out.',
+    code: 'too-late',
+  })
+
+/**
+ * Read, change or cancel one booking, for whoever holds its signed link. A bad
+ * signature and a missing booking read the same, so the link can't be used to
+ * test which references exist.
+ */
+async function manage(
+  req: ApiRequest,
+  config: Config,
+  id: string,
+  action: 'change' | 'cancel' | undefined,
+): Promise<ApiResponse> {
+  const { store } = config
+  const secret = manageSecret(process.env)
+  const body = (req.body ?? {}) as Record<string, unknown>
+  const token = req.method === 'GET' ? req.query.t : body.t
+  if (!checkToken(id, token, secret)) return notFound()
+
+  if (!action && req.method === 'GET') {
+    const booking = (await store.all()).find((b) => b.id === id)
+    if (!booking) return notFound()
+    return json(200, {
+      booking,
+      changeableUntil: changeableUntil(booking).toISOString(),
+      canChange: canChange(booking),
+    })
+  }
+  if (!action || req.method !== 'POST') return json(405, { error: 'Method not allowed.' })
+
+  let previous: Booking | undefined
+  const out = await store.exclusive(async () => {
+    const all = await store.all()
+    const booking = all.find((b) => b.id === id)
+    if (!booking) return notFound()
+    if (!canChange(booking)) return tooLate()
+    previous = booking
+
+    if (action === 'cancel') {
+      const cancelled: Booking = { ...booking, status: 'cancelled' }
+      await store.put(cancelled)
+      return json(200, cancelled)
+    }
+
+    const area = areas.find((a) => a.id === body.area)
+    if (!area) return json(400, { error: 'Choose where you would like to sit.' })
+    const party = Number(body.partySize)
+    const start = new Date(String(body.startsAt))
+    if (!Number.isInteger(party) || party < 1 || Number.isNaN(start.getTime())) {
+      return json(400, { error: 'A party size and a start time are required.' })
+    }
+
+    // Everyone else's bookings: the guest's own table is free for them to keep.
+    const others = all.filter((b) => b.id !== id)
+    if (!optionsFor(area.id, party).length) {
+      return json(409, {
+        error: `${area.name} can't seat ${party} online. Call us and we'll sort something out.`,
+        code: 'area-full',
+      })
+    }
+    const seat = allocate(area.id, start, party, others)
+    if (!seat) {
+      return json(409, {
+        error: `${area.name} is full at ${melbourneTime.format(start)}. Try another area or time.`,
+        code: 'area-full',
+      })
+    }
+    const input = {
+      area: area.id,
+      startsAt: start.toISOString(),
+      partySize: party,
+      durationMin: sittingFor(party),
+      tableId: seat.tableIds[0],
+      // Always the full list, so moving off a joined set releases its other tables.
+      tableIds: seat.tableIds,
+    }
+    const violation = checkBooking(input, others)
+    if (violation) return json(409, { error: violation.message, code: violation.code })
+
+    const changed: Booking = { ...booking, ...input }
+    try {
+      await store.put(changed)
+    } catch (e) {
+      if (e instanceof StoreConflict) return json(409, { error: e.message, code: 'taken' })
+      throw e
+    }
+    return json(200, changed)
+  })
+
+  if (out.status === 200) {
+    await notify(config.mailer, action === 'cancel' ? 'guest-cancelled' : 'changed', out.body as Booking, process.env, previous)
+  }
+  return out
 }
