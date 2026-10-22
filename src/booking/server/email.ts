@@ -59,7 +59,7 @@ export function venueInbox(env: NodeJS.ProcessEnv): string {
  * day the guest booked.
  */
 export function consoleUrl(env: NodeJS.ProcessEnv): string {
-  return (env.PEREGRINE_CONSOLE_URL || 'https://www.peregrinepartners.space/console/the-peacock').replace(/\/$/, '')
+  return (env.PEREGRINE_CONSOLE_URL || 'https://www.peregrineoffice.space/console/the-peacock').replace(/\/$/, '')
 }
 
 export type AlertSettings = { on: boolean; to: string }
