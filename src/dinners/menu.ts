@@ -34,13 +34,16 @@ const dish = (week: number, day: Weekday, price: 5 | 10, name: string, diet: Die
 export const dinners = {
   /**
    * The Monday of the first Week 1. Weeks alternate 1, 2, 1, 2 from here for
-   * as long as the pop-up runs. Placeholder until Jenny confirms the start.
+   * as long as the pop-up runs. November 2026 is the trial month.
    */
-  firstMonday: '2026-10-26' as DateKey,
+  firstMonday: '2026-11-02' as DateKey,
   /** Last pickup date, or null to keep repeating the rotation. */
-  lastDay: null as DateKey | null,
-  /** Portions of each dish per day. Sold out at this many. */
-  portionsPerDish: 50,
+  lastDay: '2026-11-27' as DateKey | null,
+  /**
+   * Portions of each dish per day, by price. Sold out at this many. Never shown
+   * to guests: Jenny doesn't want the numbers public.
+   */
+  portions: { 500: 40, 1000: 60 } as Record<number, number>,
   /** Most of one dish on one day a single order can take. */
   maxPerDish: 10,
   /** Orders for a day close at this time the evening before, venue time. */
@@ -48,8 +51,10 @@ export const dinners = {
   /** How far ahead a dinner can be ordered. */
   advanceDays: 14,
   pickup: { from: '07:00', until: '14:30', label: '7am – 2:30pm' },
-  /** Days the pop-up is off (public holidays, closures). */
-  closed: [] as DateKey[],
+  /** Days the pop-up is off (public holidays, closures). Melbourne Cup day. */
+  closed: ['2026-11-03'] as DateKey[],
+  /** Guests can cancel online, for a refund, until this long before pickup opens. */
+  cancelHours: 24,
   /** How long a checkout holds its portions before they go back on sale. */
   holdMinutes: 20,
   weeks: [
@@ -106,6 +111,11 @@ export function dishesOn(key: DateKey): Dish[] {
   return week[day]
 }
 
+/** Portions of a dish on sale each day. */
+export function portionsOf(dish: Pick<Dish, 'priceCents'>): number {
+  return dinners.portions[dish.priceCents] ?? 0
+}
+
 /** Every dish id the rotation can serve, for checking what a client sends. */
 export function findDish(key: DateKey, dishId: string): Dish | undefined {
   return dishesOn(key).find((d) => d.id === dishId)
@@ -121,6 +131,11 @@ export function isOrderable(key: DateKey, now = new Date()): boolean {
   if (!dishesOn(key).length) return false
   if (now >= cutoffFor(key)) return false
   return daysBetween(todayKey(now), key) <= dinners.advanceDays
+}
+
+/** The last moment a paid order can be cancelled online: 24 hours before pickup opens. */
+export function cancelCutoffFor(key: DateKey): Date {
+  return new Date(at(key, dinners.pickup.from).getTime() - dinners.cancelHours * 3_600_000)
 }
 
 /** Pickup dates open for ordering at `now`, soonest first. */

@@ -12,6 +12,7 @@ import type { DinnerOrder } from './store.ts'
  * hosts the card form; no card details touch this site.
  *
  * Needs ORDERS_READ, ORDERS_WRITE and PAYMENTS_WRITE on the access token.
+ * Refunds use PAYMENTS_WRITE too.
  */
 
 export type Checkout = { linkId: string; url: string; squareOrderId: string }
@@ -22,6 +23,11 @@ export interface Payments {
   isPaid(squareOrderId: string, totalCents: number): Promise<boolean>
   /** Close a checkout so a lapsed hold can't be paid. Missing links are fine. */
   closeCheckout(linkId: string): Promise<void>
+  /**
+   * Refund an order's payment in full. Keyed on our order number, so asking
+   * twice (a double click, a retry) refunds once. Returns Square's refund id.
+   */
+  refund(squareOrderId: string, totalCents: number, orderId: string): Promise<string>
 }
 
 const SQUARE_VERSION = '2026-09-16'
@@ -130,6 +136,22 @@ export function squarePayments(env: NodeJS.ProcessEnv): Payments | null {
         if ((e as { status?: number }).status !== 404) throw e
       }
     },
+
+    async refund(squareOrderId, totalCents, orderId) {
+      const { order } = await call<{ order: { tenders?: { id: string; payment_id?: string }[] } }>(
+        'GET',
+        `/v2/orders/${encodeURIComponent(squareOrderId)}`,
+      )
+      const tender = order.tenders?.[0]
+      if (!tender) throw new Error(`Square order ${squareOrderId} has no payment to refund`)
+      const out = await call<{ refund: { id: string } }>('POST', '/v2/refunds', {
+        idempotency_key: `dinner-refund-${orderId}`,
+        payment_id: tender.payment_id ?? tender.id,
+        amount_money: { amount: totalCents, currency: 'AUD' },
+        reason: `$5 dinners ${orderId} cancelled online`,
+      })
+      return out.refund.id
+    },
   }
 }
 
@@ -145,6 +167,7 @@ export function devPayments(): Payments {
     },
     isPaid: async () => true,
     closeCheckout: async () => undefined,
+    refund: async (_sq, _cents, orderId) => `dev-refund-${orderId}`,
   }
 }
 

@@ -257,7 +257,8 @@ export function ManageBooking({ reference, token }: { reference: string; token: 
         </div>
       </form>
       <p className="manage-fine">
-        Changes close two hours before your booking. After that, call us on{" "}
+        Changes close at 9pm the night before your booking. After that, call
+        us on{" "}
         <a href={site.phoneHref}>{site.phone}</a>.
       </p>
     </Card>

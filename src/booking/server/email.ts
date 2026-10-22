@@ -3,7 +3,7 @@ import type { Booking } from '../data/types.ts'
 import { VENUE_TZ, areaOfZone, areas, tables } from '../data/venue.ts'
 import { heldTables } from '../data/availability.ts'
 import { fromEnv, profileHeaders } from './store.ts'
-import { CHANGE_CUTOFF_MINUTES, manageUrl } from './manage.ts'
+import { CHANGE_CUTOFF_LABEL, manageUrl } from './manage.ts'
 
 /**
  * Booking emails: a confirmation to the guest and an alert to the venue when a
@@ -176,7 +176,7 @@ ${rows
 
 const changeNote = (manage: string | undefined) =>
   manage
-    ? `Need to change or cancel? Use this link up to ${CHANGE_CUTOFF_MINUTES / 60} hours before: ${manage} (or call us on ${site.phone}).`
+    ? `Need to change or cancel? Use this link up to ${CHANGE_CUTOFF_LABEL}: ${manage} (or call us on ${site.phone}).`
     : `Need to change or cancel? Reply to this email or call us on ${site.phone} and mention your reference.`
 
 export function guestConfirmation(b: Booking, inbox: string, manage?: string, changed = false): Message {

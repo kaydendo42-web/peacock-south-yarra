@@ -18,8 +18,6 @@ type Availability = {
   days: Day[];
 };
 
-/** Below this many, a dish shows how many are left. */
-const FEW = 15;
 
 const closesLabel = (iso: string) =>
   new Intl.DateTimeFormat("en-AU", {
@@ -166,7 +164,7 @@ export function DinnerOrder() {
                       {d.diet.map((x) => dietLabels[x]).join(" · ")}
                       {d.left === 0 ? (
                         <strong> Sold out</strong>
-                      ) : d.left < FEW ? (
+                      ) : d.left < data.maxPerDish ? (
                         <strong> Only {d.left} left</strong>
                       ) : null}
                     </p>
@@ -195,8 +193,9 @@ export function DinnerOrder() {
             })}
           </ul>
           <p className="dinners-note">
-            Collect {day.label}, {data.pickup}. Want dinners for another day too?
-            Place a separate order for it.
+            Order by {closesLabel(day.closesAt)}, collect {day.label},{" "}
+            {data.pickup}. Want dinners for another day too? Place a separate
+            order for it.
           </p>
         </fieldset>
       ) : null}

@@ -9,12 +9,12 @@ export const metadata: Metadata = {
 export default async function DinnerThanksPage({
   searchParams,
 }: {
-  searchParams: Promise<{ order?: string }>;
+  searchParams: Promise<{ order?: string; t?: string }>;
 }) {
-  const { order } = await searchParams;
+  const { order, t } = await searchParams;
   return (
     <section className="container dinners-thanks">
-      <DinnerThanks orderId={order ?? ""} />
+      <DinnerThanks orderId={order ?? ""} token={t} />
     </section>
   );
 }

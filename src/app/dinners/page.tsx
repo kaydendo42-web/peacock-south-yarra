@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { BreadcrumbSchema } from "@/components/structured-data";
 import { DinnerOrder } from "@/dinners/DinnerOrder";
-import { dietLabels, dinners, money } from "@/dinners/menu";
+import { dietLabels, dinners, money, pickupLabel } from "@/dinners/menu";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "$5 dinners",
-  description: `Cooked dinners from $5, made in house at ${site.shortName}. Order and pay online by 9pm, collect the next day.`,
+  description: `This November, cooked dinners from $5, made in house at ${site.shortName}. Order and pay online by 9pm, collect the next day.`,
   alternates: { canonical: "/dinners" },
 };
 
@@ -28,17 +28,22 @@ export default function DinnersPage() {
         ]}
       />
       <header className="page-masthead container">
-        <p className="eyebrow">Monday to Friday · order by 9pm the night before</p>
+        <p className="eyebrow">This November · What the five?!</p>
         <h1>
-          $5
+          $5<span className="dinners-star">*</span>
           <br />
           <span className="angled-title">dinners</span>
         </h1>
         <p>
-          Made in house, fully cooked, ready to reheat. Order and pay here by
-          9pm, then collect from the café the next day between{" "}
-          {dinners.pickup.label}. {dinners.portionsPerDish} of each dish a day,
-          so once they’re gone, they’re gone.
+          Yes, really. Real dinners, real value, just five bucks. Made in
+          house, fully cooked, ready to reheat. Order and pay here by 9pm, then
+          collect from the café the next day between {dinners.pickup.label}.
+          Limited numbers, so once they’re gone, they’re gone.
+          <span className="dinners-star-note">
+            *A $5 and a $10 dinner every weekday. A limited-time takeaway
+            pop-up, Monday to Friday until{" "}
+            {pickupLabel(dinners.lastDay ?? dinners.firstMonday)}.
+          </span>
         </p>
       </header>
 
@@ -50,7 +55,7 @@ export default function DinnersPage() {
       </section>
 
       <section className="container dinners-rotation" aria-labelledby="rotation-heading">
-        <h2 id="rotation-heading">The two-week menu</h2>
+        <h2 id="rotation-heading">The November menu</h2>
         <p className="dinners-key">
           {Object.entries(dietLabels).map(([k, v]) => (
             <span key={k}>
@@ -83,6 +88,11 @@ export default function DinnersPage() {
         <p className="dinners-fine">
           Orders for each day close at 9pm the night before and can be placed
           up to two weeks ahead. Dinners can sell out before the cut-off.
+          {dinners.closed.length
+            ? ` No dinners on ${dinners.closed.map(pickupLabel).join(" or ")}.`
+            : null}{" "}
+          Need to cancel? Use the link in your receipt up to{" "}
+          {dinners.cancelHours} hours before pickup for a full refund.
           Questions or allergies? Call us on{" "}
           <a href={site.phoneHref}>{site.phone}</a>.
         </p>

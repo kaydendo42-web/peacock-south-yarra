@@ -13,16 +13,59 @@ type Order = {
   lines: { dishId: string; dishName: string; priceCents: number; quantity: number }[];
   totalCents: number;
   checkoutUrl?: string;
+  refunded?: boolean;
+  /** Only with the signed link from the receipt or Square's redirect. */
+  canCancel?: boolean;
+  cancelUntil?: string;
 };
+
+const cancelUntilLabel = (iso: string) =>
+  new Intl.DateTimeFormat("en-AU", {
+    timeZone: "Australia/Melbourne",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    hour: "numeric",
+    minute: "2-digit",
+  })
+    .format(new Date(iso))
+    .replace(":00", "")
+    .replace(/\s*(am|pm)/i, "$1");
 
 /** Square can take a few seconds to settle a payment; ask again for about half a minute. */
 const TRIES = 10;
 const EVERY_MS = 3000;
 
-export function DinnerThanks({ orderId }: { orderId: string }) {
+/**
+ * After Square's checkout, and from the link in the receipt: the order, its
+ * payment as Square settles it, and (with the signed link) a way to cancel.
+ */
+export function DinnerThanks({ orderId, token }: { orderId: string; token?: string }) {
   const [order, setOrder] = useState<Order | null>(null);
   const [missing, setMissing] = useState(false);
   const [gaveUp, setGaveUp] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  async function cancel() {
+    setCancelling(true);
+    setCancelError(null);
+    try {
+      const res = await fetch(`/api/dinners/orders/${orderId}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ t: token }),
+      });
+      const out = (await res.json()) as Order & { error?: string };
+      if (res.ok) setOrder(out);
+      else setCancelError(out.error ?? "Something went wrong. Call us to cancel.");
+    } catch {
+      setCancelError(`We couldn't reach the café. Try again, or call us on ${site.phone}.`);
+    }
+    setCancelling(false);
+    setConfirming(false);
+  }
 
   useEffect(() => {
     if (!/^DN-[A-Z2-9]{8}$/.test(orderId)) {
@@ -35,7 +78,8 @@ export function DinnerThanks({ orderId }: { orderId: string }) {
     const check = async () => {
       tries++;
       try {
-        const res = await fetch(`/api/dinners/orders/${orderId}`, { cache: "no-store" });
+        const query = token ? `?t=${encodeURIComponent(token)}` : "";
+        const res = await fetch(`/api/dinners/orders/${orderId}${query}`, { cache: "no-store" });
         if (res.status === 404) return setMissing(true);
         const next = (await res.json()) as Order;
         if (stopped) return;
@@ -52,7 +96,7 @@ export function DinnerThanks({ orderId }: { orderId: string }) {
       stopped = true;
       clearTimeout(timer);
     };
-  }, [orderId]);
+  }, [orderId, token]);
 
   if (missing) {
     return (
@@ -89,6 +133,51 @@ export function DinnerThanks({ orderId }: { orderId: string }) {
             <dd>{order.id}</dd>
           </div>
         </dl>
+        {order.canCancel && order.cancelUntil ? (
+          <div className="dinners-cancel">
+            {confirming ? (
+              <>
+                <p>
+                  Cancel this order? We’ll refund {money(order.totalCents)} to
+                  your card.
+                </p>
+                <div className="dinners-cancel-actions">
+                  <button type="button" className="button" onClick={cancel} disabled={cancelling}>
+                    {cancelling ? "Cancelling…" : "Yes, cancel and refund"}
+                  </button>
+                  <button type="button" className="dinners-link" onClick={() => setConfirming(false)} disabled={cancelling}>
+                    Keep my order
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p>
+                Change of plans?{" "}
+                <button type="button" className="dinners-link" onClick={() => setConfirming(true)}>
+                  Cancel for a full refund
+                </button>{" "}
+                until {cancelUntilLabel(order.cancelUntil)}.
+              </p>
+            )}
+            {cancelError ? (
+              <p className="dinners-error" role="alert">
+                {cancelError}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+      </Message>
+    );
+  }
+
+  if (order.status === "cancelled" && order.refunded) {
+    return (
+      <Message heading="Your order is cancelled">
+        <p>
+          We’ve refunded {money(order.totalCents)} to your card. It can take a
+          few business days to show. <Link href="/dinners">Order again</Link>{" "}
+          any time.
+        </p>
       </Message>
     );
   }

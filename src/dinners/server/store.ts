@@ -33,9 +33,15 @@ export type DinnerOrder = {
   squarePaymentLinkId?: string
   checkoutUrl?: string
   paidAt?: string
+  /** Set when the guest cancelled online and was refunded. */
+  cancelledAt?: string
+  squareRefundId?: string
   createdAt: string
   lines: DinnerLine[]
 }
+
+/** dishId → portions on sale that day. */
+export type Caps = Record<string, number>
 
 export type Reservation = { ok: true } | { ok: false; dishId: string; left: number }
 
@@ -45,8 +51,8 @@ export const soldKey = (date: DateKey, dishId: string) => `${date}|${dishId}`
 
 export interface DinnerStore {
   sold(from: DateKey, to: DateKey, now?: Date): Promise<Sold>
-  /** Insert the order if every dish has room under `cap`; otherwise insert nothing. */
-  reserve(order: DinnerOrder, cap: number, now?: Date): Promise<Reservation>
+  /** Insert the order if every dish has room under its cap; otherwise insert nothing. */
+  reserve(order: DinnerOrder, caps: Caps, now?: Date): Promise<Reservation>
   get(id: string): Promise<DinnerOrder | null>
   bySquareOrder(squareOrderId: string): Promise<DinnerOrder | null>
   /** Paid and collected orders for a pickup day. */
@@ -103,12 +109,13 @@ export function fileStore(file: string): DinnerStore {
     sold: (from, to, now = new Date()) =>
       locked(async () => tally(await read(), now, (o) => o.pickupDate >= from && o.pickupDate <= to)),
 
-    reserve: (order, cap, now = new Date()) =>
+    reserve: (order, caps, now = new Date()) =>
       locked(async () => {
         const all = await read()
         const sold = tally(all, now, (o) => o.pickupDate === order.pickupDate)
         for (const l of order.lines) {
           const taken = sold.get(soldKey(order.pickupDate, l.dishId)) ?? 0
+          const cap = caps[l.dishId] ?? 0
           if (taken + l.quantity > cap) return { ok: false, dishId: l.dishId, left: Math.max(cap - taken, 0) }
         }
         all.push(order)
@@ -154,6 +161,8 @@ type OrderRow = {
   square_payment_link_id: string | null
   checkout_url: string | null
   paid_at: string | null
+  cancelled_at: string | null
+  square_refund_id: string | null
   created_at: string
   dinner_order_lines?: { dish_id: string; dish_name: string; price_cents: number; quantity: number }[]
 }
@@ -171,6 +180,8 @@ const fromRow = (r: OrderRow): DinnerOrder => ({
   ...(r.square_payment_link_id ? { squarePaymentLinkId: r.square_payment_link_id } : {}),
   ...(r.checkout_url ? { checkoutUrl: r.checkout_url } : {}),
   ...(r.paid_at ? { paidAt: new Date(r.paid_at).toISOString() } : {}),
+  ...(r.cancelled_at ? { cancelledAt: new Date(r.cancelled_at).toISOString() } : {}),
+  ...(r.square_refund_id ? { squareRefundId: r.square_refund_id } : {}),
   createdAt: new Date(r.created_at).toISOString(),
   lines: (r.dinner_order_lines ?? []).map((l) => ({
     dishId: l.dish_id,
@@ -187,6 +198,8 @@ const patchColumns: Partial<Record<keyof DinnerOrder, keyof OrderRow>> = {
   squarePaymentLinkId: 'square_payment_link_id',
   checkoutUrl: 'checkout_url',
   paidAt: 'paid_at',
+  cancelledAt: 'cancelled_at',
+  squareRefundId: 'square_refund_id',
 }
 
 export function supabaseDinnerStore(url: string, serviceKey: string, venueId: string): DinnerStore {
@@ -225,7 +238,7 @@ export function supabaseDinnerStore(url: string, serviceKey: string, venueId: st
       return new Map(rows.map((r) => [soldKey(r.pickup_date, r.dish_id), Number(r.sold)]))
     },
 
-    async reserve(order, cap) {
+    async reserve(order, caps) {
       const out = await call<{ ok: boolean; dish_id?: string; left?: number }>('/rpc/reserve_dinner_order', {
         method: 'POST',
         body: JSON.stringify({
@@ -244,8 +257,10 @@ export function supabaseDinnerStore(url: string, serviceKey: string, venueId: st
             dish_name: l.dishName,
             price_cents: l.priceCents,
             quantity: l.quantity,
+            cap: caps[l.dishId] ?? 0,
           })),
-          p_cap: cap,
+          // Superseded by each line's cap; kept so the function's signature holds.
+          p_cap: 0,
         }),
       })
       return out.ok ? { ok: true } : { ok: false, dishId: out.dish_id ?? '', left: out.left ?? 0 }

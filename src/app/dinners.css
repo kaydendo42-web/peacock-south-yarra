@@ -159,6 +159,19 @@
   border-bottom-width: 2px;
 }
 
+.dinners-star {
+  font-size: 0.45em;
+  vertical-align: top;
+  margin-left: 0.04em;
+}
+
+.dinners-star-note {
+  display: block;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
 .dinners-pay {
   display: grid;
   justify-items: start;
@@ -278,6 +291,35 @@
 .dinners-receipt dd {
   margin: 0;
   font-weight: 600;
+}
+.dinners-cancel {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  margin-top: 32px;
+  font-size: 15px;
+  color: var(--muted);
+}
+.dinners-cancel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px 24px;
+}
+.dinners-cancel .button {
+  background: var(--forest);
+  color: var(--paper);
+}
+.dinners-link {
+  font: inherit;
+  color: var(--forest);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
 }
 
 @media (max-width: 700px) {

@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { site } from '../../lib/site.ts'
+import { at, shiftDays, venueDateKey } from '../data/time.ts'
 import type { Booking } from '../data/types.ts'
 import { fromEnv } from './store.ts'
 
@@ -9,12 +10,14 @@ import { fromEnv } from './store.ts'
  * The confirmation email carries a link with the booking's reference and a
  * signature over it. Only this server can make the signature, so the link is
  * the guest's key to that one booking and nothing else; there is no account
- * and no password. Changes close a little before the booking, after which the
- * guest calls the café as before.
+ * and no password. Changes close at 9pm the night before (Jenny, 22 Oct
+ * 2026), after which the guest calls the café as before.
  */
 
-/** How long before a booking the guest can still change or cancel it online. */
-export const CHANGE_CUTOFF_MINUTES = 120
+/** Online changes close at this time, venue time, the evening before the booking. */
+export const CHANGE_CUTOFF = '21:00'
+/** The cut-off in words, for emails and pages. */
+export const CHANGE_CUTOFF_LABEL = '9pm the night before'
 
 /**
  * The signing key: its own secret if one is set, otherwise derived from the
@@ -48,7 +51,7 @@ export function manageUrl(id: string, env: NodeJS.ProcessEnv): string | undefine
 
 /** The last moment this booking can be changed online. */
 export function changeableUntil(b: Pick<Booking, 'startsAt'>): Date {
-  return new Date(new Date(b.startsAt).getTime() - CHANGE_CUTOFF_MINUTES * 60_000)
+  return at(shiftDays(venueDateKey(new Date(b.startsAt)), -1), CHANGE_CUTOFF)
 }
 
 export function canChange(b: Pick<Booking, 'startsAt' | 'status'>, now = new Date()): boolean {

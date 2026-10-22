@@ -1,8 +1,9 @@
 import type { ApiRequest, ApiResponse } from '../../booking/server/api.ts'
 import type { Mailer } from '../../booking/server/email.ts'
 import { shiftDays, todayKey, venueMinutes } from '../../booking/data/time.ts'
-import { cutoffFor, dinners, dishesOn, findDish, orderableDates, pickupLabel } from '../menu.ts'
-import { dinnersInbox, guestReceipt, pickupList } from './email.ts'
+import { cancelCutoffFor, cutoffFor, dinners, dishesOn, findDish, orderableDates, pickupLabel, portionsOf } from '../menu.ts'
+import { canCancel, checkDinnerToken, orderQuery } from './cancel.ts'
+import { cancelledNote, dinnersInbox, guestReceipt, pickupList } from './email.ts'
 import type { Payments } from './square.ts'
 import { verifyWebhook } from './square.ts'
 import { soldKey, type DinnerLine, type DinnerOrder, type DinnerStore } from './store.ts'
@@ -14,6 +15,7 @@ import { soldKey, type DinnerLine, type DinnerOrder, type DinnerStore } from './
  *   GET  /availability        what's on, and portions left, for every open day
  *   POST /orders              hold portions and open a Square checkout
  *   GET  /orders/:id          an order's status; confirms payment with Square
+ *   POST /orders/:id/cancel   the guest cancels, with their signed link; refunds
  *   POST /webhook             Square's payment notifications
  *   GET  /digest              the 9pm pickup list (Vercel cron)
  *
@@ -49,8 +51,11 @@ function newReference(): string {
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const text = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
 
-/** What a guest sees of an order: no phone or email, and no other guest's anything. */
-function publicOrder(o: DinnerOrder, now: Date) {
+/**
+ * What a guest sees of an order: no phone or email, and no other guest's
+ * anything. With the signed link (`owner`), also whether they can cancel.
+ */
+function publicOrder(o: DinnerOrder, now: Date, owner = false) {
   return {
     id: o.id,
     status: o.status,
@@ -59,6 +64,10 @@ function publicOrder(o: DinnerOrder, now: Date) {
     pickupWindow: dinners.pickup.label,
     lines: o.lines,
     totalCents: o.totalCents,
+    ...(o.squareRefundId ? { refunded: true } : {}),
+    ...(owner
+      ? { canCancel: canCancel(o, now), cancelUntil: cancelCutoffFor(o.pickupDate).toISOString() }
+      : {}),
     // A guest who closed the tab mid-payment can pick up where they left off.
     ...(o.status === 'pending' && o.checkoutUrl && new Date(o.holdExpiresAt) > now
       ? { checkoutUrl: o.checkoutUrl }
@@ -87,7 +96,7 @@ async function confirm(order: DinnerOrder, config: DinnersConfig): Promise<Dinne
   }
   if (config.mailer) {
     await config.mailer
-      .send(guestReceipt(paid, dinnersInbox(config.env)))
+      .send(guestReceipt(paid, dinnersInbox(config.env), config.env))
       .catch((e) => console.error(`Dinner receipt (${order.id}) failed:`, e))
   }
   return paid
@@ -132,7 +141,8 @@ export async function handleDinners(req: DinnersRequest, config: DinnersConfig):
         closesAt: cutoffFor(date).toISOString(),
         dishes: dishesOn(date).map((d) => ({
           ...d,
-          left: Math.max(dinners.portionsPerDish - (sold.get(soldKey(date, d.id)) ?? 0), 0),
+          // Never more than one order can take: how many Jenny makes stays hers.
+          left: Math.min(Math.max(portionsOf(d) - (sold.get(soldKey(date, d.id)) ?? 0), 0), dinners.maxPerDish),
         })),
       })),
     })
@@ -195,7 +205,8 @@ export async function handleDinners(req: DinnersRequest, config: DinnersConfig):
       lines,
     }
 
-    const held = await store.reserve(order, dinners.portionsPerDish, now)
+    const caps = Object.fromEntries(dishesOn(date).map((d) => [d.id, portionsOf(d)]))
+    const held = await store.reserve(order, caps, now)
     if (!held.ok) {
       const name = findDish(date, held.dishId)?.name ?? 'That dish'
       return json(409, {
@@ -210,7 +221,7 @@ export async function handleDinners(req: DinnersRequest, config: DinnersConfig):
 
     let checkout
     try {
-      checkout = await config.payments.createCheckout(order, `${req.origin}/dinners/thanks?order=${order.id}`)
+      checkout = await config.payments.createCheckout(order, `${req.origin}/dinners/thanks?${orderQuery(order.id, config.env)}`)
     } catch (e) {
       console.error(`Square checkout for dinner order ${order.id} failed:`, e)
       // Give the portions straight back rather than holding them for nobody.
@@ -230,12 +241,49 @@ export async function handleDinners(req: DinnersRequest, config: DinnersConfig):
   if (one && req.method === 'GET') {
     const order = await store.get(one[1])
     if (!order) return json(404, { error: 'No order with that number.' })
+    const owner = checkDinnerToken(order.id, req.query.t, config.env)
     try {
-      return json(200, publicOrder(await confirm(order, config), now))
+      return json(200, publicOrder(await confirm(order, config), now, owner))
     } catch (e) {
       console.error(`Checking payment for ${order.id} failed:`, e)
-      return json(200, publicOrder(order, now))
+      return json(200, publicOrder(order, now, owner))
     }
+  }
+
+  // --- the guest cancels ------------------------------------------------------
+  const cancel = req.path.match(/^\/orders\/(DN-[A-Z2-9]{8})\/cancel$/)
+  if (cancel && req.method === 'POST') {
+    const token = ((req.body ?? {}) as { t?: unknown }).t
+    const order = checkDinnerToken(cancel[1], token, config.env) ? await store.get(cancel[1]) : null
+    if (!order) return json(404, { error: 'That link has expired or is not right. Call us to cancel.' })
+    if (order.status === 'cancelled') return json(200, publicOrder(order, now, true))
+    if (!canCancel(order, now)) {
+      return json(409, {
+        error: `Orders can be cancelled online up to ${dinners.cancelHours} hours before pickup. Call us and we'll see what we can do.`,
+        code: 'too-late',
+      })
+    }
+    if (!config.payments || !order.squareOrderId) {
+      return json(503, { error: 'We couldn’t cancel online just now. Call us and we’ll refund you.' })
+    }
+    let refundId
+    try {
+      refundId = await config.payments.refund(order.squareOrderId, order.totalCents, order.id)
+    } catch (e) {
+      console.error(`Refund for dinner order ${order.id} failed:`, e)
+      return json(502, { error: 'We couldn’t refund your card just now. Try again, or call us.' })
+    }
+    const patch = { status: 'cancelled' as const, cancelledAt: now.toISOString(), squareRefundId: refundId }
+    if (await store.update(order.id, ['paid'], patch)) {
+      const done = { ...order, ...patch }
+      if (config.mailer) {
+        await config.mailer
+          .send(cancelledNote(done, dinnersInbox(config.env)))
+          .catch((e) => console.error(`Dinner cancellation email (${order.id}) failed:`, e))
+      }
+      return json(200, publicOrder(done, now, true))
+    }
+    return json(200, publicOrder((await store.get(order.id)) ?? order, now, true))
   }
 
   // --- Square says a payment changed ----------------------------------------

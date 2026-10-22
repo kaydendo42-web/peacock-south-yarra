@@ -10,7 +10,7 @@ import { messagesFor } from "../src/booking/server/email.ts";
 
 /**
  * Guests changing or cancelling their own booking from the signed link in
- * their confirmation: only with a valid signature, only until two hours
+ * their confirmation: only with a valid signature, only until 9pm the night
  * before, and never onto someone else's table.
  */
 
@@ -22,8 +22,8 @@ const FRI_1PM = "2026-10-09T02:00:00.000Z";
 process.env.BOOKING_MANAGE_SECRET = "test-secret";
 const t = (id) => manageToken(id, "test-secret");
 
-function setup(ctx, bookings = []) {
-  ctx.mock.timers.enable({ apis: ["Date"], now: NOW });
+function setup(ctx, bookings = [], now = NOW) {
+  ctx.mock.timers.enable({ apis: ["Date"], now });
   const store = fileStore(path.join(mkdtempSync(path.join(tmpdir(), "manage-")), "b.json"));
   const sent = [];
   const config = { store, mailer: { send: async (m) => void sent.push(m) } };
@@ -112,7 +112,14 @@ test("a guest cancels; the slot frees and nobody can change it after", async (ct
   assert.equal(again.body.code, "too-late");
 });
 
-test("changes close two hours before the booking", async (ctx) => {
+test("changes close at 9pm the night before", async (ctx) => {
+  const thu9pm = new Date("2026-10-08T10:00:00.000Z");
+  const { call } = await setup(ctx, [mine], thu9pm); // booked for Fri 10am
+  const out = await call("POST", "/bookings/PK-MINE22/cancel", { body: { t: t("PK-MINE22") } });
+  assert.equal(out.body.code, "too-late");
+});
+
+test("same-day bookings can't be changed online", async (ctx) => {
   const soon = { ...mine, startsAt: "2026-10-08T02:30:00.000Z" }; // 1:30pm today
   const { call } = await setup(ctx, [soon]);
   const out = await call("POST", "/bookings/PK-MINE22/cancel", { body: { t: t("PK-MINE22") } });
