@@ -95,8 +95,8 @@ export default function DinnersPage() {
           ))}
         </div>
         <p className="dinners-fine">
-          Orders for each day close at 9pm the night before and can be placed
-          up to two weeks ahead. Dinners can sell out before the cut-off.
+          Orders for each day close at 9pm the night before, and you can order
+          for the whole month in advance. Dinners can sell out before the cut-off.
 {" "}
           Need to cancel? Use the link in your receipt up to{" "}
           {dinners.cancelHours} hours before pickup for a full refund.

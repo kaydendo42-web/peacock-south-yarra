@@ -58,8 +58,11 @@ export const dinners = {
   maxPerDish: 10,
   /** Orders for a day close at this time the evening before, venue time. */
   cutoff: '21:00',
-  /** How far ahead a dinner can be ordered. */
-  advanceDays: 14,
+  /**
+   * How far ahead a dinner can be ordered. Long enough to cover the whole
+   * month, so guests can order every week of the menu at once.
+   */
+  advanceDays: 42,
   pickup: { from: '07:00', until: '14:30', label: '7am – 2:30pm' },
   /** Days the pop-up is off (public holidays, closures). Melbourne Cup day. */
   closed: ['2026-11-03'] as DateKey[],

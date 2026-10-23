@@ -6,7 +6,7 @@ import { cancelCutoffFor, cutoffFor, dinners, dishesOn, isOrderable, orderableDa
  * The $5 dinner rotation and its ordering window: November 2026 only, Week 1
  * from Monday 2 November, then Week 2, then Week 1 again; weekdays only, not
  * Melbourne Cup day; orders for a day close at 9pm Melbourne time the evening
- * before; no more than two weeks ahead.
+ * before; the whole month can be ordered ahead.
  */
 
 const melbourne = (iso) => new Date(iso); // ISO strings below carry their own offset
@@ -66,12 +66,19 @@ test("a day is orderable until its cutoff and not after", () => {
   assert.equal(isOrderable("2026-11-05", melbourne("2026-11-05T06:00:00+11:00")), false);
 });
 
-test("orders open at most two weeks ahead, weekdays only", () => {
+test("the whole month is orderable ahead, weekdays only", () => {
   const dates = orderableDates(melbourne("2026-11-02T12:00:00+11:00"));
   assert.equal(dates[0], "2026-11-04"); // Tuesday 3rd is Cup day
-  assert.equal(dates.at(-1), "2026-11-16");
-  assert.equal(dates.length, 9);
+  assert.equal(dates.at(-1), "2026-11-27");
+  assert.equal(dates.length, 18);
   assert.ok(!dates.includes("2026-11-07"));
+});
+
+test("before launch, every week of the menu can be ordered", () => {
+  const dates = orderableDates(melbourne("2026-10-23T18:00:00+11:00"));
+  assert.equal(dates[0], "2026-11-02");
+  assert.equal(dates.at(-1), "2026-11-27");
+  assert.equal(dates.length, 19);
 });
 
 test("before launch, the first Monday is the first date on offer", () => {
