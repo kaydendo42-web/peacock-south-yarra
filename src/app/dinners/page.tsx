@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { BreadcrumbSchema } from "@/components/structured-data";
 import { DinnerOrder } from "@/dinners/DinnerOrder";
-import { dietLabels, dinners, money, pickupLabel } from "@/dinners/menu";
+import { dietLabels, dinners, dishesOn, money, pickupLabel } from "@/dinners/menu";
+import { shiftDays } from "@/booking/data/time";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -10,13 +11,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/dinners" },
 };
 
-const days = [
-  ["mon", "Monday"],
-  ["tue", "Tuesday"],
-  ["wed", "Wednesday"],
-  ["thu", "Thursday"],
-  ["fri", "Friday"],
-] as const;
+/** "Monday 2", for the menu's day headings. */
+const dayHeading = (date: string) => pickupLabel(date).replace(/ \w+$/, "");
 
 export default function DinnersPage() {
   return (
@@ -64,33 +60,44 @@ export default function DinnersPage() {
           ))}
         </p>
         <div className="dinners-weeks">
-          {dinners.weeks.map((week, i) => (
+          {dinners.weeks.map((_, i) => (
             <div key={i}>
               <h3 className="eyebrow">Week {i + 1}</h3>
               <dl>
-                {days.map(([key, label]) => (
-                  <div key={key}>
-                    <dt>{label}</dt>
-                    {week[key].map((d) => (
-                      <dd key={d.id}>
-                        <span className="dinners-price">{money(d.priceCents)}</span> {d.name}
-                        {d.diet.length ? (
-                          <span className="dinners-diet"> ({d.diet.join(" & ")})</span>
-                        ) : null}
-                      </dd>
-                    ))}
-                  </div>
-                ))}
+                {[0, 1, 2, 3, 4].map((d) => {
+                  const date = shiftDays(dinners.firstMonday, i * 7 + d);
+                  const dishes = dishesOn(date);
+                  return (
+                    <div key={date}>
+                      <dt>{dayHeading(date)}</dt>
+                      {dishes.length ? (
+                        dishes.map((x) => (
+                          <dd key={x.id}>
+                            <span className="dinners-price">{money(x.priceCents)}</span> {x.name}
+                            {x.diet.length ? (
+                              <span className="dinners-diet"> ({x.diet.join(" & ")})</span>
+                            ) : null}
+                            {x.addOn ? (
+                              <span className="dinners-addon">
+                                add {x.addOn.name.toLowerCase()} {money(x.addOn.priceCents)}
+                              </span>
+                            ) : null}
+                          </dd>
+                        ))
+                      ) : (
+                        <dd className="dinners-off">No dinners</dd>
+                      )}
+                    </div>
+                  );
+                })}
               </dl>
             </div>
           ))}
         </div>
         <p className="dinners-fine">
-          Orders for each day close at 9pm the night before and can be placed
-          up to two weeks ahead. Dinners can sell out before the cut-off.
-          {dinners.closed.length
-            ? ` No dinners on ${dinners.closed.map(pickupLabel).join(" or ")}.`
-            : null}{" "}
+          Orders for each day close at 9pm the night before, and you can order
+          for the whole month in advance. Dinners can sell out before the cut-off.
+{" "}
           Need to cancel? Use the link in your receipt up to{" "}
           {dinners.cancelHours} hours before pickup for a full refund.
           Questions or allergies? Call us on{" "}

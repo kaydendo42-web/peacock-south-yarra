@@ -82,7 +82,7 @@ export function squarePayments(env: NodeJS.ProcessEnv): Payments | null {
             reference_id: order.id,
             source: { name: 'Website $5 dinners' },
             line_items: order.lines.map((l) => ({
-              name: `${l.dishName} (dinner)`,
+              name: l.dishId.includes('+') ? l.dishName : `${l.dishName} (dinner)`,
               quantity: String(l.quantity),
               base_price_money: { amount: l.priceCents, currency: 'AUD' },
               note: `Pickup ${pickupLabel(order.pickupDate)}`,

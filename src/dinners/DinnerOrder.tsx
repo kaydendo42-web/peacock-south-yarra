@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { dietLabels, dinners, money, type Dish } from "./menu";
+import { addOnLineId, dietLabels, dinners, money, type Dish } from "./menu";
 import { site } from "@/lib/site";
 
 type Day = {
@@ -61,7 +61,13 @@ export function DinnerOrder() {
   }, [load]);
 
   const day = data?.days.find((d) => d.date === date);
-  const total = day ? day.dishes.reduce((sum, d) => sum + d.priceCents * (qty[d.id] ?? 0), 0) : 0;
+  const total = day
+    ? day.dishes.reduce(
+        (sum, d) =>
+          sum + d.priceCents * (qty[d.id] ?? 0) + (d.addOn ? d.addOn.priceCents * (qty[addOnLineId(d)] ?? 0) : 0),
+        0,
+      )
+    : 0;
   const count = day ? day.dishes.reduce((n, d) => n + (qty[d.id] ?? 0), 0) : 0;
 
   const pickDay = (d: string) => {
@@ -72,7 +78,18 @@ export function DinnerOrder() {
 
   const step = (dish: Day["dishes"][number], by: number) => {
     const cap = Math.min(dish.left, data?.maxPerDish ?? 10);
-    setQty((q) => ({ ...q, [dish.id]: Math.max(0, Math.min(cap, (q[dish.id] ?? 0) + by)) }));
+    setQty((q) => {
+      const n = Math.max(0, Math.min(cap, (q[dish.id] ?? 0) + by));
+      const next = { ...q, [dish.id]: n };
+      // Never more add-ons than portions.
+      if (dish.addOn) next[addOnLineId(dish)] = Math.min(q[addOnLineId(dish)] ?? 0, n);
+      return next;
+    });
+  };
+
+  const stepExtra = (dish: Day["dishes"][number], by: number) => {
+    const key = addOnLineId(dish);
+    setQty((q) => ({ ...q, [key]: Math.max(0, Math.min(q[dish.id] ?? 0, (q[key] ?? 0) + by)) }));
   };
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -87,7 +104,10 @@ export function DinnerOrder() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           date: day.date,
-          items: day.dishes.map((d) => ({ dishId: d.id, quantity: qty[d.id] ?? 0 })),
+          items: day.dishes.flatMap((d) => [
+            { dishId: d.id, quantity: qty[d.id] ?? 0 },
+            ...(d.addOn ? [{ dishId: addOnLineId(d), quantity: qty[addOnLineId(d)] ?? 0 }] : []),
+          ]),
           name: form.get("name"),
           phone: form.get("phone"),
           email: form.get("email"),
@@ -188,6 +208,33 @@ export function DinnerOrder() {
                       +
                     </button>
                   </div>
+                  {d.addOn && n > 0 ? (
+                    <div className="dinners-extra">
+                      <span>
+                        Add {d.addOn.name.toLowerCase()}{" "}
+                        <span className="dinners-extra-price">+{money(d.addOn.priceCents)} each</span>
+                      </span>
+                      <div className="dinners-stepper" aria-label={`How many with ${d.addOn.name.toLowerCase()}`}>
+                        <button
+                          type="button"
+                          onClick={() => stepExtra(d, -1)}
+                          disabled={(qty[addOnLineId(d)] ?? 0) === 0}
+                          aria-label={`One fewer with ${d.addOn.name.toLowerCase()}`}
+                        >
+                          −
+                        </button>
+                        <output aria-live="polite">{qty[addOnLineId(d)] ?? 0}</output>
+                        <button
+                          type="button"
+                          onClick={() => stepExtra(d, 1)}
+                          disabled={(qty[addOnLineId(d)] ?? 0) >= n}
+                          aria-label={`One more with ${d.addOn.name.toLowerCase()}`}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                 </li>
               );
             })}

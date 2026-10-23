@@ -14,27 +14,37 @@ import type { DateKey } from '../booking/data/types.ts'
 
 export type Diet = 'v' | 'gf' | 'df'
 
+/** An extra a guest can add to each portion, e.g. parmesan for $1. */
+export type AddOn = { id: string; name: string; priceCents: number }
+
+export const parmesan: AddOn = { id: 'parmesan', name: 'Parmesan', priceCents: 100 }
+
 export type Dish = {
   /** Stable across the rotation: `w1-mon-5`. Orders and the cap key on it. */
   id: string
   name: string
   priceCents: number
   diet: Diet[]
+  addOn?: AddOn
 }
 
 type Weekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri'
 
-const dish = (week: number, day: Weekday, price: 5 | 10, name: string, diet: Diet[] = []): Dish => ({
+const dish = (week: number, day: Weekday, price: 5 | 10, name: string, diet: Diet[] = [], addOn?: AddOn): Dish => ({
   id: `w${week}-${day}-${price}`,
   name,
   priceCents: price * 100,
   diet,
+  ...(addOn ? { addOn } : {}),
 })
+
+/** An order line for an add-on: `w1-wed-5+parmesan`. Never capped; it rides on its dish. */
+export const addOnLineId = (dish: Dish) => `${dish.id}+${dish.addOn?.id}`
 
 export const dinners = {
   /**
-   * The Monday of the first Week 1. Weeks alternate 1, 2, 1, 2 from here for
-   * as long as the pop-up runs. November 2026 is the trial month.
+   * The Monday of Week 1. Weeks run 1 to 4 from here, then repeat if the
+   * pop-up is extended. November 2026 is the trial month.
    */
   firstMonday: '2026-11-02' as DateKey,
   /** Last pickup date, or null to keep repeating the rotation. */
@@ -43,13 +53,16 @@ export const dinners = {
    * Portions of each dish per day, by price. Sold out at this many. Never shown
    * to guests: Jenny doesn't want the numbers public.
    */
-  portions: { 500: 40, 1000: 60 } as Record<number, number>,
+  portions: { 500: 50, 1000: 100 } as Record<number, number>,
   /** Most of one dish on one day a single order can take. */
   maxPerDish: 10,
   /** Orders for a day close at this time the evening before, venue time. */
   cutoff: '21:00',
-  /** How far ahead a dinner can be ordered. */
-  advanceDays: 14,
+  /**
+   * How far ahead a dinner can be ordered. Long enough to cover the whole
+   * month, so guests can order every week of the menu at once.
+   */
+  advanceDays: 42,
   pickup: { from: '07:00', until: '14:30', label: '7am – 2:30pm' },
   /** Days the pop-up is off (public holidays, closures). Melbourne Cup day. */
   closed: ['2026-11-03'] as DateKey[],
@@ -57,26 +70,74 @@ export const dinners = {
   cancelHours: 24,
   /** How long a checkout holds its portions before they go back on sale. */
   holdMinutes: 20,
+  /**
+   * Jenny's November menu (PDF of 22 Oct 2026): four weeks from the first
+   * Monday, a $5 and a $10 dish each weekday. "+P" dishes offer parmesan.
+   */
   weeks: [
     {
-      mon: [dish(1, 'mon', 5, 'Mac & cheese', ['v']), dish(1, 'mon', 10, 'Beef stew & mash', ['gf'])],
-      tue: [dish(1, 'tue', 5, 'Spag bol', ['df']), dish(1, 'tue', 10, 'Butter chicken & rice', ['gf'])],
-      wed: [dish(1, 'wed', 5, 'Tuna casserole'), dish(1, 'wed', 10, 'Vege chilli con carne & rice', ['gf', 'df'])],
-      thu: [dish(1, 'thu', 5, 'Mushroom & bacon pasta bake'), dish(1, 'thu', 10, 'Teriyaki chicken stir fry', ['df'])],
-      fri: [dish(1, 'fri', 5, 'Pasta arrabbiata', ['v']), dish(1, 'fri', 10, 'Cottage pie', ['gf'])],
+      mon: [dish(1, 'mon', 5, 'Mac & cheese', ['v']), dish(1, 'mon', 10, 'Beef stew & mash potato', ['gf'])],
+      tue: [], // Melbourne Cup: no dinners
+      wed: [
+        dish(1, 'wed', 5, 'Pesto pasta', ['v'], parmesan),
+        dish(1, 'wed', 10, 'Vege chilli con carne & baked potato', ['v', 'gf', 'df']),
+      ],
+      thu: [
+        dish(1, 'thu', 5, 'Mushroom & bacon pasta', [], parmesan),
+        dish(1, 'thu', 10, 'Teriyaki chicken stir fry', ['df']),
+      ],
+      fri: [dish(1, 'fri', 5, 'Pasta arrabbiata', ['v', 'df'], parmesan), dish(1, 'fri', 10, 'Cottage pie', ['gf'])],
     },
     {
       mon: [
-        dish(2, 'mon', 5, 'Sweet chilli mushroom pasta', ['v']),
+        dish(2, 'mon', 5, 'Sweet chilli mushroom pasta', ['v'], parmesan),
         dish(2, 'mon', 10, 'Teriyaki tofu & fried rice', ['v', 'df', 'gf']),
       ],
-      tue: [dish(2, 'tue', 5, 'Pesto pasta', ['v']), dish(2, 'tue', 10, 'Green chicken curry & rice', ['gf', 'df'])],
-      wed: [dish(2, 'wed', 5, 'Mushroom risotto', ['v', 'gf']), dish(2, 'wed', 10, 'Marry me chicken pasta')],
+      tue: [dish(2, 'tue', 5, 'Spag bol', ['df'], parmesan), dish(2, 'tue', 10, 'Butter chicken & rice', ['gf'])],
+      wed: [
+        dish(2, 'wed', 5, 'Mushroom risotto', ['v', 'gf'], parmesan),
+        dish(2, 'wed', 10, 'Marry me chicken pasta', [], parmesan),
+      ],
       thu: [
-        dish(2, 'thu', 5, 'Vodka pasta', ['v']),
+        dish(2, 'thu', 5, 'Vodka pasta', ['v'], parmesan),
         dish(2, 'thu', 10, 'Beef chilli con carne & baked potato', ['gf', 'df']),
       ],
-      fri: [dish(2, 'fri', 5, 'Pasta Napoli', ['v', 'df']), dish(2, 'fri', 10, 'Honey sesame chicken & rice', ['gf'])],
+      fri: [
+        dish(2, 'fri', 5, 'Pasta Napoli', ['v', 'df'], parmesan),
+        dish(2, 'fri', 10, 'Honey sesame chicken & rice', ['gf', 'df']),
+      ],
+    },
+    {
+      mon: [
+        dish(3, 'mon', 5, 'Creamy mushroom pasta', ['v'], parmesan),
+        dish(3, 'mon', 10, 'Beef stew & mash', ['gf']),
+      ],
+      tue: [
+        dish(3, 'tue', 5, 'Caramelised onion & chilli pasta', ['v']),
+        dish(3, 'tue', 10, 'Green chicken curry & rice', ['gf', 'df']),
+      ],
+      wed: [dish(3, 'wed', 5, 'Mac & cheese', ['v']), dish(3, 'wed', 10, 'Lemon rice pilaf & garlic chicken')],
+      thu: [
+        dish(3, 'thu', 5, 'Tuna mornay'),
+        dish(3, 'thu', 10, 'Garlic sesame chicken stir fry & rice', ['gf', 'df']),
+      ],
+      fri: [dish(3, 'fri', 5, 'Spag bol', ['df'], parmesan), dish(3, 'fri', 10, 'Creamy Tuscan chicken pasta')],
+    },
+    {
+      mon: [
+        dish(4, 'mon', 5, 'Pumpkin risotto', ['v'], parmesan),
+        dish(4, 'mon', 10, 'Creamy garlic chicken pasta'),
+      ],
+      tue: [dish(4, 'tue', 5, 'Pesto pasta', ['v'], parmesan), dish(4, 'tue', 10, 'Butter chicken & rice', ['gf'])],
+      wed: [
+        dish(4, 'wed', 5, 'Chickpea & sweet potato curry & rice', ['v', 'gf']),
+        dish(4, 'wed', 10, 'Marry me chicken pasta', [], parmesan),
+      ],
+      thu: [
+        dish(4, 'thu', 5, 'Pasta alfredo', ['v'], parmesan),
+        dish(4, 'thu', 10, 'Beef chilli con carne & baked potato', ['gf', 'df']),
+      ],
+      fri: [dish(4, 'fri', 5, 'Vodka pasta', ['v'], parmesan), dish(4, 'fri', 10, 'Beef stroganoff')],
     },
   ] satisfies Record<Weekday, Dish[]>[],
 }
