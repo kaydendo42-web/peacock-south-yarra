@@ -133,3 +133,12 @@ test("a failing mail provider is logged, never thrown", async (t) => {
   assert.equal(console.error.mock.callCount(), 1);
   await notify(null, "created", booking, {}); // unconfigured: silently nothing
 });
+
+test("Cloudflare sending is used only where the Worker says so", async () => {
+  const { cloudflareMailer, mailerFromEnv, parseAddress } = await import("../src/booking/server/email.ts");
+  assert.equal(cloudflareMailer({ BOOKING_FROM_EMAIL: "The Peacock <bookings@x.au>" }), null);
+  assert.ok(cloudflareMailer({ EMAIL_PROVIDER: "cloudflare", BOOKING_FROM_EMAIL: "The Peacock <bookings@x.au>" }));
+  assert.equal(mailerFromEnv({}), null);
+  assert.deepEqual(parseAddress("The Peacock <bookings@x.au>"), { email: "bookings@x.au", name: "The Peacock" });
+  assert.deepEqual(parseAddress("bookings@x.au"), { email: "bookings@x.au" });
+});

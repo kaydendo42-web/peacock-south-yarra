@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "peacock-south-yarra",
+  "account_id": "f58d6ddc12f9eda04dc964208a9c9806",
+  "main": "worker/entry.ts",
+  "compatibility_date": "2026-10-24",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "binding": "ASSETS",
+    "html_handling": "none",
+    "not_found_handling": "none",
+    "run_worker_first": ["/*", "!/_next/static/*", "!/*/_next/static/*"]
+  },
+  "images": { "binding": "IMAGES" },
+  "send_email": [{ "name": "EMAIL" }],
+  // The 9pm pickup list: two UTC times so one lands at 9pm Melbourne either
+  // side of daylight saving; the route sends only from the one that does.
+  "triggers": { "crons": ["5 10 * * *", "5 11 * * *"] },
+  "routes": [{ "pattern": "www.thepeacock.com.au/*", "zone_name": "thepeacock.com.au" }],
+  "observability": { "enabled": true },
+  "vars": {
+    "EMAIL_PROVIDER": "cloudflare",
+    "SITE_URL": "https://www.thepeacock.com.au",
+    "SUPABASE_URL": "https://pzljcmcnthzklaurzxpa.supabase.co",
+    "PEREGRINE_VENUE_ID": "fb19b599-8b90-4576-b84a-1ff0f4eb1f7e",
+    "SQUARE_ENVIRONMENT": "production",
+    "SQUARE_LOCATION_ID": "L3RTDE91J511F",
+    "BOOKING_FROM_EMAIL": "The Peacock <bookings@thepeacock.com.au>",
+    "CONTACT_FROM_EMAIL": "The Peacock <bookings@thepeacock.com.au>",
+    "CONTACT_TO_EMAIL": "hello@thepeacock.com.au",
+    "BOOKING_NOTIFY_EMAIL": "hello@thepeacock.com.au"
+  }
+}

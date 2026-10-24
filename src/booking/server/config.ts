@@ -1,4 +1,4 @@
-import { resendMailer, type Mailer } from './email'
+import { mailerFromEnv, type Mailer } from './email'
 import { storeFromEnv, type Store } from './store'
 import { service } from '@/booking/data/venue'
 
@@ -23,7 +23,7 @@ export function config(): Config {
   const env = process.env
   cached = {
     store: storeFromEnv(env, service.bufferMinutes),
-    mailer: resendMailer(env),
+    mailer: mailerFromEnv(env),
   }
 
   return cached

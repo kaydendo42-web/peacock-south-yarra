@@ -10,24 +10,37 @@
     "square:check": "node --experimental-strip-types scripts/check-square.mjs",
     "store:check": "node --experimental-strip-types scripts/check-store.mjs",
     "peregrine:seed": "node --experimental-strip-types scripts/peregrine-seed.mjs",
-    "peregrine:import": "node --experimental-strip-types scripts/import-bookings.mjs"
+    "peregrine:import": "node --experimental-strip-types scripts/import-bookings.mjs",
+    "dev:vinext": "vite dev --port 3001",
+    "build:vinext": "vite build",
+    "start:vinext": "vite preview",
+    "deploy:vinext": "vite build && wrangler deploy"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
+    "@vinext/cloudflare": "^1.2.0",
     "next": "16.3.4",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "three": "^0.185.1"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-server-dom-webpack": "^19.3.1",
+    "three": "^0.185.1",
+    "vinext": "^1.3.0"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.65.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.185.4",
+    "@vitejs/plugin-react": "^6.1.2",
+    "@vitejs/plugin-rsc": "^0.5.38",
     "sharp": "^0.35.4",
     "tailwindcss": "^4",
-    "typescript": "^5"
-  }
+    "typescript": "^5",
+    "vite": "^8.3.5",
+    "wrangler": "^4.152.0"
+  },
+  "type": "module"
 }

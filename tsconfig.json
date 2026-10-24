@@ -33,5 +33,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "peregrinetable", "peregrinetable - Copy"]
+  "exclude": ["node_modules", "peregrinetable", "peregrinetable - Copy", "worker"]
 }
