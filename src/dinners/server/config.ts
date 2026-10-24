@@ -1,4 +1,4 @@
-import { resendMailer } from '@/booking/server/email'
+import { mailerFromEnv } from '@/booking/server/email'
 import type { DinnersConfig } from './api'
 import { devPayments, squarePayments } from './square'
 import { dinnerStoreFromEnv } from './store'
@@ -16,7 +16,7 @@ export function dinnersConfig(): DinnersConfig {
   cached = {
     store: dinnerStoreFromEnv(env),
     payments: squarePayments(env) ?? (env.NODE_ENV === 'production' ? null : devPayments()),
-    mailer: resendMailer(env),
+    mailer: mailerFromEnv(env),
     env,
   }
   return cached

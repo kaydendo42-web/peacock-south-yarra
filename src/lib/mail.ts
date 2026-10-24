@@ -1,4 +1,5 @@
 import { site } from "@/lib/site";
+import { cloudflareMailer } from "@/booking/server/email";
 
 export type Enquiry = { name: string; email: string; message: string };
 
@@ -17,6 +18,14 @@ export class MailNotConfiguredError extends Error {
  * silently dropping enquiries when the key is absent.
  */
 export async function sendEnquiry({ name, email, message }: Enquiry): Promise<void> {
+  const to = process.env.CONTACT_TO_EMAIL ?? site.email;
+  const subject = `Website enquiry from ${name}`;
+  const text = `${message}\n\n—\n${name}\n${email}\nSent from ${site.url}/contact-us`;
+
+  // On Workers: Cloudflare Email Service, from the contact address.
+  const cloudflare = cloudflareMailer({ ...process.env, BOOKING_FROM_EMAIL: process.env.CONTACT_FROM_EMAIL });
+  if (cloudflare) return cloudflare.send({ to, subject, text, html: "", replyTo: email });
+
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.CONTACT_FROM_EMAIL;
 
@@ -30,10 +39,10 @@ export async function sendEnquiry({ name, email, message }: Enquiry): Promise<vo
     },
     body: JSON.stringify({
       from,
-      to: [process.env.CONTACT_TO_EMAIL ?? site.email],
+      to: [to],
       reply_to: email,
-      subject: `Website enquiry from ${name}`,
-      text: `${message}\n\n—\n${name}\n${email}\nSent from ${site.url}/contact-us`,
+      subject,
+      text,
     }),
   });
 

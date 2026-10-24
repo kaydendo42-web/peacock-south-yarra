@@ -49,6 +49,33 @@ export function resendMailer(env: NodeJS.ProcessEnv): Mailer | null {
   }
 }
 
+/**
+ * Cloudflare Email Service, through the Worker's EMAIL binding. Only on
+ * Workers, where EMAIL_PROVIDER=cloudflare is set; the binding needs no key.
+ */
+export function cloudflareMailer(env: NodeJS.ProcessEnv): Mailer | null {
+  const from = env.BOOKING_FROM_EMAIL || env.CONTACT_FROM_EMAIL
+  if (env.EMAIL_PROVIDER !== 'cloudflare' || !from) return null
+  const sender = parseAddress(from)
+  return {
+    async send({ to, subject, text, html, replyTo }) {
+      const { env: bindings } = await import('cloudflare:workers')
+      await bindings.EMAIL.send({ from: sender, to, subject, text, ...(html ? { html } : {}), ...(replyTo ? { replyTo } : {}) })
+    },
+  }
+}
+
+/** Cloudflare on Workers, otherwise Resend; null when neither is configured. */
+export function mailerFromEnv(env: NodeJS.ProcessEnv): Mailer | null {
+  return cloudflareMailer(env) ?? resendMailer(env)
+}
+
+/** "The Peacock <bookings@x.au>" → { email, name }; a bare address stays bare. */
+export function parseAddress(from: string): { email: string; name?: string } {
+  const m = from.match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/)
+  return m ? { email: m[2].trim(), ...(m[1].trim() ? { name: m[1].trim() } : {}) } : { email: from.trim() }
+}
+
 /** Where venue alerts go and where guests' replies land. */
 export function venueInbox(env: NodeJS.ProcessEnv): string {
   return env.BOOKING_NOTIFY_EMAIL || env.CONTACT_TO_EMAIL || site.email

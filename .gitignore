@@ -54,3 +54,7 @@ tsconfig.tsbuildinfo
 # Its own git repo; nothing here imports it.
 /peregrinetable/
 /peregrinetable - Copy/
+/dist/
+.vinext/
+.cloudflare/
+.wrangler/
