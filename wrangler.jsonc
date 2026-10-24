@@ -16,6 +16,7 @@
   // The 9pm digest: "5 10 * * *" and "5 11 * * *". Off until the domain moves
   // and the Vercel crons are removed, so Jenny never gets two lists.
   "triggers": { "crons": [] },
+  "routes": [{ "pattern": "www.thepeacock.com.au/*", "zone_name": "thepeacock.com.au" }],
   "observability": { "enabled": true },
   "vars": {
     "EMAIL_PROVIDER": "cloudflare",
