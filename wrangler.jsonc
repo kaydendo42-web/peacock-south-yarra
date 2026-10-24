@@ -13,9 +13,9 @@
   },
   "images": { "binding": "IMAGES" },
   "send_email": [{ "name": "EMAIL" }],
-  // The 9pm digest: "5 10 * * *" and "5 11 * * *". Off until the domain moves
-  // and the Vercel crons are removed, so Jenny never gets two lists.
-  "triggers": { "crons": [] },
+  // The 9pm pickup list: two UTC times so one lands at 9pm Melbourne either
+  // side of daylight saving; the route sends only from the one that does.
+  "triggers": { "crons": ["5 10 * * *", "5 11 * * *"] },
   "routes": [{ "pattern": "www.thepeacock.com.au/*", "zone_name": "thepeacock.com.au" }],
   "observability": { "enabled": true },
   "vars": {
