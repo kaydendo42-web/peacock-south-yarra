@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 export default function ContactPage() {
   const emailReady = Boolean(
-    process.env.RESEND_API_KEY && process.env.CONTACT_FROM_EMAIL,
+    (process.env.RESEND_API_KEY || process.env.EMAIL_PROVIDER === "cloudflare") && process.env.CONTACT_FROM_EMAIL,
   );
   return (
     <>
